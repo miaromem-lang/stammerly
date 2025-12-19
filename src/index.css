@@ -1,96 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
+    /* Core Navy Blue - Authority & Trust */
+    --primary: 232 67% 30%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Vibrant Orange - Kids Energy */
+    --accent-orange: 36 100% 50%;
+    --accent-orange-foreground: 0 0% 100%;
+    
+    /* Sky Blue - Friendly Accent */
+    --accent-sky: 200 80% 55%;
+    --accent-sky-foreground: 0 0% 100%;
+    
+    /* Clean Backgrounds */
+    --background: 220 20% 97%;
+    --foreground: 232 67% 15%;
+    
+    /* Cards & Surfaces */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
+    --card-foreground: 232 67% 15%;
+    
+    /* Glassmorphism Surface */
+    --glass: 0 0% 100%;
+    --glass-border: 0 0% 100%;
+    
+    /* Muted Elements */
+    --muted: 220 14% 90%;
+    --muted-foreground: 220 10% 40%;
+    
+    /* Secondary */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 232 67% 20%;
+    
+    /* Popover */
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
-
+    --popover-foreground: 232 67% 15%;
+    
+    /* Success Green - Fluent Speech */
+    --success: 142 76% 45%;
+    --success-foreground: 0 0% 100%;
+    
+    /* Gold - Achievement */
+    --gold: 45 93% 55%;
+    --gold-foreground: 0 0% 10%;
+    
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Border & Input */
+    --border: 220 13% 88%;
+    --input: 220 13% 88%;
+    --ring: 232 67% 30%;
+    
+    --radius: 0.75rem;
+    --radius-kids: 1.875rem;
+    
+    /* Sidebar */
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
+    --sidebar-primary: 232 67% 30%;
     --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 232 67% 30%;
     --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 232 67% 50%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 232 40% 8%;
     --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
+    --card: 232 40% 12%;
     --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
+    --popover: 232 40% 10%;
     --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
+    --primary: 200 80% 55%;
+    --primary-foreground: 232 67% 10%;
+    --secondary: 232 30% 18%;
     --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --muted: 232 30% 18%;
+    --muted-foreground: 215 20% 65%;
+    --accent-orange: 36 100% 50%;
+    --accent-sky: 200 80% 55%;
+    --border: 232 30% 22%;
+    --input: 232 30% 22%;
+    --ring: 200 80% 55%;
+    --glass: 232 40% 15%;
+    --glass-border: 232 30% 25%;
   }
 }
 
@@ -98,8 +100,191 @@ All colors MUST be HSL.
   * {
     @apply border-border;
   }
-
+  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', sans-serif;
   }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
+  }
+}
+
+@layer components {
+  /* Glassmorphism Card */
+  .glass-card {
+    @apply bg-glass/70 backdrop-blur-xl border border-glass-border/30 shadow-xl;
+  }
+  
+  .glass-card-strong {
+    @apply bg-glass/85 backdrop-blur-2xl border border-glass-border/40 shadow-2xl;
+  }
+  
+  /* Paper Cutout Style for Kids */
+  .paper-cutout {
+    @apply relative bg-card rounded-[30px] shadow-[8px_8px_0px_0px] shadow-accent-orange/30;
+    transform: perspective(1000px) rotateX(2deg);
+  }
+  
+  /* Floating Animation */
+  .float-animation {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  /* Pulse Glow for Microphone */
+  .pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  
+  /* Waveform Gradient */
+  .waveform-gradient {
+    background: linear-gradient(90deg, hsl(var(--success)), hsl(var(--gold)));
+  }
+  
+  /* Role Card Hover */
+  .role-card {
+    @apply transition-all duration-300 ease-out;
+  }
+  
+  .role-card:hover {
+    @apply scale-105 shadow-2xl;
+  }
+  
+  /* Kids Button */
+  .btn-kids {
+    @apply rounded-[30px] bg-accent-orange text-accent-orange-foreground font-semibold px-8 py-4 shadow-lg transition-all duration-200;
+  }
+  
+  .btn-kids:hover {
+    @apply scale-110 shadow-xl;
+  }
+  
+  /* Bento Grid */
+  .bento-grid {
+    @apply grid gap-6;
+  }
+  
+  /* Skeleton Loader */
+  .skeleton-loader {
+    @apply animate-pulse bg-muted rounded;
+  }
+}
+
+@layer utilities {
+  /* Custom Colors */
+  .bg-accent-orange {
+    background-color: hsl(var(--accent-orange));
+  }
+  
+  .text-accent-orange {
+    color: hsl(var(--accent-orange));
+  }
+  
+  .bg-accent-sky {
+    background-color: hsl(var(--accent-sky));
+  }
+  
+  .text-accent-sky {
+    color: hsl(var(--accent-sky));
+  }
+  
+  .bg-success {
+    background-color: hsl(var(--success));
+  }
+  
+  .text-success {
+    color: hsl(var(--success));
+  }
+  
+  .bg-gold {
+    background-color: hsl(var(--gold));
+  }
+  
+  .text-gold {
+    color: hsl(var(--gold));
+  }
+  
+  .bg-glass {
+    background-color: hsl(var(--glass));
+  }
+  
+  .border-glass-border {
+    border-color: hsl(var(--glass-border));
+  }
+  
+  /* Navy Gradient */
+  .gradient-navy {
+    background: linear-gradient(135deg, hsl(232 67% 30%), hsl(232 67% 20%));
+  }
+  
+  /* Orange Gradient for Kids */
+  .gradient-orange {
+    background: linear-gradient(135deg, hsl(36 100% 50%), hsl(25 100% 55%));
+  }
+  
+  /* Sky Gradient */
+  .gradient-sky {
+    background: linear-gradient(135deg, hsl(200 80% 55%), hsl(200 80% 45%));
+  }
+  
+  /* Success Gradient */
+  .gradient-success {
+    background: linear-gradient(135deg, hsl(142 76% 45%), hsl(142 76% 35%));
+  }
+}
+
+/* Keyframes */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(2deg);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px hsl(var(--accent-sky) / 0.5);
+  }
+  50% {
+    box-shadow: 0 0 40px hsl(var(--accent-sky) / 0.8), 0 0 60px hsl(var(--accent-sky) / 0.4);
+  }
+}
+
+@keyframes wave {
+  0% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.5);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+/* Quest Path Animation */
+@keyframes path-pulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Badge Bounce */
+@keyframes badge-bounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.animate-badge-bounce {
+  animation: badge-bounce 2s ease-in-out infinite;
 }
