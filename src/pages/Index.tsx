@@ -8,6 +8,8 @@ import { TherapistPortal } from "@/components/TherapistPortal";
 import { DataLoop } from "@/components/DataLoop";
 import { EthicsSection } from "@/components/EthicsSection";
 import { PricingSection } from "@/components/PricingSection";
+import { ProgressCharts } from "@/components/ProgressCharts";
+import { DailyAIReport } from "@/components/DailyAIReport";
 import { Footer } from "@/components/Footer";
 import { Helmet } from "react-helmet-async";
 
@@ -38,8 +40,14 @@ const Index = () => {
           <KidsPlayground />
         </section>
         
-        {/* CARD 4: Practice Card Technical Preview */}
+        {/* CARD 4: Practice Card Technical Preview with Speech Recording */}
         <PracticeCard />
+        
+        {/* NEW: Progress Charts */}
+        <ProgressCharts />
+        
+        {/* NEW: Daily AI Report */}
+        <DailyAIReport />
         
         {/* CARD 5: Parent Dashboard */}
         <section id="parent-section">
