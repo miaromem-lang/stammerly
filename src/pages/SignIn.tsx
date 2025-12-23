@@ -44,8 +44,9 @@ const SignIn = () => {
 
   const handleSignIn = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement actual sign-in logic
-    console.log("Sign in:", { hub: selectedHub, email, password });
+    if (selectedHub) {
+      navigate(`/hub/${selectedHub}`);
+    }
   };
 
   return (
