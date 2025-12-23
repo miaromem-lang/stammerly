@@ -77,12 +77,6 @@ const Team = () => {
                     </a>
                   </div>
 
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <GraduationCap className="w-4 h-4" />
-                      <span>UCL SENDTech Challenge Winner</span>
-                    </div>
-                  </div>
 
                   {/* Bio Text Area - Empty for now */}
                   <div className="mt-6">
@@ -107,18 +101,6 @@ const Team = () => {
             ))}
           </div>
 
-          {/* UCL Badge */}
-          <Card className="mb-12 border-none shadow-xl bg-gradient-to-r from-amber-500/10 to-yellow-500/10">
-            <CardContent className="p-8 text-center">
-              <div className="inline-flex items-center gap-3 px-6 py-3 bg-card rounded-full shadow-md mb-6">
-                <span className="text-2xl">🏆</span>
-                <span className="font-bold text-foreground">1st Place - UCL SENDTech Challenge 2024</span>
-              </div>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Our team won first place at the UCL SENDTech Challenge, a collaborative initiative between Edtech Access and the UCL Institute of Education and Faculty of Engineering.
-              </p>
-            </CardContent>
-          </Card>
 
           <div className="flex flex-wrap gap-4 justify-center">
             <Button asChild size="lg" className="rounded-full">
