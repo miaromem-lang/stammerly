@@ -2,7 +2,12 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sparkles, ArrowLeft, BarChart3, Users, Calendar, FileText, TrendingUp, Smartphone, Upload, Play } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Sparkles, ArrowLeft, BarChart3, Users, Calendar, FileText, TrendingUp, Smartphone, Upload, Play, Plus, Save, X } from "lucide-react";
 import { toast } from "sonner";
 
 const patients = [
@@ -11,16 +16,34 @@ const patients = [
   { id: 3, name: "Sam T.", age: 7, nextSession: "Wed, 3:30 PM", progress: "+22%", risk: "low" },
 ];
 
-const exercises = [
-  { id: 1, name: "Easy Onset Quest", category: "Onset", difficulty: "Beginner" },
-  { id: 2, name: "Slow Speech Safari", category: "Rate", difficulty: "Intermediate" },
-  { id: 3, name: "Breathing Bubbles", category: "Breathing", difficulty: "Beginner" },
-  { id: 4, name: "Word Mountain", category: "Complexity", difficulty: "Advanced" },
-];
+interface Exercise {
+  id: number;
+  name: string;
+  category: string;
+  difficulty: string;
+  custom?: boolean;
+}
 
 const TherapistHub = () => {
   const navigate = useNavigate();
   const [draggedExercise, setDraggedExercise] = useState<number | null>(null);
+  const [isBuilderOpen, setIsBuilderOpen] = useState(false);
+  const [exercises, setExercises] = useState<Exercise[]>([
+    { id: 1, name: "Easy Onset Quest", category: "Onset", difficulty: "Beginner" },
+    { id: 2, name: "Slow Speech Safari", category: "Rate", difficulty: "Intermediate" },
+    { id: 3, name: "Breathing Bubbles", category: "Breathing", difficulty: "Beginner" },
+    { id: 4, name: "Word Mountain", category: "Complexity", difficulty: "Advanced" },
+  ]);
+  
+  // New exercise form state
+  const [newExercise, setNewExercise] = useState({
+    name: "",
+    category: "",
+    difficulty: "",
+    targetPhrase: "",
+    instructions: "",
+    focusArea: "",
+  });
 
   const handleConnectApp = () => {
     toast.success("Clinical app connection initiated - sync all patient recording data");
@@ -29,6 +52,26 @@ const TherapistHub = () => {
   const handlePushExercise = (exerciseId: number, patientName: string) => {
     const exercise = exercises.find(e => e.id === exerciseId);
     toast.success(`${exercise?.name} pushed to ${patientName}'s app`);
+  };
+
+  const handleCreateExercise = () => {
+    if (!newExercise.name || !newExercise.category || !newExercise.difficulty) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    const newEx: Exercise = {
+      id: exercises.length + 1,
+      name: newExercise.name,
+      category: newExercise.category,
+      difficulty: newExercise.difficulty,
+      custom: true,
+    };
+
+    setExercises([...exercises, newEx]);
+    setNewExercise({ name: "", category: "", difficulty: "", targetPhrase: "", instructions: "", focusArea: "" });
+    setIsBuilderOpen(false);
+    toast.success(`"${newExercise.name}" exercise created successfully!`);
   };
 
   return (
@@ -90,10 +133,130 @@ const TherapistHub = () => {
             {/* Exercise Library */}
             <Card className="bg-slate-800/50 border-slate-700">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <FileText className="w-5 h-5 text-gold" />
-                  Exercise Library
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-white">
+                    <FileText className="w-5 h-5 text-gold" />
+                    Exercise Library
+                  </CardTitle>
+                  <Dialog open={isBuilderOpen} onOpenChange={setIsBuilderOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-slate-400 hover:text-white">
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="bg-slate-800 border-slate-700 text-white max-w-lg">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <Plus className="w-5 h-5 text-primary" />
+                          Build New Exercise
+                        </DialogTitle>
+                      </DialogHeader>
+                      
+                      <div className="space-y-4 mt-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="name">Exercise Name *</Label>
+                          <Input 
+                            id="name"
+                            placeholder="e.g., Gentle Start Sentences"
+                            value={newExercise.name}
+                            onChange={(e) => setNewExercise({ ...newExercise, name: e.target.value })}
+                            className="bg-slate-700 border-slate-600"
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Category *</Label>
+                            <Select 
+                              value={newExercise.category} 
+                              onValueChange={(val) => setNewExercise({ ...newExercise, category: val })}
+                            >
+                              <SelectTrigger className="bg-slate-700 border-slate-600">
+                                <SelectValue placeholder="Select..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Onset">Onset</SelectItem>
+                                <SelectItem value="Rate">Rate</SelectItem>
+                                <SelectItem value="Breathing">Breathing</SelectItem>
+                                <SelectItem value="Complexity">Complexity</SelectItem>
+                                <SelectItem value="Fluency">Fluency</SelectItem>
+                                <SelectItem value="Articulation">Articulation</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>Difficulty *</Label>
+                            <Select 
+                              value={newExercise.difficulty}
+                              onValueChange={(val) => setNewExercise({ ...newExercise, difficulty: val })}
+                            >
+                              <SelectTrigger className="bg-slate-700 border-slate-600">
+                                <SelectValue placeholder="Select..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Beginner">Beginner</SelectItem>
+                                <SelectItem value="Intermediate">Intermediate</SelectItem>
+                                <SelectItem value="Advanced">Advanced</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="phrase">Target Phrase/Sentence</Label>
+                          <Input 
+                            id="phrase"
+                            placeholder="e.g., Sally saw the sun shine softly"
+                            value={newExercise.targetPhrase}
+                            onChange={(e) => setNewExercise({ ...newExercise, targetPhrase: e.target.value })}
+                            className="bg-slate-700 border-slate-600"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="focus">Focus Area</Label>
+                          <Input 
+                            id="focus"
+                            placeholder="e.g., /s/ sound onset, word-initial position"
+                            value={newExercise.focusArea}
+                            onChange={(e) => setNewExercise({ ...newExercise, focusArea: e.target.value })}
+                            className="bg-slate-700 border-slate-600"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="instructions">Instructions for Child</Label>
+                          <Textarea 
+                            id="instructions"
+                            placeholder="e.g., Say each word slowly, stretching the first sound..."
+                            value={newExercise.instructions}
+                            onChange={(e) => setNewExercise({ ...newExercise, instructions: e.target.value })}
+                            className="bg-slate-700 border-slate-600 min-h-[80px]"
+                          />
+                        </div>
+                        
+                        <div className="flex gap-3 pt-2">
+                          <Button 
+                            variant="outline" 
+                            className="flex-1 border-slate-600"
+                            onClick={() => setIsBuilderOpen(false)}
+                          >
+                            <X className="w-4 h-4 mr-2" />
+                            Cancel
+                          </Button>
+                          <Button 
+                            className="flex-1"
+                            onClick={handleCreateExercise}
+                          >
+                            <Save className="w-4 h-4 mr-2" />
+                            Create Exercise
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </CardHeader>
               <CardContent className="space-y-2">
                 {exercises.map((exercise) => (
@@ -106,7 +269,14 @@ const TherapistHub = () => {
                       draggedExercise === exercise.id ? "opacity-50 scale-95" : "hover:bg-slate-700"
                     }`}
                   >
-                    <p className="font-medium text-sm">{exercise.name}</p>
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium text-sm">{exercise.name}</p>
+                      {exercise.custom && (
+                        <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full">
+                          Custom
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-slate-400">{exercise.category} • {exercise.difficulty}</p>
                   </div>
                 ))}
