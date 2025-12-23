@@ -23,56 +23,68 @@ const practiceExercises = [
   { 
     id: 1, 
     title: "Easy Onset", 
-    description: "Start words smoothly", 
+    description: "Start words smoothly with gentle beginnings", 
     icon: "🌊", 
     difficulty: "Beginner",
     color: "from-blue-500/20 to-cyan-500/10",
-    route: "/practice"
+    phrases: ["Hello, how are you?", "I like ice cream", "Open the door please"],
+    teacherNote: "Focus on soft voice starts",
+    aiEnabled: true
   },
   { 
     id: 2, 
     title: "Light Contact", 
-    description: "Gentle sound touches", 
+    description: "Touch sounds gently like a feather", 
     icon: "🪶", 
     difficulty: "Beginner",
     color: "from-green-500/20 to-emerald-500/10",
-    route: "/practice"
+    phrases: ["Peter picked peppers", "Big brown bear", "Tiny tiger toes"],
+    teacherNote: "Gentle articulator placement",
+    aiEnabled: true
   },
   { 
     id: 3, 
     title: "Slow & Steady", 
-    description: "Practice pacing", 
+    description: "Practice calm, relaxed pacing", 
     icon: "🐢", 
     difficulty: "Intermediate",
     color: "from-amber-500/20 to-yellow-500/10",
-    route: "/practice"
+    phrases: ["The lazy dog sleeps", "Walking through the park", "Reading my favourite book"],
+    teacherNote: "Reduce speech rate naturally",
+    aiEnabled: true
   },
   { 
     id: 4, 
     title: "Phrase Power", 
-    description: "Connect your words", 
+    description: "Connect your words in smooth chains", 
     icon: "🔗", 
     difficulty: "Intermediate",
     color: "from-purple-500/20 to-pink-500/10",
-    route: "/practice"
+    phrases: ["I want to go outside", "Can you help me please?", "My friend lives nearby"],
+    teacherNote: "Link words without pausing",
+    aiEnabled: true
   },
   { 
     id: 5, 
     title: "Story Reading", 
-    description: "Read aloud practice", 
+    description: "Read fun stories aloud with expression", 
     icon: "📖", 
     difficulty: "Advanced",
     color: "from-rose-500/20 to-red-500/10",
-    route: "/practice"
+    phrases: ["Once upon a time, there was a brave knight", "The magical forest was full of surprises", "And they all lived happily ever after"],
+    teacherNote: "Apply techniques to longer passages",
+    aiEnabled: true
   },
   { 
     id: 6, 
     title: "Free Talk", 
-    description: "Speak your mind!", 
+    description: "Share your thoughts and feelings!", 
     icon: "💬", 
     difficulty: "Advanced",
     color: "from-indigo-500/20 to-violet-500/10",
-    route: "/practice"
+    phrases: ["Tell me about your favourite game", "What did you do today?", "Describe your best friend"],
+    teacherNote: "Transfer skills to spontaneous speech",
+    aiEnabled: true
   },
 ];
 
@@ -223,43 +235,39 @@ const KidHub = () => {
                     {practiceExercises.map((exercise) => (
                       <button
                         key={exercise.id}
-                        onClick={() => navigate(exercise.route)}
+                        onClick={() => navigate("/practice")}
                         className={`p-4 rounded-kids bg-gradient-to-br ${exercise.color} border border-border/50 text-left transition-all hover:scale-[1.02] hover:shadow-lg group`}
                       >
                         <div className="flex items-start gap-3">
                           <span className="text-3xl group-hover:scale-110 transition-transform">{exercise.icon}</span>
                           <div className="flex-1">
-                            <h4 className="font-display font-semibold text-foreground">{exercise.title}</h4>
-                            <p className="text-sm text-muted-foreground">{exercise.description}</p>
-                            <span className={`inline-block mt-2 text-xs px-2 py-1 rounded-full ${
-                              exercise.difficulty === 'Beginner' ? 'bg-success/20 text-success' :
-                              exercise.difficulty === 'Intermediate' ? 'bg-amber-500/20 text-amber-600' :
-                              'bg-purple-500/20 text-purple-600'
-                            }`}>
-                              {exercise.difficulty}
-                            </span>
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-display font-semibold text-foreground">{exercise.title}</h4>
+                              {exercise.aiEnabled && (
+                                <Sparkles className="w-4 h-4 text-primary" />
+                              )}
+                            </div>
+                            <p className="text-sm text-muted-foreground mb-2">{exercise.description}</p>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className={`text-xs px-2 py-1 rounded-full ${
+                                exercise.difficulty === 'Beginner' ? 'bg-success/20 text-success' :
+                                exercise.difficulty === 'Intermediate' ? 'bg-amber-500/20 text-amber-600' :
+                                'bg-purple-500/20 text-purple-600'
+                              }`}>
+                                {exercise.difficulty}
+                              </span>
+                              <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
+                                AI + Therapist
+                              </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-2 italic">
+                              📝 {exercise.teacherNote}
+                            </p>
                           </div>
                           <Play className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                         </div>
                       </button>
                     ))}
-                  </div>
-
-                  {/* AI + Teacher Mixed Exercises */}
-                  <div className="mt-6 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-kids border-2 border-primary/20">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                        <Sparkles className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <h4 className="font-display font-bold text-foreground">Personalised Practice</h4>
-                        <p className="text-sm text-muted-foreground">AI + Teacher exercises just for you!</p>
-                      </div>
-                    </div>
-                    <Button className="w-full rounded-kids" onClick={() => navigate("/practice")}>
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Start My Custom Session
-                    </Button>
                   </div>
                 </CardContent>
               </Card>

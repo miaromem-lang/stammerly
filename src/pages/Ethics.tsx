@@ -10,7 +10,6 @@ import { toast } from "sonner";
 const badges = [
   { name: "HIPAA", icon: Shield },
   { name: "UK GDPR", icon: Lock },
-  { name: "UCL Ethics", icon: UserCheck },
 ];
 
 const Ethics = () => {
@@ -60,7 +59,7 @@ const Ethics = () => {
           <div className="text-center max-w-3xl mx-auto mb-12">
             <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full mb-6">
               <Shield className="w-4 h-4" />
-              <span className="text-sm font-medium">UCL DUTE Standards</span>
+              <span className="text-sm font-medium">Ethical AI Standards</span>
             </div>
             <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
               Human-Centred AI & Data Sovereignty

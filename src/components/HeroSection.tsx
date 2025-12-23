@@ -14,21 +14,21 @@ const hubs = [
     id: "parent",
     label: "Parent Hub",
     icon: Users,
-    color: "gradient-navy",
+    color: "bg-primary",
     description: "Track progress at home",
   },
   {
     id: "teacher",
     label: "Teacher Hub",
     icon: GraduationCap,
-    color: "gradient-navy",
+    color: "bg-secondary",
     description: "Classroom support tools",
   },
   {
     id: "therapist",
     label: "Therapist Hub",
     icon: Stethoscope,
-    color: "gradient-navy",
+    color: "bg-success",
     description: "Clinical analytics",
   },
 ];
@@ -108,8 +108,8 @@ export const HeroSection = () => {
               <button
                 key={hub.id}
                 onClick={() => navigate("/signin")}
-                className={`group relative overflow-hidden rounded-2xl p-8 text-left transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
-                  isKid ? "rounded-kids bg-accent-orange text-primary-foreground" : "gradient-navy text-primary-foreground"
+                className={`group relative overflow-hidden rounded-2xl p-8 text-left transition-all duration-300 hover:scale-105 hover:shadow-2xl ${hub.color} text-primary-foreground ${
+                  isKid ? "rounded-kids" : ""
                 }`}
               >
                 <div className="inline-flex p-4 rounded-2xl mb-4 bg-primary-foreground/20">
