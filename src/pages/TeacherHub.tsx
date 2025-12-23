@@ -50,7 +50,7 @@ const TeacherHub = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white">
       {/* Top Navigation */}
       <HubNavigation />
       
