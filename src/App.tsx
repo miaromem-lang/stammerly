@@ -12,6 +12,8 @@ import TeacherHub from "./pages/TeacherHub";
 import TherapistHub from "./pages/TherapistHub";
 import Practice from "./pages/Practice";
 import Analytics from "./pages/Analytics";
+import About from "./pages/About";
+import Ethics from "./pages/Ethics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +34,8 @@ const App = () => (
             <Route path="/hub/therapist" element={<TherapistHub />} />
             <Route path="/practice" element={<Practice />} />
             <Route path="/analytics/:role" element={<Analytics />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/ethics" element={<Ethics />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
