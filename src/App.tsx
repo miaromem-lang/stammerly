@@ -13,6 +13,13 @@ import TherapistHub from "./pages/TherapistHub";
 import Practice from "./pages/Practice";
 import Analytics from "./pages/Analytics";
 import About from "./pages/About";
+import OurStory from "./pages/OurStory";
+import Mission from "./pages/Mission";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import Research from "./pages/Research";
+import Contact from "./pages/Contact";
+import Team from "./pages/Team";
+import Reviews from "./pages/Reviews";
 import Ethics from "./pages/Ethics";
 import NotFound from "./pages/NotFound";
 
@@ -35,6 +42,13 @@ const App = () => (
             <Route path="/practice" element={<Practice />} />
             <Route path="/analytics/:role" element={<Analytics />} />
             <Route path="/about" element={<About />} />
+            <Route path="/our-story" element={<OurStory />} />
+            <Route path="/mission" element={<Mission />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/research" element={<Research />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/team" element={<Team />} />
+            <Route path="/reviews" element={<Reviews />} />
             <Route path="/ethics" element={<Ethics />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
