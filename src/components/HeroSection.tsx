@@ -85,11 +85,8 @@ export const HeroSection = () => {
             <span className="text-sm font-medium">The Circle of Support</span>
           </div>
           
-          <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-tight mb-6">
-            Empowering{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
-              every voice
-            </span>
+          <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold text-black leading-tight mb-6">
+            Empowering every voice
           </h1>
           
           <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
