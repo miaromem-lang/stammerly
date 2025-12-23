@@ -96,13 +96,6 @@ const Mission = () => {
             </div>
           </div>
 
-          <Card className="border-none shadow-xl bg-card/80 backdrop-blur-sm mb-12">
-            <CardContent className="p-8 text-center">
-              <p className="text-lg text-muted-foreground mb-6">
-                Following the platform's success at the University College London (UCL) SENDTech Challenge, these values guide Stammerly's ethical integration into schools, aligning with our focus on curriculum redesign and ethical AI adoption.
-              </p>
-            </CardContent>
-          </Card>
 
           <div className="flex flex-wrap gap-4 justify-center">
             <Button asChild size="lg" className="rounded-full">

@@ -25,9 +25,9 @@ const OurStory = () => {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-              Our <span className="text-secondary">Story</span>
+              Our <span className="text-primary text-5xl md:text-6xl">Story</span>
             </h1>
-            <div className="w-24 h-1 bg-gradient-to-r from-secondary to-primary mx-auto rounded-full" />
+            <div className="w-24 h-1 bg-gradient-to-r from-primary to-secondary mx-auto rounded-full" />
           </div>
 
           <Card className="mb-8 border-none shadow-xl bg-card/80 backdrop-blur-sm overflow-hidden">
@@ -47,15 +47,64 @@ const OurStory = () => {
             </CardContent>
           </Card>
 
+          {/* The Psycho-Social Problem */}
           <Card className="mb-8 border-none shadow-xl bg-gradient-to-br from-destructive/5 to-destructive/10">
             <CardContent className="p-8">
-              <h3 className="text-2xl font-bold text-foreground mb-4">The Real Problem</h3>
+              <h3 className="text-2xl font-bold text-foreground mb-4">The Psycho-Social and Systemic Gaps</h3>
               <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                Stammering creates a profound emotional burden. People who stammer experience high levels of anxiety and embarrassment that persist across their lifespan. This leads to avoidance behaviours and, often, a <strong className="text-foreground">30% to 60% increased risk</strong> of feeling incompetent in academic and professional settings (Parsons et al., 2021).
+                The foundation of Stammerly is the evidence that stammering is a <strong className="text-foreground">complex neurodevelopmental communication disorder</strong> with a profound and often undertreated psychosocial burden, compounded by systemic gaps in service delivery (Connery et al., 2020; Etchell et al., 2017).
+              </p>
+              <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+                Stuttering is a disruption of speech flow (Ruzalina et al., 2023). However, the major impact is not solely the disfluency but the <strong className="text-foreground">chronic anxiety, shame, and low confidence</strong> that it generates (Parsons et al., 2021). The emotional burden is substantial, often leading to avoidance behaviours in both the workplace and school settings, where individuals actively minimise exposure to stressful speaking situations.
               </p>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                The real problem is a crisis of confidence and lack of available services. The current system fails to address this. Traditional interventions focus narrowly on symptomatic fluency (Mallick et al., 2021), and there is a dire lack of scalable, personalised tools that bridge the gap between the clinic and real life.
+                Most working people who stammer report high levels of anxiety and shame, with many self-selecting into less verbally demanding roles (Parsons et al., 2021). Stammerly is designed to address this by moving beyond the functional, body-centred focus of many past interventions, which largely failed to address the acknowledged psychosocial complexity of the disorder (Mallick et al., 2021).
               </p>
+            </CardContent>
+          </Card>
+
+          {/* Service Delivery Gap */}
+          <Card className="mb-8 border-none shadow-xl bg-card/80 backdrop-blur-sm">
+            <CardContent className="p-8">
+              <h3 className="text-2xl font-bold text-foreground mb-6">The Service Delivery Gap</h3>
+              
+              <div className="space-y-6">
+                <div className="flex gap-4">
+                  <div className="w-8 h-8 bg-destructive/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <span className="font-bold text-destructive">1</span>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-2">Specialist Scarcity</h4>
+                    <p className="text-muted-foreground">
+                      The lack of sufficient specialist SLP support, coupled with the challenge of low SLP perceived competence in managing complex stuttering cases, highlights a major service gap (Alegre et al., 2025). The most significant gaps in the early years (0-5) remain in high-quality identification tools and scalable, universal or targeted interventions specifically for stammering (McKean et al., 2025).
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-4">
+                  <div className="w-8 h-8 bg-destructive/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <span className="font-bold text-destructive">2</span>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-2">Low-Quality Evidence Base</h4>
+                    <p className="text-muted-foreground">
+                      Interventions for school-aged children are particularly limited in number, and the methodological quality of existing evidence is generally low due to a lack of control groups, blinding, and randomisation (Mallick et al., 2021). This has resulted in a historic focus on symptomatic fluency measures, which contrasts with the acknowledged complexity of the disorder.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-4">
+                  <div className="w-8 h-8 bg-destructive/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <span className="font-bold text-destructive">3</span>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-2">Need for Carry-Over</h4>
+                    <p className="text-muted-foreground">
+                      Clients consistently express dissatisfaction with therapy that fails to meet their individual needs and a desire for ongoing support and help with the carry-over of skills from the therapy clinic to the real world (Hayhow et al., 2002).
+                    </p>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -71,14 +120,15 @@ const OurStory = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-none shadow-lg bg-gradient-to-br from-secondary/10 to-transparent">
+            <Card className="border-none shadow-lg bg-gradient-to-br from-destructive/10 to-destructive/5 border-2 border-destructive/20">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <Clock className="w-8 h-8 text-secondary" />
-                  <h3 className="text-xl font-bold text-foreground">The Wait</h3>
+                  <Clock className="w-8 h-8 text-destructive" />
+                  <h3 className="text-xl font-bold text-foreground">The Crisis</h3>
                 </div>
-                <p className="text-3xl font-bold text-secondary mb-2">50,000+</p>
-                <p className="text-muted-foreground">children waiting 12-18 months for professional help</p>
+                <p className="text-4xl md:text-5xl font-bold text-destructive mb-2">50,000+</p>
+                <p className="text-lg font-medium text-foreground mb-1">Children on Waiting Lists</p>
+                <p className="text-muted-foreground">Waiting 12-18 months for professional speech therapy help</p>
               </CardContent>
             </Card>
           </div>
