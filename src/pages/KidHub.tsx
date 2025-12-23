@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Play, Star, Trophy, Target, Zap, MapPin, Flame, BookOpen, Mic, MessageCircle, Sparkles } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ArrowLeft, Play, Star, Trophy, Target, Zap, MapPin, Flame, BookOpen, Mic, Sparkles, Settings } from "lucide-react";
 
 const questLevels = [
   { id: 1, name: "Easy Start", completed: true, gems: 12 },
@@ -19,6 +20,14 @@ const badges = [
   { id: 4, name: "Super Star", emoji: "⭐", earned: false },
 ];
 
+const characters = [
+  { id: "otter", name: "Echo the Otter", emoji: "🦦", color: "from-cyan-400 to-blue-500", personality: "playful and encouraging" },
+  { id: "owl", name: "Luna the Owl", emoji: "🦉", color: "from-purple-400 to-indigo-500", personality: "wise and patient" },
+  { id: "fox", name: "Finn the Fox", emoji: "🦊", color: "from-orange-400 to-red-500", personality: "clever and adventurous" },
+  { id: "bunny", name: "Bella the Bunny", emoji: "🐰", color: "from-pink-400 to-rose-500", personality: "gentle and kind" },
+  { id: "monkey", name: "Max the Monkey", emoji: "🐵", color: "from-amber-400 to-yellow-500", personality: "fun and silly" },
+];
+
 const practiceExercises = [
   { 
     id: 1, 
@@ -29,7 +38,8 @@ const practiceExercises = [
     color: "from-blue-500/20 to-cyan-500/10",
     phrases: ["Hello, how are you?", "I like ice cream", "Open the door please"],
     teacherNote: "Focus on soft voice starts",
-    aiEnabled: true
+    aiEnabled: true,
+    type: "practice"
   },
   { 
     id: 2, 
@@ -40,7 +50,8 @@ const practiceExercises = [
     color: "from-green-500/20 to-emerald-500/10",
     phrases: ["Peter picked peppers", "Big brown bear", "Tiny tiger toes"],
     teacherNote: "Gentle articulator placement",
-    aiEnabled: true
+    aiEnabled: true,
+    type: "practice"
   },
   { 
     id: 3, 
@@ -51,7 +62,8 @@ const practiceExercises = [
     color: "from-amber-500/20 to-yellow-500/10",
     phrases: ["The lazy dog sleeps", "Walking through the park", "Reading my favourite book"],
     teacherNote: "Reduce speech rate naturally",
-    aiEnabled: true
+    aiEnabled: true,
+    type: "practice"
   },
   { 
     id: 4, 
@@ -62,7 +74,8 @@ const practiceExercises = [
     color: "from-purple-500/20 to-pink-500/10",
     phrases: ["I want to go outside", "Can you help me please?", "My friend lives nearby"],
     teacherNote: "Link words without pausing",
-    aiEnabled: true
+    aiEnabled: true,
+    type: "practice"
   },
   { 
     id: 5, 
@@ -71,26 +84,40 @@ const practiceExercises = [
     icon: "📖", 
     difficulty: "Advanced",
     color: "from-rose-500/20 to-red-500/10",
-    phrases: ["Once upon a time, there was a brave knight", "The magical forest was full of surprises", "And they all lived happily ever after"],
+    phrases: [],
     teacherNote: "Apply techniques to longer passages",
-    aiEnabled: true
+    aiEnabled: true,
+    type: "story"
   },
   { 
     id: 6, 
     title: "Free Talk", 
-    description: "Share your thoughts and feelings!", 
+    description: "Chat with your animal buddy!", 
     icon: "💬", 
     difficulty: "Advanced",
     color: "from-indigo-500/20 to-violet-500/10",
-    phrases: ["Tell me about your favourite game", "What did you do today?", "Describe your best friend"],
+    phrases: [],
     teacherNote: "Transfer skills to spontaneous speech",
-    aiEnabled: true
+    aiEnabled: true,
+    type: "chat"
   },
 ];
 
 const KidHub = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'quests' | 'practice'>('quests');
+  const [selectedCharacter, setSelectedCharacter] = useState(characters[0]);
+  const [showCharacterPicker, setShowCharacterPicker] = useState(false);
+
+  const handleExerciseClick = (exercise: typeof practiceExercises[0]) => {
+    if (exercise.type === "story") {
+      navigate(`/story-exercise?character=${selectedCharacter.emoji}`);
+    } else if (exercise.type === "chat") {
+      navigate(`/practice?mode=chat&character=${selectedCharacter.emoji}&characterName=${encodeURIComponent(selectedCharacter.name)}`);
+    } else {
+      navigate("/practice");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-accent-orange/10 via-sky-blue/10 to-gold/10">
@@ -106,10 +133,13 @@ const KidHub = () => {
               <span>Back</span>
             </button>
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-full bg-accent-orange flex items-center justify-center text-2xl">
-                🦦
-              </div>
-              <span className="font-display font-bold text-xl text-foreground">Echo's World</span>
+              <button 
+                onClick={() => setShowCharacterPicker(true)}
+                className="w-10 h-10 rounded-full bg-accent-orange flex items-center justify-center text-2xl hover:scale-110 transition-transform"
+              >
+                {selectedCharacter.emoji}
+              </button>
+              <span className="font-display font-bold text-xl text-foreground">{selectedCharacter.name.split(' ')[0]}'s World</span>
             </div>
             <div className="flex items-center gap-2 bg-gold/20 px-4 py-2 rounded-full">
               <Star className="w-5 h-5 text-gold fill-gold" />
@@ -119,16 +149,47 @@ const KidHub = () => {
         </div>
       </header>
 
+      {/* Character Picker Dialog */}
+      <Dialog open={showCharacterPicker} onOpenChange={setShowCharacterPicker}>
+        <DialogContent className="bg-card border-border rounded-kids max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-display">Choose Your Speech Buddy!</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4 py-4">
+            {characters.map((character) => (
+              <button
+                key={character.id}
+                onClick={() => {
+                  setSelectedCharacter(character);
+                  setShowCharacterPicker(false);
+                }}
+                className={`p-4 rounded-kids transition-all hover:scale-105 ${
+                  selectedCharacter.id === character.id 
+                    ? "ring-4 ring-accent-orange bg-accent-orange/10" 
+                    : "bg-secondary/50 hover:bg-secondary"
+                }`}
+              >
+                <div className={`w-16 h-16 mx-auto rounded-full bg-gradient-to-br ${character.color} flex items-center justify-center text-4xl mb-2`}>
+                  {character.emoji}
+                </div>
+                <p className="font-medium text-foreground text-sm">{character.name}</p>
+                <p className="text-xs text-muted-foreground">{character.personality}</p>
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <main className="container mx-auto px-4 py-8">
-        {/* Welcome Banner with Echo */}
+        {/* Welcome Banner with Character */}
         <Card className="rounded-kids bg-gradient-to-r from-accent-orange to-gold text-primary-foreground mb-8 overflow-hidden">
           <CardContent className="p-6 flex items-center justify-between">
             <div>
               <h1 className="font-display text-3xl font-bold mb-2">Hey there, Champion! 🎉</h1>
-              <p className="text-primary-foreground/80">Ready for today's speech adventure?</p>
+              <p className="text-primary-foreground/80">Ready for today's speech adventure with {selectedCharacter.name}?</p>
             </div>
             <div className="relative">
-              <div className="text-6xl animate-bounce">🦦</div>
+              <div className="text-6xl animate-bounce">{selectedCharacter.emoji}</div>
               <div className="absolute -top-2 -right-2 text-xl animate-pulse">💎</div>
               <div className="absolute -bottom-1 -left-2 text-lg animate-pulse" style={{ animationDelay: "0.5s" }}>✨</div>
             </div>
@@ -235,7 +296,7 @@ const KidHub = () => {
                     {practiceExercises.map((exercise) => (
                       <button
                         key={exercise.id}
-                        onClick={() => navigate("/practice")}
+                        onClick={() => handleExerciseClick(exercise)}
                         className={`p-4 rounded-kids bg-gradient-to-br ${exercise.color} border border-border/50 text-left transition-all hover:scale-[1.02] hover:shadow-lg group`}
                       >
                         <div className="flex items-start gap-3">
@@ -247,7 +308,14 @@ const KidHub = () => {
                                 <Sparkles className="w-4 h-4 text-primary" />
                               )}
                             </div>
-                            <p className="text-sm text-muted-foreground mb-2">{exercise.description}</p>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              {exercise.type === "chat" 
+                                ? `Chat with ${selectedCharacter.name}!` 
+                                : exercise.type === "story"
+                                  ? "Create your own AI story!"
+                                  : exercise.description
+                              }
+                            </p>
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className={`text-xs px-2 py-1 rounded-full ${
                                 exercise.difficulty === 'Beginner' ? 'bg-success/20 text-success' :
@@ -256,13 +324,22 @@ const KidHub = () => {
                               }`}>
                                 {exercise.difficulty}
                               </span>
-                              <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
-                                AI + Therapist
-                              </span>
+                              {exercise.type === "story" && (
+                                <span className="text-xs px-2 py-1 rounded-full bg-accent-orange/20 text-accent-orange">
+                                  ✨ AI Stories
+                                </span>
+                              )}
+                              {exercise.type === "chat" && (
+                                <span className="text-xs px-2 py-1 rounded-full bg-primary/20 text-primary">
+                                  💬 Chat with {selectedCharacter.emoji}
+                                </span>
+                              )}
                             </div>
-                            <p className="text-xs text-muted-foreground mt-2 italic">
-                              📝 {exercise.teacherNote}
-                            </p>
+                            {exercise.type === "practice" && (
+                              <p className="text-xs text-muted-foreground mt-2 italic">
+                                📝 {exercise.teacherNote}
+                              </p>
+                            )}
                           </div>
                           <Play className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                         </div>
@@ -276,21 +353,41 @@ const KidHub = () => {
 
           {/* Right Sidebar */}
           <div className="space-y-6">
+            {/* Character Card */}
             <Card className="rounded-kids text-center overflow-hidden bg-card/80 backdrop-blur-sm">
               <CardContent className="p-6">
-                <h3 className="font-display text-lg font-bold text-foreground mb-4">
-                  Echo the Otter 🦦
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-display text-lg font-bold text-foreground">
+                    Your Buddy
+                  </h3>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setShowCharacterPicker(true)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Settings className="w-4 h-4" />
+                  </Button>
+                </div>
                 <div className="relative w-32 h-32 mx-auto mb-4">
-                  <div className="w-full h-full rounded-full bg-gradient-to-br from-accent-sky to-accent-sky/60 flex items-center justify-center text-6xl animate-float">
-                    🦦
+                  <div className={`w-full h-full rounded-full bg-gradient-to-br ${selectedCharacter.color} flex items-center justify-center text-6xl animate-float`}>
+                    {selectedCharacter.emoji}
                   </div>
                   <div className="absolute -top-2 -right-2 text-2xl animate-bounce">💎</div>
                   <div className="absolute -bottom-1 -left-2 text-xl animate-bounce" style={{ animationDelay: "0.5s" }}>✨</div>
                 </div>
-                <p className="text-muted-foreground text-sm">
-                  Your speech buddy is cheering you on!
+                <p className="font-medium text-foreground">{selectedCharacter.name}</p>
+                <p className="text-muted-foreground text-sm capitalize">
+                  {selectedCharacter.personality}
                 </p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-3 rounded-kids"
+                  onClick={() => setShowCharacterPicker(true)}
+                >
+                  Change Buddy
+                </Button>
               </CardContent>
             </Card>
 
