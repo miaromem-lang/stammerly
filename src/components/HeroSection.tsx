@@ -1,35 +1,40 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Smile, Users, GraduationCap, Stethoscope } from "lucide-react";
+import { ArrowRight, Sparkles, Smile, Users, GraduationCap, Stethoscope, Star } from "lucide-react";
 
 const hubs = [
   {
     id: "kid",
     label: "Kid Hub",
     icon: Smile,
-    color: "bg-accent-orange",
-    description: "Fun games & activities",
+    color: "bg-gradient-to-br from-accent-orange to-amber-500 hover:from-accent-orange/90 hover:to-amber-500/90",
+    description: "Fun games & activities to practice speech",
+    emoji: "🎮",
   },
   {
     id: "parent",
     label: "Parent Hub",
     icon: Users,
-    color: "gradient-navy",
-    description: "Track progress at home",
+    color: "bg-gradient-to-br from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90",
+    description: "Track your child's progress at home",
+    emoji: "👨‍👩‍👧",
   },
   {
     id: "teacher",
     label: "Teacher Hub",
     icon: GraduationCap,
-    color: "gradient-success",
-    description: "Classroom support tools",
+    color: "bg-gradient-to-br from-success to-emerald-600 hover:from-success/90 hover:to-emerald-600/90",
+    description: "Classroom support & IEP tools",
+    emoji: "📚",
   },
   {
     id: "therapist",
     label: "Therapist Hub",
     icon: Stethoscope,
-    color: "gradient-sky",
-    description: "Clinical analytics",
+    color: "bg-gradient-to-br from-purple-500 to-violet-600 hover:from-purple-500/90 hover:to-violet-600/90",
+    description: "Clinical analytics & session planning",
+    emoji: "🩺",
   },
 ];
 
@@ -40,22 +45,33 @@ export const HeroSection = () => {
     navigate(path);
   };
 
+  const handleHubClick = (hubId: string) => {
+    navigate(`/hub/${hubId}`);
+  };
+
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-secondary/30" />
-      <div className="absolute top-20 right-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 left-10 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+      {/* Colorful Animated Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-accent-orange/10 via-primary/5 to-success/10" />
+      <div className="absolute top-20 left-10 w-72 h-72 bg-accent-orange/20 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-success/10 rounded-full blur-3xl" />
+      
+      {/* Floating Stars */}
+      <div className="absolute top-20 right-20 text-4xl animate-bounce" style={{ animationDelay: "0.2s" }}>⭐</div>
+      <div className="absolute top-40 left-20 text-3xl animate-bounce" style={{ animationDelay: "0.5s" }}>✨</div>
+      <div className="absolute bottom-40 right-40 text-4xl animate-bounce" style={{ animationDelay: "0.8s" }}>🌟</div>
+      <div className="absolute bottom-20 left-40 text-3xl animate-bounce" style={{ animationDelay: "1.1s" }}>💫</div>
       
       {/* Utility Bar */}
       <div className="absolute top-0 left-0 right-0 z-50">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-primary-foreground" />
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-accent-orange flex items-center justify-center shadow-lg">
+                <Sparkles className="w-6 h-6 text-primary-foreground" />
               </div>
-              <span className="font-display font-bold text-xl text-foreground">Stammerly</span>
+              <span className="font-display font-bold text-2xl text-foreground">Stammerly</span>
             </div>
             <nav className="hidden md:flex items-center gap-6">
               <button onClick={() => handleNavClick("/about")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">About</button>
@@ -79,10 +95,10 @@ export const HeroSection = () => {
       
       <div className="container mx-auto px-4 pt-24 pb-12 relative z-10">
         {/* Hero Content */}
-        <div className="text-center max-w-4xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full mb-6">
-            <Sparkles className="w-4 h-4" />
-            <span className="text-sm font-medium">The Circle of Support</span>
+        <div className="text-center max-w-4xl mx-auto mb-12">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-accent-orange/20 to-primary/20 px-4 py-2 rounded-full mb-6">
+            <Star className="w-4 h-4 text-accent-orange" />
+            <span className="text-sm font-medium text-foreground">The Circle of Support</span>
           </div>
           
           <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold text-black leading-tight mb-6">
@@ -99,30 +115,39 @@ export const HeroSection = () => {
           </Button>
         </div>
         
-        {/* Hub Cards - Bigger */}
+        {/* Hub Cards with colorful styling */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
           {hubs.map((hub) => {
             const Icon = hub.icon;
             const isKid = hub.id === "kid";
-            const isTherapist = hub.id === "therapist";
 
             return (
               <button
                 key={hub.id}
-                onClick={() => navigate("/signin")}
-                className={`group relative overflow-hidden rounded-2xl p-8 text-left transition-all duration-300 hover:scale-105 hover:shadow-2xl ${hub.color} text-primary-foreground ${
-                  isKid || isTherapist ? "rounded-kids" : ""
+                onClick={() => handleHubClick(hub.id)}
+                className={`group relative overflow-hidden rounded-2xl p-8 text-left transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] ${hub.color} text-primary-foreground ${
+                  isKid ? "rounded-kids" : ""
                 }`}
               >
-                <div className="inline-flex p-4 rounded-2xl mb-4 bg-primary-foreground/20">
-                  <Icon className="w-10 h-10 text-primary-foreground" />
+                {/* Shine effect */}
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                 </div>
-                <h3 className="font-display font-bold text-2xl mb-2 text-primary-foreground">
-                  {hub.label}
-                </h3>
-                <p className="text-sm text-primary-foreground/80">
-                  {hub.description}
-                </p>
+                
+                <div className="relative z-10">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-3 rounded-xl bg-white/20 backdrop-blur-sm">
+                      <Icon className="w-8 h-8 text-primary-foreground" />
+                    </div>
+                    <span className="text-3xl">{hub.emoji}</span>
+                  </div>
+                  <h3 className="font-display font-bold text-2xl mb-2 text-primary-foreground">
+                    {hub.label}
+                  </h3>
+                  <p className="text-sm text-primary-foreground/80">
+                    {hub.description}
+                  </p>
+                </div>
                 <ArrowRight className="absolute bottom-6 right-6 w-6 h-6 text-primary-foreground/50 group-hover:text-primary-foreground group-hover:translate-x-1 transition-all" />
               </button>
             );
