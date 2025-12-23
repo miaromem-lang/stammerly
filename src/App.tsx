@@ -20,7 +20,7 @@ import Research from "./pages/Research";
 import Contact from "./pages/Contact";
 import Team from "./pages/Team";
 import Reviews from "./pages/Reviews";
-import Ethics from "./pages/Ethics";
+
 import KidHubOverview from "./pages/KidHubOverview";
 import StoryExercise from "./pages/StoryExercise";
 import FreeTalk from "./pages/FreeTalk";
@@ -55,7 +55,7 @@ const App = () => (
             <Route path="/contact" element={<Contact />} />
             <Route path="/team" element={<Team />} />
             <Route path="/reviews" element={<Reviews />} />
-            <Route path="/ethics" element={<Ethics />} />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

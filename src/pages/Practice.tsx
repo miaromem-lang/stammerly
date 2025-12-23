@@ -39,8 +39,68 @@ const Practice = () => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const recognitionRef = useRef<any>(null);
   
-  const words = ["Sally", "saw", "the", "sun"];
+  // Large collection of practice phrases organized by difficulty
+  const allPhrases = {
+    beginner: [
+      ["Sally", "saw", "the", "sun"],
+      ["The", "cat", "sat", "down"],
+      ["I", "like", "ice", "cream"],
+      ["She", "sees", "the", "sea"],
+      ["My", "mom", "makes", "meals"],
+      ["Dad", "drives", "the", "car"],
+      ["Run", "and", "have", "fun"],
+      ["The", "dog", "is", "big"],
+      ["I", "can", "do", "it"],
+      ["We", "play", "all", "day"],
+      ["Look", "at", "the", "bird"],
+      ["Time", "to", "go", "home"],
+    ],
+    intermediate: [
+      ["Peter", "picked", "a", "pretty", "picture"],
+      ["The", "big", "bear", "bounced", "the", "ball"],
+      ["Six", "slippery", "snails", "slid", "slowly"],
+      ["Round", "and", "round", "the", "rabbit", "runs"],
+      ["She", "sells", "seashells", "by", "the", "shore"],
+      ["How", "much", "wood", "would", "a", "woodchuck", "chuck"],
+      ["The", "rain", "in", "Spain", "falls", "mainly"],
+      ["Butterflies", "flutter", "by", "the", "flowers"],
+      ["The", "quick", "brown", "fox", "jumps"],
+      ["Happy", "hippos", "hop", "here"],
+    ],
+    advanced: [
+      ["Friendly", "frogs", "find", "fantastic", "feathers"],
+      ["Theodore", "thinks", "through", "three", "things"],
+      ["Crispy", "crackers", "crunch", "and", "crackle"],
+      ["Smart", "students", "study", "steadily", "sometimes"],
+      ["Beautiful", "butterflies", "bring", "bright", "blessings"],
+      ["The", "thoughtful", "thrush", "thought", "three", "things"],
+      ["Pleasantly", "pleasant", "prairie", "plants", "please"],
+      ["Splendid", "springs", "sprout", "spectacular", "surprises"],
+    ],
+  };
+  
+  // Get random phrase on component mount
+  const [currentPhrase, setCurrentPhrase] = useState<string[]>(() => {
+    const category = new URLSearchParams(window.location.search).get('difficulty') || 'beginner';
+    const phrases = allPhrases[category as keyof typeof allPhrases] || allPhrases.beginner;
+    return phrases[Math.floor(Math.random() * phrases.length)];
+  });
+  
+  const words = currentPhrase;
   const targetPhrase = words.join(" ");
+  
+  const getNewPhrase = () => {
+    const category = new URLSearchParams(window.location.search).get('difficulty') || 'beginner';
+    const phrases = allPhrases[category as keyof typeof allPhrases] || allPhrases.beginner;
+    const newPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+    setCurrentPhrase(newPhrase);
+    setRecordedAudio(null);
+    setAudioUrl(null);
+    setRecordingTime(0);
+    setShowResults(false);
+    setTranscript("");
+    setAnalysis(null);
+  };
   
   useEffect(() => {
     return () => {
@@ -352,14 +412,8 @@ const Practice = () => {
                 variant="ghost" 
                 size="icon"
                 className="rounded-full"
-                onClick={() => {
-                  setRecordedAudio(null);
-                  setAudioUrl(null);
-                  setRecordingTime(0);
-                  setShowResults(false);
-                  setTranscript("");
-                  setAnalysis(null);
-                }}
+                onClick={getNewPhrase}
+                title="Get new phrase"
                 disabled={isRecording || isAnalyzing}
               >
                 <RefreshCw className="w-5 h-5" />
