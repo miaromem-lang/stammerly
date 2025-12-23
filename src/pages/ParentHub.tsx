@@ -132,14 +132,23 @@ const ParentHub = () => {
                     </div>
                   </div>
                 ))}
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => navigate("/analytics/parent")}
-                >
-                  View Full Analytics
-                  <TrendingUp className="w-4 h-4 ml-2" />
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => navigate("/analytics/parent")}
+                  >
+                    View Analytics
+                    <TrendingUp className="w-4 h-4 ml-2" />
+                  </Button>
+                  <Button 
+                    variant="navy" 
+                    className="flex-1"
+                    onClick={() => navigate("/hub/kid-overview")}
+                  >
+                    Kid Hub Guide
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 

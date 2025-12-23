@@ -112,7 +112,7 @@ export const HeroSection = () => {
             return (
               <button
                 key={hub.id}
-                onClick={() => navigate("/signin")}
+                onClick={() => window.open(`/hub/${hub.id}`, '_blank', 'noopener,noreferrer')}
                 className={`group relative overflow-hidden rounded-2xl p-8 text-left transition-all duration-300 hover:scale-105 hover:shadow-2xl ${hub.color} text-primary-foreground ${
                   isKid || isTherapist ? "rounded-kids" : ""
                 }`}

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Sparkles, ArrowLeft, BarChart3, Users, Calendar, FileText, TrendingUp, Smartphone, Upload, Play, Plus, Save, X } from "lucide-react";
+import { Sparkles, ArrowLeft, BarChart3, Users, Calendar, FileText, TrendingUp, Smartphone, Upload, Plus, Save, X } from "lucide-react";
 import { toast } from "sonner";
 
 const patients = [
@@ -24,10 +24,20 @@ interface Exercise {
   custom?: boolean;
 }
 
+const disfluencyData = [
+  { type: "Blocks", count: 5, trend: "↓3", color: "bg-destructive", detail: "Silent pauses" },
+  { type: "Interjections", count: 8, trend: "↓2", color: "bg-amber-500", detail: "Um, uh insertions" },
+  { type: "Prolongations", count: 7, trend: "↓1", color: "bg-gold", detail: "Extended sounds" },
+  { type: "Sound Rep.", count: 4, trend: "↓2", color: "bg-primary", detail: "Initial repeats" },
+  { type: "Word Rep.", count: 6, trend: "↓1", color: "bg-accent-sky", detail: "Whole words" },
+  { type: "Modified", count: 12, trend: "↑4", color: "bg-success", detail: "Technique use" },
+];
+
 const TherapistHub = () => {
   const navigate = useNavigate();
   const [draggedExercise, setDraggedExercise] = useState<number | null>(null);
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
+  const [showFullAnalytics, setShowFullAnalytics] = useState(false);
   const [exercises, setExercises] = useState<Exercise[]>([
     { id: 1, name: "Easy Onset Quest", category: "Onset", difficulty: "Beginner" },
     { id: 2, name: "Slow Speech Safari", category: "Rate", difficulty: "Intermediate" },
@@ -35,7 +45,6 @@ const TherapistHub = () => {
     { id: 4, name: "Word Mountain", category: "Complexity", difficulty: "Advanced" },
   ]);
   
-  // New exercise form state
   const [newExercise, setNewExercise] = useState({
     name: "",
     category: "",
@@ -325,7 +334,7 @@ const TherapistHub = () => {
               </Card>
             </div>
 
-            {/* SPM Comparison Chart Placeholder */}
+            {/* SPM Comparison Chart */}
             <Card className="glass-card-strong">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-foreground">
@@ -401,81 +410,6 @@ const TherapistHub = () => {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Detailed Disfluency Analytics */}
-            <Card className="glass-card-strong">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <BarChart3 className="w-5 h-5 text-accent-orange" />
-                  Detailed Disfluency Analytics
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  {[
-                    { type: "Blocks", count: 5, trend: "↓3", color: "bg-destructive", detail: "Silent pauses before sounds" },
-                    { type: "Interjections", count: 8, trend: "↓2", color: "bg-amber-500", detail: "Um, uh, like insertions" },
-                    { type: "Prolongations", count: 7, trend: "↓1", color: "bg-gold", detail: "Extended sound duration" },
-                    { type: "Sound Repetitions", count: 4, trend: "↓2", color: "bg-primary", detail: "Initial sound repeats" },
-                    { type: "Word Repetitions", count: 6, trend: "↓1", color: "bg-accent-sky", detail: "Whole word repeats" },
-                    { type: "Modified Speech", count: 12, trend: "↑4", color: "bg-success", detail: "Successful technique use" },
-                  ].map((item) => (
-                    <div key={item.type} className="p-3 bg-secondary/50 rounded-lg">
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${item.color}`} />
-                          <span className="text-sm font-medium text-foreground">{item.type}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-foreground">{item.count}</span>
-                          <span className={`text-xs ${item.trend.startsWith('↑') ? 'text-success' : 'text-success'}`}>{item.trend}</span>
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground">{item.detail}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Time Interval Chart */}
-                <div className="border-t border-border pt-4">
-                  <h4 className="text-sm font-medium text-foreground mb-3">Disfluencies Over Time (5-min intervals)</h4>
-                  <div className="flex items-end justify-between h-24 gap-1">
-                    {[
-                      { time: "0-5", blocks: 3, other: 5 },
-                      { time: "5-10", blocks: 2, other: 4 },
-                      { time: "10-15", blocks: 1, other: 3 },
-                      { time: "15-20", blocks: 2, other: 2 },
-                      { time: "20-25", blocks: 1, other: 2 },
-                      { time: "25-30", blocks: 0, other: 1 },
-                    ].map((interval, i) => (
-                      <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                        <div className="w-full flex flex-col gap-0.5">
-                          <div 
-                            className="w-full bg-destructive/60 rounded-t"
-                            style={{ height: `${interval.blocks * 12}px` }}
-                          />
-                          <div 
-                            className="w-full bg-accent-orange/60 rounded-b"
-                            style={{ height: `${interval.other * 8}px` }}
-                          />
-                        </div>
-                        <span className="text-[10px] text-muted-foreground">{interval.time}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex items-center justify-center gap-4 mt-2 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <div className="w-2 h-2 bg-destructive/60 rounded" />
-                      <span>Blocks</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <div className="w-2 h-2 bg-accent-orange/60 rounded" />
-                      <span>Other Disfluencies</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
           {/* Right Column - AI Insights */}
@@ -500,40 +434,118 @@ const TherapistHub = () => {
               </CardContent>
             </Card>
 
+            {/* Disfluency Summary with View All */}
             <Card className="glass-card-strong">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-foreground text-sm">Disfluency Summary</CardTitle>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="text-accent-orange hover:text-accent-orange/80 h-6 px-2 text-xs"
-                    onClick={() => navigate("/analytics/therapist")}
-                  >
-                    View All →
-                  </Button>
+                  <Dialog open={showFullAnalytics} onOpenChange={setShowFullAnalytics}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-accent-orange hover:text-accent-orange/80 h-6 px-2 text-xs"
+                      >
+                        View All →
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="bg-background border-border text-foreground max-w-2xl max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <BarChart3 className="w-5 h-5 text-accent-orange" />
+                          Detailed Disfluency Analytics
+                        </DialogTitle>
+                      </DialogHeader>
+                      
+                      <div className="space-y-6 mt-4">
+                        {/* Full Disfluency Grid */}
+                        <div className="grid grid-cols-2 gap-4">
+                          {disfluencyData.map((item) => (
+                            <div key={item.type} className="p-4 bg-secondary/30 rounded-lg">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <div className={`w-3 h-3 rounded-full ${item.color}`} />
+                                  <span className="font-medium text-foreground">{item.type}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-lg font-bold text-foreground">{item.count}</span>
+                                  <span className={`text-sm ${item.trend.startsWith('↑') ? 'text-success' : 'text-success'}`}>{item.trend}</span>
+                                </div>
+                              </div>
+                              <p className="text-sm text-muted-foreground">{item.detail}</p>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Time Interval Chart */}
+                        <div className="border-t border-border pt-4">
+                          <h4 className="text-sm font-medium text-foreground mb-4">Disfluencies Over Time (5-min intervals)</h4>
+                          <div className="flex items-end justify-between h-32 gap-2 px-4">
+                            {[
+                              { time: "0-5", blocks: 3, other: 5 },
+                              { time: "5-10", blocks: 2, other: 4 },
+                              { time: "10-15", blocks: 1, other: 3 },
+                              { time: "15-20", blocks: 2, other: 2 },
+                              { time: "20-25", blocks: 1, other: 2 },
+                              { time: "25-30", blocks: 0, other: 1 },
+                            ].map((interval, i) => (
+                              <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                                <div className="w-full flex flex-col gap-0.5">
+                                  <div 
+                                    className="w-full bg-destructive/60 rounded-t"
+                                    style={{ height: `${interval.blocks * 15}px` }}
+                                  />
+                                  <div 
+                                    className="w-full bg-accent-orange/60 rounded-b"
+                                    style={{ height: `${interval.other * 10}px` }}
+                                  />
+                                </div>
+                                <span className="text-xs text-muted-foreground">{interval.time}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex items-center justify-center gap-6 mt-3 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 bg-destructive/60 rounded" />
+                              <span>Blocks</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 bg-accent-orange/60 rounded" />
+                              <span>Other Disfluencies</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Trend Analysis */}
+                        <div className="border-t border-border pt-4">
+                          <h4 className="text-sm font-medium text-foreground mb-3">Weekly Trend</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Overall disfluencies decreased by <span className="text-success font-medium">23%</span> compared to last week. 
+                            Modified speech techniques increased by <span className="text-success font-medium">4 instances</span>, 
+                            indicating improved technique application.
+                          </p>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3">
-                {[
-                  { type: "Repetitions", count: 12, trend: "↓2", color: "bg-primary", detail: "Word-initial repetitions decreased" },
-                  { type: "Prolongations", count: 8, trend: "↓1", color: "bg-gold", detail: "Sound prolongations improving" },
-                  { type: "Blocks", count: 5, trend: "↓3", color: "bg-destructive", detail: "Silent blocks reduced significantly" },
-                ].map((item) => (
-                  <div key={item.type} className="p-3 bg-secondary/50 rounded-lg">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${item.color}`} />
-                        <span className="text-sm font-medium text-foreground">{item.type}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-foreground">{item.count}</span>
-                        <span className="text-xs text-success">{item.trend}</span>
-                      </div>
+              <CardContent className="space-y-2">
+                {disfluencyData.slice(0, 3).map((item) => (
+                  <div key={item.type} className="flex items-center justify-between p-2 bg-secondary/30 rounded">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${item.color}`} />
+                      <span className="text-xs text-foreground">{item.type}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">{item.detail}</p>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs font-bold text-foreground">{item.count}</span>
+                      <span className="text-[10px] text-success">{item.trend}</span>
+                    </div>
                   </div>
                 ))}
+                <p className="text-[10px] text-muted-foreground text-center pt-1">
+                  +3 more categories
+                </p>
               </CardContent>
             </Card>
 
