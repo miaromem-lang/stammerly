@@ -37,7 +37,7 @@ export const HeroSection = () => {
   const navigate = useNavigate();
 
   const handleNavClick = (path: string) => {
-    window.open(path, '_blank', 'noopener,noreferrer');
+    navigate(path);
   };
 
   return (
@@ -112,7 +112,7 @@ export const HeroSection = () => {
             return (
               <button
                 key={hub.id}
-                onClick={() => window.open(`/hub/${hub.id}`, '_blank', 'noopener,noreferrer')}
+                onClick={() => navigate(`/hub/${hub.id}`)}
                 className={`group relative overflow-hidden rounded-2xl p-8 text-left transition-all duration-300 hover:scale-105 hover:shadow-2xl ${hub.color} text-primary-foreground ${
                   isKid || isTherapist ? "rounded-kids" : ""
                 }`}

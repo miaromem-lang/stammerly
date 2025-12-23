@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, Play, Star, Trophy, Target, Zap, MapPin, Flame, BookOpen, Mic, Sparkles, Settings } from "lucide-react";
+import { ArrowLeft, Play, Star, Trophy, Target, Zap, MapPin, Flame, BookOpen, Mic, Sparkles, Settings, Wind, Hand, Turtle, Link2, MessageCircle, Brain, Eye } from "lucide-react";
 
 const questLevels = [
   { id: 1, name: "Easy Start", completed: true, gems: 12 },
@@ -28,94 +28,141 @@ const characters = [
   { id: "monkey", name: "Max the Monkey", emoji: "🐵", color: "from-amber-400 to-yellow-500", personality: "fun and silly" },
 ];
 
-const practiceExercises = [
-  { 
-    id: 1, 
-    title: "Easy Onset", 
-    description: "Start words smoothly with gentle beginnings", 
-    icon: "🌊", 
+// Proper exercise categories based on speech therapy techniques
+const exerciseCategories = [
+  {
+    id: "breathing",
+    title: "Belly Breathing",
+    description: "Deep controlled breathing for relaxation",
+    icon: "💨",
     difficulty: "Beginner",
     color: "from-blue-500/20 to-cyan-500/10",
-    phrases: ["Hello, how are you?", "I like ice cream", "Open the door please"],
-    teacherNote: "Focus on soft voice starts",
-    aiEnabled: true,
-    type: "practice"
+    exercises: [
+      { name: "Deep Belly Breath", duration: "2 min" },
+      { name: "4-7-8 Breathing", duration: "3 min" },
+      { name: "Balloon Breathing", duration: "2 min" },
+    ],
   },
-  { 
-    id: 2, 
-    title: "Light Contact", 
-    description: "Touch sounds gently like a feather", 
-    icon: "🪶", 
+  {
+    id: "easy-onset",
+    title: "Easy Onset",
+    description: "Start gently with an 'h' sound (hhhhapple)",
+    icon: "🌊",
     difficulty: "Beginner",
     color: "from-green-500/20 to-emerald-500/10",
-    phrases: ["Peter picked peppers", "Big brown bear", "Tiny tiger toes"],
-    teacherNote: "Gentle articulator placement",
-    aiEnabled: true,
-    type: "practice"
+    exercises: [
+      { name: "H-Sound Starter", duration: "3 min" },
+      { name: "Soft Start Words", duration: "4 min" },
+      { name: "Gentle Beginnings", duration: "3 min" },
+    ],
   },
-  { 
-    id: 3, 
-    title: "Slow & Steady", 
-    description: "Practice calm, relaxed pacing", 
-    icon: "🐢", 
+  {
+    id: "light-contact",
+    title: "Light Contact",
+    description: "Soft lips and tongue, like a feather touch",
+    icon: "🪶",
+    difficulty: "Beginner",
+    color: "from-pink-500/20 to-rose-500/10",
+    exercises: [
+      { name: "Feather Touch Sounds", duration: "3 min" },
+      { name: "Soft P, B, M Practice", duration: "4 min" },
+      { name: "Light Lip Placement", duration: "3 min" },
+    ],
+  },
+  {
+    id: "pacing",
+    title: "Slow & Steady",
+    description: "Slow your rate with pauses between words",
+    icon: "🐢",
     difficulty: "Intermediate",
     color: "from-amber-500/20 to-yellow-500/10",
-    phrases: ["The lazy dog sleeps", "Walking through the park", "Reading my favourite book"],
-    teacherNote: "Reduce speech rate naturally",
-    aiEnabled: true,
-    type: "practice"
+    exercises: [
+      { name: "Word Pause Practice", duration: "4 min" },
+      { name: "Sentence Stretching", duration: "5 min" },
+      { name: "Rhythm Speaking", duration: "4 min" },
+    ],
   },
-  { 
-    id: 4, 
-    title: "Phrase Power", 
-    description: "Connect your words in smooth chains", 
-    icon: "🔗", 
+  {
+    id: "reading",
+    title: "Read Aloud",
+    description: "Practice with stories and passages",
+    icon: "📖",
     difficulty: "Intermediate",
-    color: "from-purple-500/20 to-pink-500/10",
-    phrases: ["I want to go outside", "Can you help me please?", "My friend lives nearby"],
-    teacherNote: "Link words without pausing",
-    aiEnabled: true,
-    type: "practice"
+    color: "from-purple-500/20 to-violet-500/10",
+    exercises: [
+      { name: "Short Story Reading", duration: "5 min" },
+      { name: "Poem Practice", duration: "4 min" },
+      { name: "AI Story Adventure", duration: "6 min", aiEnabled: true },
+    ],
   },
-  { 
-    id: 5, 
-    title: "Story Reading", 
-    description: "Read fun stories aloud with expression", 
-    icon: "📖", 
+  {
+    id: "articulation",
+    title: "Tongue Twisters",
+    description: "Clear sounds and articulation practice",
+    icon: "👅",
     difficulty: "Advanced",
-    color: "from-rose-500/20 to-red-500/10",
-    phrases: [],
-    teacherNote: "Apply techniques to longer passages",
-    aiEnabled: true,
-    type: "story"
+    color: "from-red-500/20 to-orange-500/10",
+    exercises: [
+      { name: "Easy Twisters", duration: "3 min" },
+      { name: "P & B Twisters", duration: "4 min" },
+      { name: "S & SH Sounds", duration: "4 min" },
+    ],
   },
-  { 
-    id: 6, 
-    title: "Free Talk", 
-    description: "Chat with your animal buddy!", 
-    icon: "💬", 
+  {
+    id: "mirror",
+    title: "Mirror Practice",
+    description: "Build awareness with visual feedback",
+    icon: "🪞",
+    difficulty: "Intermediate",
+    color: "from-sky-500/20 to-blue-500/10",
+    exercises: [
+      { name: "Face & Mouth Awareness", duration: "3 min" },
+      { name: "Watch Your Words", duration: "4 min" },
+      { name: "Expression Practice", duration: "3 min" },
+    ],
+  },
+  {
+    id: "free-talk",
+    title: "Free Talk",
+    description: "Chat with your animal buddy!",
+    icon: "💬",
     difficulty: "Advanced",
     color: "from-indigo-500/20 to-violet-500/10",
-    phrases: [],
-    teacherNote: "Transfer skills to spontaneous speech",
-    aiEnabled: true,
-    type: "chat"
+    exercises: [
+      { name: "Chat with Buddy", duration: "5 min", aiEnabled: true },
+    ],
   },
 ];
 
 const KidHub = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'quests' | 'practice'>('quests');
-  const [selectedCharacter, setSelectedCharacter] = useState(characters[0]);
+  
+  // Load saved character from localStorage
+  const [selectedCharacter, setSelectedCharacter] = useState(() => {
+    const saved = localStorage.getItem('stammerly_character');
+    if (saved) {
+      const found = characters.find(c => c.id === saved);
+      if (found) return found;
+    }
+    return characters[0];
+  });
   const [showCharacterPicker, setShowCharacterPicker] = useState(false);
 
-  const handleExerciseClick = (exercise: typeof practiceExercises[0]) => {
-    if (exercise.type === "story") {
+  // Save character selection to localStorage
+  const handleCharacterSelect = (character: typeof characters[0]) => {
+    setSelectedCharacter(character);
+    localStorage.setItem('stammerly_character', character.id);
+    setShowCharacterPicker(false);
+  };
+
+  const handleCategoryClick = (category: typeof exerciseCategories[0]) => {
+    if (category.id === "free-talk") {
+      navigate(`/free-talk?character=${selectedCharacter.emoji}`);
+    } else if (category.id === "reading") {
       navigate(`/story-exercise?character=${selectedCharacter.emoji}`);
-    } else if (exercise.type === "chat") {
-      navigate(`/practice?mode=chat&character=${selectedCharacter.emoji}&characterName=${encodeURIComponent(selectedCharacter.name)}`);
     } else {
-      navigate("/practice");
+      navigate(`/practice?category=${category.id}&title=${encodeURIComponent(category.title)}`);
     }
   };
 
@@ -293,53 +340,39 @@ const KidHub = () => {
                   </h2>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {practiceExercises.map((exercise) => (
+                    {exerciseCategories.map((category) => (
                       <button
-                        key={exercise.id}
-                        onClick={() => handleExerciseClick(exercise)}
-                        className={`p-4 rounded-kids bg-gradient-to-br ${exercise.color} border border-border/50 text-left transition-all hover:scale-[1.02] hover:shadow-lg group`}
+                        key={category.id}
+                        onClick={() => handleCategoryClick(category)}
+                        className={`p-4 rounded-kids bg-gradient-to-br ${category.color} border border-border/50 text-left transition-all hover:scale-[1.02] hover:shadow-lg group`}
                       >
                         <div className="flex items-start gap-3">
-                          <span className="text-3xl group-hover:scale-110 transition-transform">{exercise.icon}</span>
+                          <span className="text-3xl group-hover:scale-110 transition-transform">{category.icon}</span>
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-display font-semibold text-foreground">{exercise.title}</h4>
-                              {exercise.aiEnabled && (
+                              <h4 className="font-display font-semibold text-foreground">{category.title}</h4>
+                              {category.exercises.some(e => e.aiEnabled) && (
                                 <Sparkles className="w-4 h-4 text-primary" />
                               )}
                             </div>
                             <p className="text-sm text-muted-foreground mb-2">
-                              {exercise.type === "chat" 
+                              {category.id === "free-talk" 
                                 ? `Chat with ${selectedCharacter.name}!` 
-                                : exercise.type === "story"
-                                  ? "Create your own AI story!"
-                                  : exercise.description
+                                : category.description
                               }
                             </p>
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className={`text-xs px-2 py-1 rounded-full ${
-                                exercise.difficulty === 'Beginner' ? 'bg-success/20 text-success' :
-                                exercise.difficulty === 'Intermediate' ? 'bg-amber-500/20 text-amber-600' :
+                                category.difficulty === 'Beginner' ? 'bg-success/20 text-success' :
+                                category.difficulty === 'Intermediate' ? 'bg-amber-500/20 text-amber-600' :
                                 'bg-purple-500/20 text-purple-600'
                               }`}>
-                                {exercise.difficulty}
+                                {category.difficulty}
                               </span>
-                              {exercise.type === "story" && (
-                                <span className="text-xs px-2 py-1 rounded-full bg-accent-orange/20 text-accent-orange">
-                                  ✨ AI Stories
-                                </span>
-                              )}
-                              {exercise.type === "chat" && (
-                                <span className="text-xs px-2 py-1 rounded-full bg-primary/20 text-primary">
-                                  💬 Chat with {selectedCharacter.emoji}
-                                </span>
-                              )}
+                              <span className="text-xs text-muted-foreground">
+                                {category.exercises.length} exercises
+                              </span>
                             </div>
-                            {exercise.type === "practice" && (
-                              <p className="text-xs text-muted-foreground mt-2 italic">
-                                📝 {exercise.teacherNote}
-                              </p>
-                            )}
                           </div>
                           <Play className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                         </div>
