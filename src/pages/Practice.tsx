@@ -311,7 +311,7 @@ const Practice = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-accent-orange/10 via-sky-blue/10 to-gold/10">
+    <div className="min-h-screen bg-white">
       <header className="bg-accent-orange/20 backdrop-blur-sm border-b border-accent-orange/20">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">

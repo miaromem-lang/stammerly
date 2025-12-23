@@ -68,7 +68,7 @@ const KidHubOverview = () => {
   const [selectedExercise, setSelectedExercise] = useState<number | null>(null);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/30">
+    <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="bg-card border-b border-border">
         <div className="container mx-auto px-4 py-4">

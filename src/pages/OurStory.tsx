@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 
 const OurStory = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-primary/10">
+    <div className="min-h-screen bg-white">
       <Helmet>
         <title>Our Story | Stammerly - From UCL to Global Impact</title>
         <meta name="description" content="Discover how Stammerly began at UCL's SENDTech Challenge and won first place, aiming to transform support for children who stammer." />

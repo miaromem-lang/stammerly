@@ -46,7 +46,7 @@ const Research = () => {
   const [research] = useState<ResearchItem[]>(initialResearch);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-emerald-500/5 to-primary/10">
+    <div className="min-h-screen bg-white">
       <Helmet>
         <title>Academic Research | Stammerly</title>
         <meta name="description" content="Explore the academic research and evidence base behind Stammerly's approach to supporting children who stammer." />

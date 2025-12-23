@@ -24,7 +24,7 @@ const cofounders = [
 
 const Team = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/10">
+    <div className="min-h-screen bg-white">
       <Helmet>
         <title>Meet the Team | Stammerly</title>
         <meta name="description" content="Meet the co-founders of Stammerly - Mia Romem and Jose Vidal - who are transforming support for children who stammer." />
