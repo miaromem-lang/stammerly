@@ -1,67 +1,56 @@
-import { Button } from "@/components/ui/button";
-import { ExternalLink, Mail, FileText, Shield } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Mail, FileText, Shield } from "lucide-react";
 
 export const Footer = () => {
   return (
     <footer className="bg-foreground text-background py-16">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-          {/* Brand */}
-          <div className="md:col-span-2">
+          <div className="md:col-span-1">
             <h3 className="font-display text-2xl font-bold mb-4">Stammerly</h3>
-            <p className="text-background/70 mb-6 max-w-md">
-              Empowering every voice through synchronised care. A collaborative platform 
-              connecting children, parents, teachers, and therapists.
+            <p className="text-background/70 mb-6">
+              Empowering every voice through synchronised care.
             </p>
-            <div className="flex gap-4">
-              <Button variant="glass" size="sm" className="bg-background/10 hover:bg-background/20 text-background border-background/20">
-                <Mail className="w-4 h-4 mr-2" />
-                Contact Us
-              </Button>
-            </div>
-          </div>
-          
-          {/* Links */}
-          <div>
-            <h4 className="font-semibold mb-4">Platform</h4>
-            <ul className="space-y-3 text-background/70">
-              <li><a href="#" className="hover:text-background transition-colors">For Kids</a></li>
-              <li><a href="#" className="hover:text-background transition-colors">For Parents</a></li>
-              <li><a href="#" className="hover:text-background transition-colors">For Teachers</a></li>
-              <li><a href="#" className="hover:text-background transition-colors">For Therapists</a></li>
-            </ul>
           </div>
           
           <div>
             <h4 className="font-semibold mb-4">Company</h4>
             <ul className="space-y-3 text-background/70">
-              <li><a href="#" className="hover:text-background transition-colors">About Us</a></li>
-              <li><a href="#" className="hover:text-background transition-colors">Research</a></li>
-              <li><a href="#" className="hover:text-background transition-colors">Careers</a></li>
-              <li><a href="#" className="hover:text-background transition-colors">Press</a></li>
+              <li><Link to="/about" className="hover:text-background transition-colors">About Us</Link></li>
+              <li><Link to="/our-story" className="hover:text-background transition-colors">Our Story</Link></li>
+              <li><Link to="/mission" className="hover:text-background transition-colors">Mission</Link></li>
+              <li><Link to="/team" className="hover:text-background transition-colors">Meet the Team</Link></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold mb-4">Resources</h4>
+            <ul className="space-y-3 text-background/70">
+              <li><Link to="/research" className="hover:text-background transition-colors">Research</Link></li>
+              <li><Link to="/reviews" className="hover:text-background transition-colors">Reviews</Link></li>
+              <li><Link to="/contact" className="hover:text-background transition-colors">Contact Us</Link></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold mb-4">Connect</h4>
+            <ul className="space-y-3 text-background/70">
+              <li><a href="mailto:mia@stammerly.com" className="hover:text-background transition-colors flex items-center gap-2"><Mail className="w-4 h-4" />mia@stammerly.com</a></li>
+              <li><a href="mailto:jose@stammerly.com" className="hover:text-background transition-colors flex items-center gap-2"><Mail className="w-4 h-4" />jose@stammerly.com</a></li>
             </ul>
           </div>
         </div>
         
-        {/* Bottom Bar */}
         <div className="border-t border-background/20 pt-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-6 text-sm text-background/60">
-              <span>© 2024 Stammerly. All rights reserved.</span>
-            </div>
+            <span className="text-sm text-background/60">© 2025 Stammerly. All rights reserved.</span>
             <div className="flex items-center gap-6 text-sm">
-              <a href="#" className="text-background/60 hover:text-background transition-colors flex items-center gap-1">
-                <FileText className="w-4 h-4" />
-                Privacy Policy
-              </a>
-              <a href="#" className="text-background/60 hover:text-background transition-colors flex items-center gap-1">
-                <FileText className="w-4 h-4" />
-                Terms of Service
-              </a>
-              <a href="#" className="text-background/60 hover:text-background transition-colors flex items-center gap-1">
-                <Shield className="w-4 h-4" />
-                Accessibility (WCAG 2.1 AA)
-              </a>
+              <Link to="/privacy-policy" className="text-background/60 hover:text-background transition-colors flex items-center gap-1">
+                <FileText className="w-4 h-4" />Privacy Policy
+              </Link>
+              <Link to="/ethics" className="text-background/60 hover:text-background transition-colors flex items-center gap-1">
+                <Shield className="w-4 h-4" />Ethics
+              </Link>
             </div>
           </div>
         </div>
