@@ -430,40 +430,63 @@ const TherapistHub = () => {
 
             <Card className="bg-slate-800/50 border-slate-700">
               <CardHeader>
-                <CardTitle className="text-white text-sm">Recent Disfluency Types</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-white text-sm">Disfluency Analysis</CardTitle>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-primary hover:text-primary/80 h-6 px-2 text-xs"
+                    onClick={() => navigate("/analytics/therapist")}
+                  >
+                    View All →
+                  </Button>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="space-y-3">
                 {[
-                  { type: "Repetitions", count: 12, color: "bg-primary" },
-                  { type: "Prolongations", count: 8, color: "bg-gold" },
-                  { type: "Blocks", count: 5, color: "bg-destructive" },
+                  { type: "Repetitions", count: 12, trend: "↓2", color: "bg-primary", detail: "Word-initial repetitions decreased" },
+                  { type: "Prolongations", count: 8, trend: "↓1", color: "bg-gold", detail: "Sound prolongations improving" },
+                  { type: "Blocks", count: 5, trend: "↓3", color: "bg-destructive", detail: "Silent blocks reduced significantly" },
                 ].map((item) => (
-                  <div key={item.type} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${item.color}`} />
-                      <span className="text-sm text-slate-300">{item.type}</span>
+                  <div key={item.type} className="p-3 bg-slate-700/50 rounded-lg">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${item.color}`} />
+                        <span className="text-sm font-medium text-white">{item.type}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold">{item.count}</span>
+                        <span className="text-xs text-success">{item.trend}</span>
+                      </div>
                     </div>
-                    <span className="text-sm font-bold">{item.count}</span>
+                    <p className="text-xs text-slate-400">{item.detail}</p>
                   </div>
                 ))}
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-800/50 border-slate-700">
+            <Card className="bg-slate-800/50 border-primary/30">
               <CardHeader>
-                <CardTitle className="text-white text-sm">Baseline Overlay</CardTitle>
+                <CardTitle className="text-white text-sm flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  AI Summary
+                </CardTitle>
               </CardHeader>
               <CardContent>
+                <p className="text-sm text-slate-300 mb-3">
+                  Alex shows consistent improvement in easy onset technique. Word-initial blocks have decreased 40% over 2 weeks.
+                </p>
+                <p className="text-sm text-slate-300 mb-4">
+                  <strong className="text-primary">Recommendation:</strong> Introduce phrase-level exercises focusing on /s/ and /b/ sounds.
+                </p>
                 <Button 
                   variant="outline" 
                   className="w-full border-slate-600 text-white hover:bg-slate-700"
+                  onClick={() => navigate("/analytics/therapist")}
                 >
-                  <Play className="w-4 h-4 mr-2" />
-                  Compare to Baseline
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  Detailed Analytics
                 </Button>
-                <p className="text-xs text-slate-500 mt-2">
-                  Toggle to overlay current waveform against baseline
-                </p>
               </CardContent>
             </Card>
           </div>

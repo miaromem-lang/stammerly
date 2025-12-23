@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Play, Star, Trophy, Target, Zap, MapPin, Flame } from "lucide-react";
+import { ArrowLeft, Play, Star, Trophy, Target, Zap, MapPin, Flame, BookOpen, Mic, MessageCircle, Sparkles } from "lucide-react";
 
 const questLevels = [
   { id: 1, name: "Easy Start", completed: true, gems: 12 },
@@ -18,8 +19,66 @@ const badges = [
   { id: 4, name: "Super Star", emoji: "⭐", earned: false },
 ];
 
+const practiceExercises = [
+  { 
+    id: 1, 
+    title: "Easy Onset", 
+    description: "Start words smoothly", 
+    icon: "🌊", 
+    difficulty: "Beginner",
+    color: "from-blue-500/20 to-cyan-500/10",
+    route: "/practice"
+  },
+  { 
+    id: 2, 
+    title: "Light Contact", 
+    description: "Gentle sound touches", 
+    icon: "🪶", 
+    difficulty: "Beginner",
+    color: "from-green-500/20 to-emerald-500/10",
+    route: "/practice"
+  },
+  { 
+    id: 3, 
+    title: "Slow & Steady", 
+    description: "Practice pacing", 
+    icon: "🐢", 
+    difficulty: "Intermediate",
+    color: "from-amber-500/20 to-yellow-500/10",
+    route: "/practice"
+  },
+  { 
+    id: 4, 
+    title: "Phrase Power", 
+    description: "Connect your words", 
+    icon: "🔗", 
+    difficulty: "Intermediate",
+    color: "from-purple-500/20 to-pink-500/10",
+    route: "/practice"
+  },
+  { 
+    id: 5, 
+    title: "Story Reading", 
+    description: "Read aloud practice", 
+    icon: "📖", 
+    difficulty: "Advanced",
+    color: "from-rose-500/20 to-red-500/10",
+    route: "/practice"
+  },
+  { 
+    id: 6, 
+    title: "Free Talk", 
+    description: "Speak your mind!", 
+    icon: "💬", 
+    difficulty: "Advanced",
+    color: "from-indigo-500/20 to-violet-500/10",
+    route: "/practice"
+  },
+];
+
 const KidHub = () => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<'quests' | 'practice'>('quests');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-accent-orange/10 via-sky-blue/10 to-gold/10">
@@ -58,7 +117,6 @@ const KidHub = () => {
             </div>
             <div className="relative">
               <div className="text-6xl animate-bounce">🦦</div>
-              {/* Floating gems around Echo */}
               <div className="absolute -top-2 -right-2 text-xl animate-pulse">💎</div>
               <div className="absolute -bottom-1 -left-2 text-lg animate-pulse" style={{ animationDelay: "0.5s" }}>✨</div>
             </div>
@@ -81,61 +139,135 @@ const KidHub = () => {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Quest Map - Main Feature */}
-          <Card className="lg:col-span-2 rounded-kids overflow-hidden bg-card/80 backdrop-blur-sm">
-            <CardContent className="p-8">
-              <h2 className="font-display text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
-                <MapPin className="w-6 h-6 text-accent-orange" />
-                🗺️ The Quest Map
-              </h2>
-              
-              <div className="relative">
-                {/* Path visualization */}
-                <div className="absolute left-8 top-0 bottom-0 w-1 bg-accent-orange/20 rounded-full" />
-                
-                <div className="space-y-6">
-                  {questLevels.map((level) => (
-                    <div key={level.id} className="flex items-center gap-4 relative">
-                      <div className={`relative z-10 w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold transition-all duration-300 ${
-                        level.completed 
-                          ? "bg-success text-success-foreground shadow-lg" 
-                          : level.current 
-                            ? "bg-accent-orange text-primary-foreground shadow-xl scale-110 animate-pulse"
-                            : "bg-muted text-muted-foreground"
-                      }`}>
-                        {level.completed ? "✓" : level.id}
-                      </div>
-                      <div className="flex-1">
-                        <h4 className={`font-display font-semibold ${
-                          level.current ? "text-accent-orange" : "text-foreground"
-                        }`}>
-                          {level.name}
-                        </h4>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Star className="w-4 h-4 text-gold" />
-                          {level.gems} gems
-                        </div>
-                      </div>
-                      {level.current && (
-                        <Button 
-                          className="rounded-kids bg-accent-orange hover:bg-accent-orange/90 text-primary-foreground text-lg px-6 py-3 h-auto"
-                          onClick={() => navigate("/practice")}
-                        >
-                          <Play className="w-5 h-5 mr-2" />
-                          Play Now!
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Tab Switcher */}
+        <div className="flex gap-2 mb-6">
+          <Button
+            variant={activeTab === 'quests' ? 'default' : 'outline'}
+            className="rounded-kids flex-1"
+            onClick={() => setActiveTab('quests')}
+          >
+            <MapPin className="w-4 h-4 mr-2" />
+            Quest Map
+          </Button>
+          <Button
+            variant={activeTab === 'practice' ? 'default' : 'outline'}
+            className="rounded-kids flex-1"
+            onClick={() => setActiveTab('practice')}
+          >
+            <Mic className="w-4 h-4 mr-2" />
+            Practice Exercises
+          </Button>
+        </div>
 
-          {/* Right Sidebar - Avatar & Rewards */}
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Content Area */}
+          <div className="lg:col-span-2">
+            {activeTab === 'quests' ? (
+              <Card className="rounded-kids overflow-hidden bg-card/80 backdrop-blur-sm">
+                <CardContent className="p-8">
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
+                    <MapPin className="w-6 h-6 text-accent-orange" />
+                    🗺️ The Quest Map
+                  </h2>
+                  
+                  <div className="relative">
+                    <div className="absolute left-8 top-0 bottom-0 w-1 bg-accent-orange/20 rounded-full" />
+                    
+                    <div className="space-y-6">
+                      {questLevels.map((level) => (
+                        <div key={level.id} className="flex items-center gap-4 relative">
+                          <div className={`relative z-10 w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold transition-all duration-300 ${
+                            level.completed 
+                              ? "bg-success text-success-foreground shadow-lg" 
+                              : level.current 
+                                ? "bg-accent-orange text-primary-foreground shadow-xl scale-110 animate-pulse"
+                                : "bg-muted text-muted-foreground"
+                          }`}>
+                            {level.completed ? "✓" : level.id}
+                          </div>
+                          <div className="flex-1">
+                            <h4 className={`font-display font-semibold ${
+                              level.current ? "text-accent-orange" : "text-foreground"
+                            }`}>
+                              {level.name}
+                            </h4>
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                              <Star className="w-4 h-4 text-gold" />
+                              {level.gems} gems
+                            </div>
+                          </div>
+                          {level.current && (
+                            <Button 
+                              className="rounded-kids bg-accent-orange hover:bg-accent-orange/90 text-primary-foreground text-lg px-6 py-3 h-auto"
+                              onClick={() => navigate("/practice")}
+                            >
+                              <Play className="w-5 h-5 mr-2" />
+                              Play Now!
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="rounded-kids overflow-hidden bg-card/80 backdrop-blur-sm">
+                <CardContent className="p-8">
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
+                    <BookOpen className="w-6 h-6 text-primary" />
+                    📚 Practice Exercises
+                  </h2>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {practiceExercises.map((exercise) => (
+                      <button
+                        key={exercise.id}
+                        onClick={() => navigate(exercise.route)}
+                        className={`p-4 rounded-kids bg-gradient-to-br ${exercise.color} border border-border/50 text-left transition-all hover:scale-[1.02] hover:shadow-lg group`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <span className="text-3xl group-hover:scale-110 transition-transform">{exercise.icon}</span>
+                          <div className="flex-1">
+                            <h4 className="font-display font-semibold text-foreground">{exercise.title}</h4>
+                            <p className="text-sm text-muted-foreground">{exercise.description}</p>
+                            <span className={`inline-block mt-2 text-xs px-2 py-1 rounded-full ${
+                              exercise.difficulty === 'Beginner' ? 'bg-success/20 text-success' :
+                              exercise.difficulty === 'Intermediate' ? 'bg-amber-500/20 text-amber-600' :
+                              'bg-purple-500/20 text-purple-600'
+                            }`}>
+                              {exercise.difficulty}
+                            </span>
+                          </div>
+                          <Play className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* AI + Teacher Mixed Exercises */}
+                  <div className="mt-6 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-kids border-2 border-primary/20">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
+                        <Sparkles className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <h4 className="font-display font-bold text-foreground">Personalised Practice</h4>
+                        <p className="text-sm text-muted-foreground">AI + Teacher exercises just for you!</p>
+                      </div>
+                    </div>
+                    <Button className="w-full rounded-kids" onClick={() => navigate("/practice")}>
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Start My Custom Session
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Right Sidebar */}
           <div className="space-y-6">
-            {/* Avatar Pod - Echo the Otter */}
             <Card className="rounded-kids text-center overflow-hidden bg-card/80 backdrop-blur-sm">
               <CardContent className="p-6">
                 <h3 className="font-display text-lg font-bold text-foreground mb-4">
@@ -145,7 +277,6 @@ const KidHub = () => {
                   <div className="w-full h-full rounded-full bg-gradient-to-br from-accent-sky to-accent-sky/60 flex items-center justify-center text-6xl animate-float">
                     🦦
                   </div>
-                  {/* Floating gems */}
                   <div className="absolute -top-2 -right-2 text-2xl animate-bounce">💎</div>
                   <div className="absolute -bottom-1 -left-2 text-xl animate-bounce" style={{ animationDelay: "0.5s" }}>✨</div>
                 </div>
@@ -155,7 +286,6 @@ const KidHub = () => {
               </CardContent>
             </Card>
 
-            {/* Reward Bar */}
             <Card className="rounded-kids overflow-hidden bg-card/80 backdrop-blur-sm">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -196,7 +326,6 @@ const KidHub = () => {
               </CardContent>
             </Card>
 
-            {/* View Progress Button */}
             <Button 
               variant="outline" 
               size="lg"
