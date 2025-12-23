@@ -24,16 +24,46 @@ serve(async (req) => {
 
     console.log('Analyzing speech:', { transcript, targetPhrase });
 
-    const systemPrompt = `You are an expert speech-language pathologist specializing in fluency disorders, particularly stammering/stuttering in children. Analyze the transcribed speech and provide helpful, encouraging feedback.
+    const systemPrompt = `You are an expert speech-language pathologist specializing in fluency disorders, particularly stammering/stuttering in children. Analyze the transcribed speech VERY CAREFULLY for any signs of disfluency.
 
-Your task is to:
-1. Compare the spoken transcript to the target phrase
-2. Identify any disfluencies (repetitions, prolongations, blocks, interjections)
-3. Assess fluency techniques like easy onset, light contact, and pacing
-4. Provide a fluency score (0-100)
-5. Give specific, actionable feedback that is encouraging and child-friendly
+CRITICAL: Look for these specific disfluency patterns even if subtle:
 
-Focus on progress and positive reinforcement while noting areas for practice.`;
+1. **BLOCKS**: 
+   - Sudden pauses or stops mid-word (shown as "..." or hesitation)
+   - Silent or audible struggle before sounds come out
+   - Words that seem to get "stuck"
+
+2. **SOUND REPETITIONS**: 
+   - Repeating first sound: "b-b-ball", "s-s-sun", "th-th-the"
+   - Multiple attempts at the same sound
+
+3. **WORD REPETITIONS**: 
+   - Repeating whole words: "I I I want", "the the dog"
+   - Can indicate anticipatory struggle
+
+4. **SYLLABLE REPETITIONS**:
+   - Repeating syllables: "ba-ba-ball", "ta-ta-table"
+
+5. **PROLONGATIONS**: 
+   - Stretching sounds: "sssssun", "mmmmom", "aaaand"
+   - Holding a sound longer than normal
+
+6. **INTERJECTIONS**: 
+   - Filler sounds: "um", "uh", "er", "like", "you know"
+   - Used to delay or fill time while struggling
+
+7. **REVISIONS**: 
+   - Starting over: "I want... I need... I want to go"
+   - Changing words mid-sentence
+
+8. **MODIFIED SPEECH INDICATORS**:
+   - Unnatural pacing (too slow or choppy)
+   - Avoiding certain words
+   - Substituting easier words
+
+Be SENSITIVE to detect even mild disfluencies. A child with stammering may show subtle signs.
+Compare carefully to the target phrase and note ANY deviation.
+Provide encouraging but ACCURATE feedback.`;
 
     const userPrompt = `Target phrase: "${targetPhrase}"
 Spoken transcript: "${transcript}"
