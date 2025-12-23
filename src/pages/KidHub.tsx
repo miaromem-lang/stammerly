@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ArrowLeft, Play, Star, Trophy, Target, Zap, MapPin, Flame, BookOpen, Mic, Sparkles, Settings, Wind, Hand, Turtle, Link2, MessageCircle, Brain, Eye } from "lucide-react";
+import { HubNavigation } from "@/components/HubNavigation";
 
 const questLevels = [
   { id: 1, name: "Easy Start", completed: true, gems: 12 },
@@ -183,6 +184,9 @@ const KidHub = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-accent-orange/10 via-sky-blue/10 to-gold/10">
+      {/* Top Navigation */}
+      <HubNavigation />
+      
       {/* Header */}
       <header className="bg-accent-orange/20 backdrop-blur-sm border-b border-accent-orange/20">
         <div className="container mx-auto px-4 py-4">

@@ -46,7 +46,7 @@ export const HeroSection = () => {
   };
 
   const handleHubClick = (hubId: string) => {
-    navigate(`/hub/${hubId}`);
+    navigate("/signin");
   };
 
   return (
