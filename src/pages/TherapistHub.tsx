@@ -75,23 +75,23 @@ const TherapistHub = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 text-white">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-slate-800/50 backdrop-blur-sm border-b border-slate-700">
+      <header className="bg-card border-b border-border">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <button 
               onClick={() => navigate("/signin")}
-              className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               <span>Back</span>
             </button>
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-primary-foreground" />
+              <div className="w-10 h-10 rounded-xl bg-accent-orange flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <span className="font-display font-bold text-xl">Clinical Portal</span>
+              <span className="font-display font-bold text-xl text-foreground">Clinical Portal</span>
             </div>
             <div className="w-20" />
           </div>
@@ -102,10 +102,10 @@ const TherapistHub = () => {
         <div className="grid lg:grid-cols-4 gap-6">
           {/* Left Column - Patient List */}
           <div className="space-y-6">
-            <Card className="bg-slate-800/50 border-slate-700">
+            <Card className="glass-card-strong">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <Users className="w-5 h-5 text-primary" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <Users className="w-5 h-5 text-accent-orange" />
                   Patients
                 </CardTitle>
               </CardHeader>
@@ -113,41 +113,41 @@ const TherapistHub = () => {
                 {patients.map((patient) => (
                   <div 
                     key={patient.id}
-                    className="p-3 bg-slate-700/50 rounded-lg cursor-pointer hover:bg-slate-700 transition-colors"
+                    className="p-3 bg-secondary/50 rounded-lg cursor-pointer hover:bg-secondary transition-colors"
                     onClick={() => navigate("/analytics/therapist")}
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium">{patient.name}</span>
+                      <span className="font-medium text-foreground">{patient.name}</span>
                       <span className={`text-xs px-2 py-1 rounded-full ${
                         patient.risk === "low" ? "bg-success/20 text-success" : "bg-gold/20 text-gold"
                       }`}>
                         {patient.progress}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400">Age {patient.age} • {patient.nextSession}</p>
+                    <p className="text-xs text-muted-foreground">Age {patient.age} • {patient.nextSession}</p>
                   </div>
                 ))}
               </CardContent>
             </Card>
 
             {/* Exercise Library */}
-            <Card className="bg-slate-800/50 border-slate-700">
+            <Card className="glass-card-strong">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2 text-white">
+                  <CardTitle className="flex items-center gap-2 text-foreground">
                     <FileText className="w-5 h-5 text-gold" />
                     Exercise Library
                   </CardTitle>
                   <Dialog open={isBuilderOpen} onOpenChange={setIsBuilderOpen}>
                     <DialogTrigger asChild>
-                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-slate-400 hover:text-white">
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
                         <Plus className="w-4 h-4" />
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="bg-slate-800 border-slate-700 text-white max-w-lg">
+                    <DialogContent className="bg-card border-border text-foreground max-w-lg">
                       <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
-                          <Plus className="w-5 h-5 text-primary" />
+                          <Plus className="w-5 h-5 text-accent-orange" />
                           Build New Exercise
                         </DialogTitle>
                       </DialogHeader>
@@ -160,7 +160,6 @@ const TherapistHub = () => {
                             placeholder="e.g., Gentle Start Sentences"
                             value={newExercise.name}
                             onChange={(e) => setNewExercise({ ...newExercise, name: e.target.value })}
-                            className="bg-slate-700 border-slate-600"
                           />
                         </div>
                         
@@ -171,7 +170,7 @@ const TherapistHub = () => {
                               value={newExercise.category} 
                               onValueChange={(val) => setNewExercise({ ...newExercise, category: val })}
                             >
-                              <SelectTrigger className="bg-slate-700 border-slate-600">
+                              <SelectTrigger>
                                 <SelectValue placeholder="Select..." />
                               </SelectTrigger>
                               <SelectContent>
@@ -191,7 +190,7 @@ const TherapistHub = () => {
                               value={newExercise.difficulty}
                               onValueChange={(val) => setNewExercise({ ...newExercise, difficulty: val })}
                             >
-                              <SelectTrigger className="bg-slate-700 border-slate-600">
+                              <SelectTrigger>
                                 <SelectValue placeholder="Select..." />
                               </SelectTrigger>
                               <SelectContent>
@@ -210,7 +209,6 @@ const TherapistHub = () => {
                             placeholder="e.g., Sally saw the sun shine softly"
                             value={newExercise.targetPhrase}
                             onChange={(e) => setNewExercise({ ...newExercise, targetPhrase: e.target.value })}
-                            className="bg-slate-700 border-slate-600"
                           />
                         </div>
                         
@@ -221,7 +219,6 @@ const TherapistHub = () => {
                             placeholder="e.g., /s/ sound onset, word-initial position"
                             value={newExercise.focusArea}
                             onChange={(e) => setNewExercise({ ...newExercise, focusArea: e.target.value })}
-                            className="bg-slate-700 border-slate-600"
                           />
                         </div>
                         
@@ -232,14 +229,14 @@ const TherapistHub = () => {
                             placeholder="e.g., Say each word slowly, stretching the first sound..."
                             value={newExercise.instructions}
                             onChange={(e) => setNewExercise({ ...newExercise, instructions: e.target.value })}
-                            className="bg-slate-700 border-slate-600 min-h-[80px]"
+                            className="min-h-[80px]"
                           />
                         </div>
                         
                         <div className="flex gap-3 pt-2">
                           <Button 
                             variant="outline" 
-                            className="flex-1 border-slate-600"
+                            className="flex-1"
                             onClick={() => setIsBuilderOpen(false)}
                           >
                             <X className="w-4 h-4 mr-2" />
@@ -265,22 +262,22 @@ const TherapistHub = () => {
                     draggable
                     onDragStart={() => setDraggedExercise(exercise.id)}
                     onDragEnd={() => setDraggedExercise(null)}
-                    className={`p-3 bg-slate-700/50 rounded-lg cursor-grab active:cursor-grabbing transition-all ${
-                      draggedExercise === exercise.id ? "opacity-50 scale-95" : "hover:bg-slate-700"
+                    className={`p-3 bg-secondary/50 rounded-lg cursor-grab active:cursor-grabbing transition-all ${
+                      draggedExercise === exercise.id ? "opacity-50 scale-95" : "hover:bg-secondary"
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <p className="font-medium text-sm">{exercise.name}</p>
+                      <p className="font-medium text-sm text-foreground">{exercise.name}</p>
                       {exercise.custom && (
-                        <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] bg-accent-orange/20 text-accent-orange px-2 py-0.5 rounded-full">
                           Custom
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-slate-400">{exercise.category} • {exercise.difficulty}</p>
+                    <p className="text-xs text-muted-foreground">{exercise.category} • {exercise.difficulty}</p>
                   </div>
                 ))}
-                <p className="text-xs text-slate-500 mt-2">Drag exercises to patient cards to assign</p>
+                <p className="text-xs text-muted-foreground mt-2">Drag exercises to patient cards to assign</p>
               </CardContent>
             </Card>
           </div>
@@ -288,15 +285,15 @@ const TherapistHub = () => {
           {/* Center - Main Dashboard */}
           <div className="lg:col-span-2 space-y-6">
             {/* App Integration */}
-            <Card className="bg-slate-800/50 border-primary/30">
+            <Card className="glass-card-strong border-accent-orange/30">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <Smartphone className="w-5 h-5 text-primary" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <Smartphone className="w-5 h-5 text-accent-orange" />
                   Connect Recording App
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-slate-400 mb-4">
+                <p className="text-muted-foreground mb-4">
                   Sync all patient recordings from the mobile app to generate comprehensive analytics and personalized exercise plans.
                 </p>
                 <Button onClick={handleConnectApp} className="w-full" variant="navy">
@@ -308,31 +305,31 @@ const TherapistHub = () => {
 
             {/* Quick Stats Grid */}
             <div className="grid grid-cols-3 gap-4">
-              <Card className="bg-slate-800/50 border-slate-700">
+              <Card className="glass-card">
                 <CardContent className="p-4 text-center">
                   <p className="text-3xl font-bold text-success">92%</p>
-                  <p className="text-xs text-slate-400">AI Confidence</p>
+                  <p className="text-xs text-muted-foreground">AI Confidence</p>
                 </CardContent>
               </Card>
-              <Card className="bg-slate-800/50 border-slate-700">
+              <Card className="glass-card">
                 <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold text-primary">156</p>
-                  <p className="text-xs text-slate-400">SPM Average</p>
+                  <p className="text-3xl font-bold text-accent-orange">156</p>
+                  <p className="text-xs text-muted-foreground">SPM Average</p>
                 </CardContent>
               </Card>
-              <Card className="bg-slate-800/50 border-slate-700">
+              <Card className="glass-card">
                 <CardContent className="p-4 text-center">
                   <p className="text-3xl font-bold text-gold">+18%</p>
-                  <p className="text-xs text-slate-400">Avg Progress</p>
+                  <p className="text-xs text-muted-foreground">Avg Progress</p>
                 </CardContent>
               </Card>
             </div>
 
             {/* SPM Comparison Chart Placeholder */}
-            <Card className="bg-slate-800/50 border-slate-700">
+            <Card className="glass-card-strong">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <TrendingUp className="w-5 h-5 text-primary" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <TrendingUp className="w-5 h-5 text-accent-orange" />
                   SPM: Home vs Clinic Comparison
                 </CardTitle>
               </CardHeader>
@@ -343,7 +340,7 @@ const TherapistHub = () => {
                       {[120, 145, 130, 160, 155, 170, 165].map((val, i) => (
                         <div key={i} className="flex flex-col gap-1">
                           <div 
-                            className="w-8 bg-primary/60 rounded-t"
+                            className="w-8 bg-accent-orange/60 rounded-t"
                             style={{ height: `${val / 2}px` }}
                           />
                           <div 
@@ -353,9 +350,9 @@ const TherapistHub = () => {
                         </div>
                       ))}
                     </div>
-                    <div className="flex items-center justify-center gap-6 text-xs text-slate-400">
+                    <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground">
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-primary/60 rounded" />
+                        <div className="w-3 h-3 bg-accent-orange/60 rounded" />
                         <span>Clinic</span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -367,7 +364,7 @@ const TherapistHub = () => {
                 </div>
                 <Button 
                   variant="outline" 
-                  className="w-full mt-4 border-slate-600 text-white hover:bg-slate-700"
+                  className="w-full mt-4"
                   onClick={() => navigate("/analytics/therapist")}
                 >
                   <BarChart3 className="w-4 h-4 mr-2" />
@@ -377,9 +374,9 @@ const TherapistHub = () => {
             </Card>
 
             {/* Session Planner */}
-            <Card className="bg-slate-800/50 border-slate-700">
+            <Card className="glass-card-strong">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
+                <CardTitle className="flex items-center gap-2 text-foreground">
                   <Calendar className="w-5 h-5 text-accent-orange" />
                   Push Exercises to Patients
                 </CardTitle>
@@ -389,7 +386,7 @@ const TherapistHub = () => {
                   {patients.map((patient) => (
                     <div 
                       key={patient.id}
-                      className="p-4 bg-slate-700/50 rounded-lg border-2 border-dashed border-slate-600 text-center"
+                      className="p-4 bg-secondary/50 rounded-lg border-2 border-dashed border-border text-center"
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={() => {
                         if (draggedExercise) {
@@ -397,10 +394,85 @@ const TherapistHub = () => {
                         }
                       }}
                     >
-                      <p className="font-medium text-sm mb-1">{patient.name}</p>
-                      <p className="text-xs text-slate-400">Drop exercise here</p>
+                      <p className="font-medium text-sm mb-1 text-foreground">{patient.name}</p>
+                      <p className="text-xs text-muted-foreground">Drop exercise here</p>
                     </div>
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Detailed Disfluency Analytics */}
+            <Card className="glass-card-strong">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <BarChart3 className="w-5 h-5 text-accent-orange" />
+                  Detailed Disfluency Analytics
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  {[
+                    { type: "Blocks", count: 5, trend: "↓3", color: "bg-destructive", detail: "Silent pauses before sounds" },
+                    { type: "Interjections", count: 8, trend: "↓2", color: "bg-amber-500", detail: "Um, uh, like insertions" },
+                    { type: "Prolongations", count: 7, trend: "↓1", color: "bg-gold", detail: "Extended sound duration" },
+                    { type: "Sound Repetitions", count: 4, trend: "↓2", color: "bg-primary", detail: "Initial sound repeats" },
+                    { type: "Word Repetitions", count: 6, trend: "↓1", color: "bg-accent-sky", detail: "Whole word repeats" },
+                    { type: "Modified Speech", count: 12, trend: "↑4", color: "bg-success", detail: "Successful technique use" },
+                  ].map((item) => (
+                    <div key={item.type} className="p-3 bg-secondary/50 rounded-lg">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${item.color}`} />
+                          <span className="text-sm font-medium text-foreground">{item.type}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-foreground">{item.count}</span>
+                          <span className={`text-xs ${item.trend.startsWith('↑') ? 'text-success' : 'text-success'}`}>{item.trend}</span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{item.detail}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Time Interval Chart */}
+                <div className="border-t border-border pt-4">
+                  <h4 className="text-sm font-medium text-foreground mb-3">Disfluencies Over Time (5-min intervals)</h4>
+                  <div className="flex items-end justify-between h-24 gap-1">
+                    {[
+                      { time: "0-5", blocks: 3, other: 5 },
+                      { time: "5-10", blocks: 2, other: 4 },
+                      { time: "10-15", blocks: 1, other: 3 },
+                      { time: "15-20", blocks: 2, other: 2 },
+                      { time: "20-25", blocks: 1, other: 2 },
+                      { time: "25-30", blocks: 0, other: 1 },
+                    ].map((interval, i) => (
+                      <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                        <div className="w-full flex flex-col gap-0.5">
+                          <div 
+                            className="w-full bg-destructive/60 rounded-t"
+                            style={{ height: `${interval.blocks * 12}px` }}
+                          />
+                          <div 
+                            className="w-full bg-accent-orange/60 rounded-b"
+                            style={{ height: `${interval.other * 8}px` }}
+                          />
+                        </div>
+                        <span className="text-[10px] text-muted-foreground">{interval.time}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-center gap-4 mt-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-destructive/60 rounded" />
+                      <span>Blocks</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-accent-orange/60 rounded" />
+                      <span>Other Disfluencies</span>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -408,34 +480,34 @@ const TherapistHub = () => {
 
           {/* Right Column - AI Insights */}
           <div className="space-y-6">
-            <Card className="bg-slate-800/50 border-slate-700">
+            <Card className="glass-card-strong">
               <CardHeader>
-                <CardTitle className="text-white text-sm">AI Block Detection</CardTitle>
+                <CardTitle className="text-foreground text-sm">AI Block Detection</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-400">Confidence</span>
+                    <span className="text-sm text-muted-foreground">Confidence</span>
                     <span className="text-success font-bold">92%</span>
                   </div>
-                  <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
                     <div className="h-full w-[92%] bg-success rounded-full" />
                   </div>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-muted-foreground">
                     AI flags patterns; humans make diagnoses
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-800/50 border-slate-700">
+            <Card className="glass-card-strong">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-white text-sm">Disfluency Analysis</CardTitle>
+                  <CardTitle className="text-foreground text-sm">Disfluency Summary</CardTitle>
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="text-primary hover:text-primary/80 h-6 px-2 text-xs"
+                    className="text-accent-orange hover:text-accent-orange/80 h-6 px-2 text-xs"
                     onClick={() => navigate("/analytics/therapist")}
                   >
                     View All →
@@ -448,40 +520,40 @@ const TherapistHub = () => {
                   { type: "Prolongations", count: 8, trend: "↓1", color: "bg-gold", detail: "Sound prolongations improving" },
                   { type: "Blocks", count: 5, trend: "↓3", color: "bg-destructive", detail: "Silent blocks reduced significantly" },
                 ].map((item) => (
-                  <div key={item.type} className="p-3 bg-slate-700/50 rounded-lg">
+                  <div key={item.type} className="p-3 bg-secondary/50 rounded-lg">
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${item.color}`} />
-                        <span className="text-sm font-medium text-white">{item.type}</span>
+                        <span className="text-sm font-medium text-foreground">{item.type}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold">{item.count}</span>
+                        <span className="text-sm font-bold text-foreground">{item.count}</span>
                         <span className="text-xs text-success">{item.trend}</span>
                       </div>
                     </div>
-                    <p className="text-xs text-slate-400">{item.detail}</p>
+                    <p className="text-xs text-muted-foreground">{item.detail}</p>
                   </div>
                 ))}
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-800/50 border-primary/30">
+            <Card className="glass-card-strong border-accent-orange/30">
               <CardHeader>
-                <CardTitle className="text-white text-sm flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-primary" />
+                <CardTitle className="text-foreground text-sm flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-accent-orange" />
                   AI Summary
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-slate-300 mb-3">
+                <p className="text-sm text-muted-foreground mb-3">
                   Alex shows consistent improvement in easy onset technique. Word-initial blocks have decreased 40% over 2 weeks.
                 </p>
-                <p className="text-sm text-slate-300 mb-4">
-                  <strong className="text-primary">Recommendation:</strong> Introduce phrase-level exercises focusing on /s/ and /b/ sounds.
+                <p className="text-sm text-muted-foreground mb-4">
+                  <strong className="text-accent-orange">Recommendation:</strong> Introduce phrase-level exercises focusing on /s/ and /b/ sounds.
                 </p>
                 <Button 
                   variant="outline" 
-                  className="w-full border-slate-600 text-white hover:bg-slate-700"
+                  className="w-full"
                   onClick={() => navigate("/analytics/therapist")}
                 >
                   <BarChart3 className="w-4 h-4 mr-2" />
