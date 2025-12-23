@@ -21,6 +21,8 @@ import Contact from "./pages/Contact";
 import Team from "./pages/Team";
 import Reviews from "./pages/Reviews";
 import Ethics from "./pages/Ethics";
+import KidHubOverview from "./pages/KidHubOverview";
+import StoryExercise from "./pages/StoryExercise";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +41,8 @@ const App = () => (
             <Route path="/hub/parent" element={<ParentHub />} />
             <Route path="/hub/teacher" element={<TeacherHub />} />
             <Route path="/hub/therapist" element={<TherapistHub />} />
+            <Route path="/hub/kid-overview" element={<KidHubOverview />} />
+            <Route path="/story-exercise" element={<StoryExercise />} />
             <Route path="/practice" element={<Practice />} />
             <Route path="/analytics/:role" element={<Analytics />} />
             <Route path="/about" element={<About />} />
