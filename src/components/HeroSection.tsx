@@ -14,21 +14,21 @@ const hubs = [
     id: "parent",
     label: "Parent Hub",
     icon: Users,
-    color: "bg-primary",
+    color: "gradient-navy",
     description: "Track progress at home",
   },
   {
     id: "teacher",
     label: "Teacher Hub",
     icon: GraduationCap,
-    color: "bg-secondary",
+    color: "gradient-navy",
     description: "Classroom support tools",
   },
   {
     id: "therapist",
     label: "Therapist Hub",
     icon: Stethoscope,
-    color: "bg-success",
+    color: "bg-accent-orange",
     description: "Clinical analytics",
   },
 ];
@@ -109,7 +109,7 @@ export const HeroSection = () => {
                 key={hub.id}
                 onClick={() => navigate("/signin")}
                 className={`group relative overflow-hidden rounded-2xl p-8 text-left transition-all duration-300 hover:scale-105 hover:shadow-2xl ${hub.color} text-primary-foreground ${
-                  isKid ? "rounded-kids" : ""
+                  isKid || hub.id === "therapist" ? "rounded-kids" : ""
                 }`}
               >
                 <div className="inline-flex p-4 rounded-2xl mb-4 bg-primary-foreground/20">
