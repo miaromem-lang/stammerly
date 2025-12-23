@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Sparkles, ArrowLeft, BarChart3, MessageSquare, Upload, Bell, TrendingUp, Calendar, Send, Smartphone } from "lucide-react";
 import { toast } from "sonner";
+import { HubNavigation } from "@/components/HubNavigation";
 
 const recentActivities = [
   { date: "Today", activity: "Easy Onset Quest", score: 87, improvement: "+5%" },
@@ -35,6 +36,9 @@ const ParentHub = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/30">
+      {/* Top Navigation */}
+      <HubNavigation />
+      
       {/* Header */}
       <header className="glass-card-strong border-b border-border">
         <div className="container mx-auto px-4 py-4">

@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sparkles, ArrowLeft, BarChart3, MessageSquare, Users, Clock, Send, FileText, Smartphone, Upload } from "lucide-react";
 import { toast } from "sonner";
+import { HubNavigation } from "@/components/HubNavigation";
 
 const students = [
   { id: 1, name: "Alex M.", status: "good", lastActivity: "2 hours ago" },
@@ -50,6 +51,9 @@ const TeacherHub = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Top Navigation */}
+      <HubNavigation />
+      
       {/* Header */}
       <header className="bg-card border-b border-border">
         <div className="container mx-auto px-4 py-4">

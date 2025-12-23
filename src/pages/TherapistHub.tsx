@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Sparkles, ArrowLeft, BarChart3, Users, Calendar, FileText, TrendingUp, Smartphone, Upload, Plus, Save, X } from "lucide-react";
 import { toast } from "sonner";
+import { HubNavigation } from "@/components/HubNavigation";
 
 const patients = [
   { id: 1, name: "Alex M.", age: 8, nextSession: "Today, 2:00 PM", progress: "+15%", risk: "low" },
@@ -105,9 +106,12 @@ const TherapistHub = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white">
+      {/* Top Navigation */}
+      <HubNavigation />
+      
       {/* Header */}
-      <header className="bg-card border-b border-border">
+      <header className="bg-white border-b border-border">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <button 
