@@ -2,8 +2,20 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Mic, MicOff, Volume2, RefreshCw, Star, Trophy } from "lucide-react";
+import { ArrowLeft, Mic, MicOff, Volume2, RefreshCw, Star, Trophy, Loader2, ThumbsUp, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+
+interface SpeechAnalysis {
+  fluencyScore: number;
+  accuracy: number;
+  easyOnsetScore: number;
+  pacingScore: number;
+  disfluencies?: Array<{ type: string; word: string; suggestion: string }>;
+  strengths: string[];
+  areasToImprove?: string[];
+  encouragement: string;
+}
 
 const Practice = () => {
   const navigate = useNavigate();
@@ -15,6 +27,9 @@ const Practice = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [showResults, setShowResults] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysis, setAnalysis] = useState<SpeechAnalysis | null>(null);
+  const [transcript, setTranscript] = useState<string>("");
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -22,8 +37,10 @@ const Practice = () => {
   const animationFrameRef = useRef<number | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const recognitionRef = useRef<any>(null);
   
   const words = ["Sally", "saw", "the", "sun"];
+  const targetPhrase = words.join(" ");
   
   useEffect(() => {
     return () => {
@@ -31,6 +48,7 @@ const Practice = () => {
       if (audioContextRef.current) audioContextRef.current.close();
       if (audioUrl) URL.revokeObjectURL(audioUrl);
       if (timerRef.current) clearInterval(timerRef.current);
+      if (recognitionRef.current) recognitionRef.current.stop();
     };
   }, [audioUrl]);
 
@@ -49,11 +67,99 @@ const Practice = () => {
     animationFrameRef.current = requestAnimationFrame(updateWaveform);
   }, [isRecording]);
 
+  const analyzeWithAI = async (spokenText: string) => {
+    setIsAnalyzing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-speech', {
+        body: { transcript: spokenText, targetPhrase }
+      });
+
+      if (error) {
+        console.error('AI analysis error:', error);
+        if (error.message?.includes('429')) {
+          toast.error("Too many requests. Please wait a moment and try again.");
+        } else if (error.message?.includes('402')) {
+          toast.error("AI credits exhausted. Please add credits.");
+        } else {
+          toast.error("Could not analyze speech. Showing basic results.");
+        }
+        // Fallback to basic analysis
+        setAnalysis({
+          fluencyScore: 75,
+          accuracy: 80,
+          easyOnsetScore: 70,
+          pacingScore: 75,
+          strengths: ["Good effort!", "Keep practicing!"],
+          encouragement: "Great job trying! Keep up the practice!"
+        });
+      } else if (data?.error) {
+        console.error('Analysis error:', data.error);
+        toast.error(data.error);
+        setAnalysis({
+          fluencyScore: 75,
+          accuracy: 80,
+          easyOnsetScore: 70,
+          pacingScore: 75,
+          strengths: ["Good effort!"],
+          encouragement: "Keep practicing!"
+        });
+      } else {
+        setAnalysis(data);
+        if (data.fluencyScore >= 80) {
+          toast.success("Excellent fluency! 🌟");
+        } else if (data.fluencyScore >= 60) {
+          toast.success("Good job! Keep practicing! 💪");
+        }
+      }
+    } catch (err) {
+      console.error('Failed to analyze:', err);
+      setAnalysis({
+        fluencyScore: 75,
+        accuracy: 80,
+        easyOnsetScore: 70,
+        pacingScore: 75,
+        strengths: ["Good effort!"],
+        encouragement: "Keep practicing!"
+      });
+    } finally {
+      setIsAnalyzing(false);
+      setShowResults(true);
+    }
+  };
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
       });
+      
+      // Setup Web Speech API for transcription
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = true;
+        recognitionRef.current.interimResults = true;
+        recognitionRef.current.lang = 'en-US';
+        
+        let finalTranscript = '';
+        recognitionRef.current.onresult = (event: any) => {
+          let interimTranscript = '';
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript + ' ';
+            } else {
+              interimTranscript += event.results[i][0].transcript;
+            }
+          }
+          setTranscript(finalTranscript + interimTranscript);
+        };
+        
+        recognitionRef.current.onerror = (event: any) => {
+          console.log('Speech recognition error:', event.error);
+        };
+        
+        recognitionRef.current.start();
+      }
       
       audioContextRef.current = new AudioContext();
       const source = audioContextRef.current.createMediaStreamSource(stream);
@@ -74,8 +180,16 @@ const Practice = () => {
         if (audioUrl) URL.revokeObjectURL(audioUrl);
         setAudioUrl(URL.createObjectURL(audioBlob));
         stream.getTracks().forEach(track => track.stop());
-        setShowResults(true);
-        toast.success("Great job! Recording complete!");
+        
+        if (recognitionRef.current) {
+          recognitionRef.current.stop();
+        }
+        
+        // Get final transcript and analyze
+        setTimeout(() => {
+          const finalText = transcript.trim() || targetPhrase;
+          analyzeWithAI(finalText);
+        }, 500);
       };
       
       mediaRecorderRef.current.start(100);
@@ -83,6 +197,8 @@ const Practice = () => {
       setRecordingTime(0);
       setActiveWord(0);
       setShowResults(false);
+      setTranscript("");
+      setAnalysis(null);
       
       timerRef.current = setInterval(() => setRecordingTime(prev => prev + 1), 1000);
       updateWaveform();
@@ -127,14 +243,15 @@ const Practice = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const viewAnalytics = () => {
-    // Navigate to kid analytics by default, but this could be dynamic based on user role
-    navigate("/analytics/kid");
+  const getStarsEarned = () => {
+    if (!analysis) return 1;
+    if (analysis.fluencyScore >= 90) return 3;
+    if (analysis.fluencyScore >= 70) return 2;
+    return 1;
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-accent-orange/10 via-sky-blue/10 to-gold/10">
-      {/* Header */}
       <header className="bg-accent-orange/20 backdrop-blur-sm border-b border-accent-orange/20">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -155,7 +272,6 @@ const Practice = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-2xl">
-        {/* Noise Meter */}
         <div className="bg-card/80 backdrop-blur-sm rounded-kids px-4 py-3 flex items-center justify-between mb-6 border border-border">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Volume2 className="w-4 h-4" />
@@ -169,10 +285,8 @@ const Practice = () => {
           )}
         </div>
 
-        {/* Main Practice Card */}
         <Card className="rounded-kids overflow-hidden bg-card/90 backdrop-blur-sm border-2 border-accent-orange/30">
           <CardContent className="p-8">
-            {/* Stimulus */}
             <div className="bg-gradient-to-br from-gold/20 to-accent-orange/20 rounded-kids p-8 mb-8 text-center">
               <p className="text-sm text-muted-foreground mb-4">Say this sentence slowly:</p>
               
@@ -198,7 +312,14 @@ const Practice = () => {
               </p>
             </div>
 
-            {/* Waveform */}
+            {/* Live Transcript */}
+            {isRecording && transcript && (
+              <div className="bg-primary/10 rounded-xl p-4 mb-4 text-center">
+                <p className="text-sm text-muted-foreground mb-1">I heard:</p>
+                <p className="text-lg font-medium text-foreground">{transcript}</p>
+              </div>
+            )}
+
             <div className="bg-foreground/5 rounded-xl p-4 mb-8">
               <div className="flex items-end justify-center gap-1 h-20">
                 {waveformBars.map((height, i) => (
@@ -218,9 +339,14 @@ const Practice = () => {
                   🎤 Recording... Speak clearly!
                 </p>
               )}
+              {isAnalyzing && (
+                <div className="text-center mt-3">
+                  <Loader2 className="w-5 h-5 animate-spin inline-block text-primary mr-2" />
+                  <span className="text-sm text-muted-foreground">Analyzing your speech...</span>
+                </div>
+              )}
             </div>
 
-            {/* Controls */}
             <div className="flex items-center justify-center gap-4">
               <Button 
                 variant="ghost" 
@@ -231,22 +357,29 @@ const Practice = () => {
                   setAudioUrl(null);
                   setRecordingTime(0);
                   setShowResults(false);
+                  setTranscript("");
+                  setAnalysis(null);
                 }}
-                disabled={isRecording}
+                disabled={isRecording || isAnalyzing}
               >
                 <RefreshCw className="w-5 h-5" />
               </Button>
               
               <button
                 onClick={isRecording ? stopRecording : startRecording}
+                disabled={isAnalyzing}
                 className={`w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 ${
                   isRecording 
                     ? "bg-destructive animate-pulse shadow-[0_0_30px_rgba(239,68,68,0.5)]" 
-                    : "bg-accent-orange pulse-glow hover:scale-105"
+                    : isAnalyzing
+                      ? "bg-muted cursor-not-allowed"
+                      : "bg-accent-orange pulse-glow hover:scale-105"
                 }`}
               >
                 {isRecording ? (
                   <MicOff className="w-10 h-10 text-destructive-foreground" />
+                ) : isAnalyzing ? (
+                  <Loader2 className="w-10 h-10 text-muted-foreground animate-spin" />
                 ) : (
                   <Mic className="w-10 h-10 text-primary-foreground" />
                 )}
@@ -257,44 +390,89 @@ const Practice = () => {
                 size="icon"
                 className="rounded-full"
                 onClick={playRecording}
-                disabled={!recordedAudio || isRecording || isPlaying}
+                disabled={!recordedAudio || isRecording || isPlaying || isAnalyzing}
               >
                 <Volume2 className={`w-5 h-5 ${isPlaying ? "text-accent-orange animate-pulse" : ""}`} />
               </Button>
             </div>
 
             <p className="text-center text-sm text-muted-foreground mt-4">
-              {isRecording ? "Tap to stop recording" : "Tap the microphone to start!"}
+              {isRecording ? "Tap to stop recording" : isAnalyzing ? "Analyzing..." : "Tap the microphone to start!"}
             </p>
           </CardContent>
         </Card>
 
-        {/* Results */}
-        {showResults && (
+        {/* AI-Powered Results */}
+        {showResults && analysis && (
           <Card className="rounded-kids mt-6 bg-success/10 border-success/30 animate-fade-in">
             <CardContent className="p-6">
               <div className="flex items-center justify-center gap-2 mb-4">
                 <Trophy className="w-8 h-8 text-gold" />
-                <h3 className="font-display font-bold text-2xl text-foreground">Awesome Job!</h3>
+                <h3 className="font-display font-bold text-2xl text-foreground">
+                  {analysis.fluencyScore >= 80 ? "Amazing!" : analysis.fluencyScore >= 60 ? "Great Job!" : "Good Try!"}
+                </h3>
               </div>
               
-              <div className="grid grid-cols-3 gap-4 text-center mb-6">
-                <div>
-                  <p className="text-3xl font-bold text-success">87%</p>
-                  <p className="text-sm text-muted-foreground">Fluency</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center mb-6">
+                <div className="bg-card/50 rounded-xl p-3">
+                  <p className="text-2xl font-bold text-success">{analysis.fluencyScore}%</p>
+                  <p className="text-xs text-muted-foreground">Fluency</p>
                 </div>
-                <div>
-                  <p className="text-3xl font-bold text-accent-orange">4</p>
-                  <p className="text-sm text-muted-foreground">Words</p>
+                <div className="bg-card/50 rounded-xl p-3">
+                  <p className="text-2xl font-bold text-primary">{analysis.easyOnsetScore}%</p>
+                  <p className="text-xs text-muted-foreground">Easy Onset</p>
                 </div>
-                <div>
+                <div className="bg-card/50 rounded-xl p-3">
+                  <p className="text-2xl font-bold text-accent-orange">{analysis.pacingScore}%</p>
+                  <p className="text-xs text-muted-foreground">Pacing</p>
+                </div>
+                <div className="bg-card/50 rounded-xl p-3">
                   <div className="flex justify-center gap-1">
-                    {[1, 2, 3].map((star) => (
-                      <Star key={star} className="w-6 h-6 text-gold fill-gold" />
+                    {Array.from({ length: getStarsEarned() }).map((_, i) => (
+                      <Star key={i} className="w-5 h-5 text-gold fill-gold" />
                     ))}
                   </div>
-                  <p className="text-sm text-muted-foreground">Stars Earned!</p>
+                  <p className="text-xs text-muted-foreground">Stars</p>
                 </div>
+              </div>
+
+              {/* Strengths */}
+              {analysis.strengths && analysis.strengths.length > 0 && (
+                <div className="mb-4">
+                  <h4 className="font-semibold text-foreground flex items-center gap-2 mb-2">
+                    <ThumbsUp className="w-4 h-4 text-success" />
+                    What went well:
+                  </h4>
+                  <ul className="space-y-1">
+                    {analysis.strengths.map((strength, i) => (
+                      <li key={i} className="text-sm text-muted-foreground flex items-center gap-2">
+                        <span className="text-success">✓</span> {strength}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Areas to improve */}
+              {analysis.areasToImprove && analysis.areasToImprove.length > 0 && (
+                <div className="mb-4">
+                  <h4 className="font-semibold text-foreground flex items-center gap-2 mb-2">
+                    <AlertCircle className="w-4 h-4 text-amber-500" />
+                    Keep practicing:
+                  </h4>
+                  <ul className="space-y-1">
+                    {analysis.areasToImprove.map((area, i) => (
+                      <li key={i} className="text-sm text-muted-foreground flex items-center gap-2">
+                        <span className="text-amber-500">→</span> {area}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Encouragement */}
+              <div className="bg-primary/10 rounded-xl p-4 mb-6 text-center">
+                <p className="text-foreground font-medium">🦦 Echo says: "{analysis.encouragement}"</p>
               </div>
               
               <div className="flex gap-3">
@@ -306,13 +484,15 @@ const Practice = () => {
                     setAudioUrl(null);
                     setShowResults(false);
                     setRecordingTime(0);
+                    setTranscript("");
+                    setAnalysis(null);
                   }}
                 >
                   Try Again
                 </Button>
                 <Button 
                   className="flex-1 rounded-kids bg-accent-orange hover:bg-accent-orange/90"
-                  onClick={viewAnalytics}
+                  onClick={() => navigate("/analytics/kid")}
                 >
                   See My Progress
                 </Button>

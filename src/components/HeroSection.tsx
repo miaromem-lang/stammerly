@@ -53,9 +53,13 @@ export const HeroSection = () => {
               </div>
               <span className="font-display font-bold text-xl text-foreground">Stammerly</span>
             </div>
-            <nav className="hidden md:flex items-center gap-8">
+            <nav className="hidden md:flex items-center gap-6">
               <button onClick={() => navigate("/about")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">About</button>
-              <button onClick={() => navigate("/ethics")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Ethics & Privacy</button>
+              <button onClick={() => navigate("/our-story")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Our Story</button>
+              <button onClick={() => navigate("/research")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Research</button>
+              <button onClick={() => navigate("/privacy-policy")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy</button>
+              <button onClick={() => navigate("/reviews")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Reviews</button>
+              <button onClick={() => navigate("/contact")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Contact</button>
             </nav>
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="sm" onClick={() => navigate("/signin")}>
