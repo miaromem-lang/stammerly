@@ -49,23 +49,23 @@ const TeacherHub = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-slate-700/50 backdrop-blur-sm border-b border-slate-600">
+      <header className="bg-card border-b border-border">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <button 
               onClick={() => navigate("/signin")}
-              className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors"
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               <span>Back</span>
             </button>
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-primary-foreground" />
+              <div className="w-10 h-10 rounded-xl gradient-success flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <span className="font-display font-bold text-xl text-white">Teacher Portal</span>
+              <span className="font-display font-bold text-xl text-foreground">Teacher Portal</span>
             </div>
             <div className="w-20" />
           </div>
@@ -77,42 +77,42 @@ const TeacherHub = () => {
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Pinned Strategy */}
-            <Card className="bg-gold/20 border-gold/30">
+            <Card className="bg-gold/10 border-gold/30">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="text-4xl">📌</div>
                   <div>
-                    <h3 className="font-display font-bold text-lg text-white mb-1">Current Focus Strategy</h3>
-                    <p className="text-slate-200">Give 5 seconds of 'Wait Time' before expecting a response. This reduces pressure and supports fluency.</p>
+                    <h3 className="font-display font-bold text-lg text-foreground mb-1">Current Focus Strategy</h3>
+                    <p className="text-muted-foreground">Give 5 seconds of 'Wait Time' before expecting a response. This reduces pressure and supports fluency.</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Quick Action Widget */}
-            <Card className="bg-slate-700/50 border-slate-600">
+            <Card className="glass-card-strong">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <Clock className="w-5 h-5 text-primary" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <Clock className="w-5 h-5 text-success" />
                   Quick Session Log
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-slate-300 mb-4">One-tap logging for busy lessons:</p>
+                <p className="text-muted-foreground mb-4">One-tap logging for busy lessons:</p>
                 <div className="flex gap-4 justify-center">
                   {["😃", "😐", "😟"].map((emoji) => (
                     <button
                       key={emoji}
                       onClick={() => handleQuickLog(emoji)}
                       className={`text-5xl p-4 rounded-xl transition-all hover:scale-110 ${
-                        quickLog === emoji ? "bg-primary/20 ring-2 ring-primary" : "bg-secondary/50 hover:bg-secondary"
+                        quickLog === emoji ? "bg-success/20 ring-2 ring-success" : "bg-secondary hover:bg-secondary/80"
                       }`}
                     >
                       {emoji}
                     </button>
                   ))}
                 </div>
-                <div className="mt-4 flex justify-center gap-8 text-sm text-slate-300">
+                <div className="mt-4 flex justify-center gap-8 text-sm text-muted-foreground">
                   <span>Great</span>
                   <span>Okay</span>
                   <span>Challenging</span>
@@ -121,15 +121,15 @@ const TeacherHub = () => {
             </Card>
 
             {/* App Integration */}
-            <Card className="bg-slate-700/50 border-primary/30">
+            <Card className="glass-card-strong border-success/30">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <Smartphone className="w-5 h-5 text-primary" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <Smartphone className="w-5 h-5 text-success" />
                   Connect Classroom App
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-slate-300 mb-4">
+                <p className="text-muted-foreground mb-4">
                   Sync observation recordings from the mobile app to generate personalized exercise recommendations for each student.
                 </p>
                 <Button onClick={handleConnectApp} className="w-full" variant="navy">
@@ -140,9 +140,9 @@ const TeacherHub = () => {
             </Card>
 
             {/* Comment System */}
-            <Card className="bg-slate-700/50 border-slate-600">
+            <Card className="glass-card-strong">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
+                <CardTitle className="flex items-center gap-2 text-foreground">
                   <MessageSquare className="w-5 h-5 text-accent-orange" />
                   Send Comment to Parent or Student
                 </CardTitle>
@@ -188,10 +188,10 @@ const TeacherHub = () => {
           {/* Right Column */}
           <div className="space-y-6">
             {/* Students Overview */}
-            <Card className="bg-slate-700/50 border-slate-600">
+            <Card className="glass-card-strong">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <Users className="w-5 h-5 text-primary" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <Users className="w-5 h-5 text-success" />
                   My Students
                 </CardTitle>
               </CardHeader>
@@ -199,21 +199,21 @@ const TeacherHub = () => {
                 {students.map((student) => (
                   <div 
                     key={student.id} 
-                    className="flex items-center justify-between p-3 bg-slate-600/50 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors"
+                    className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg cursor-pointer hover:bg-secondary transition-colors"
                     onClick={() => navigate("/analytics/teacher")}
                   >
                     <div className="flex items-center gap-3">
                       <div className={`w-3 h-3 rounded-full ${
                         student.status === "good" ? "bg-success" : "bg-gold"
                       }`} />
-                      <span className="font-medium text-white">{student.name}</span>
+                      <span className="font-medium text-foreground">{student.name}</span>
                     </div>
-                    <span className="text-xs text-slate-300">{student.lastActivity}</span>
+                    <span className="text-xs text-muted-foreground">{student.lastActivity}</span>
                   </div>
                 ))}
                 <Button 
                   variant="outline" 
-                  className="w-full border-slate-500 text-white hover:bg-slate-600"
+                  className="w-full"
                   onClick={() => navigate("/analytics/teacher")}
                 >
                   <BarChart3 className="w-4 h-4 mr-2" />
@@ -223,9 +223,9 @@ const TeacherHub = () => {
             </Card>
 
             {/* IEP Comment Bank */}
-            <Card className="bg-slate-700/50 border-slate-600">
+            <Card className="glass-card-strong">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
+                <CardTitle className="flex items-center gap-2 text-foreground">
                   <FileText className="w-5 h-5 text-gold" />
                   IEP Comment Bank
                 </CardTitle>
@@ -235,7 +235,7 @@ const TeacherHub = () => {
                   setComment(value);
                   toast.info("Comment added to text box");
                 }}>
-                  <SelectTrigger className="bg-slate-600 border-slate-500 text-white">
+                  <SelectTrigger>
                     <SelectValue placeholder="Select pre-written comment" />
                   </SelectTrigger>
                   <SelectContent>
@@ -246,7 +246,7 @@ const TeacherHub = () => {
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-slate-400 mt-2">
+                <p className="text-xs text-muted-foreground mt-2">
                   Evidence-based comments for IEP documentation
                 </p>
               </CardContent>

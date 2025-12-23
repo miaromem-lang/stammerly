@@ -21,20 +21,24 @@ const hubs = [
     id: "teacher",
     label: "Teacher Hub",
     icon: GraduationCap,
-    color: "gradient-navy",
+    color: "gradient-success",
     description: "Classroom support tools",
   },
   {
     id: "therapist",
     label: "Therapist Hub",
     icon: Stethoscope,
-    color: "bg-accent-orange",
+    color: "gradient-sky",
     description: "Clinical analytics",
   },
 ];
 
 export const HeroSection = () => {
   const navigate = useNavigate();
+
+  const handleNavClick = (path: string) => {
+    window.open(path, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
@@ -54,12 +58,12 @@ export const HeroSection = () => {
               <span className="font-display font-bold text-xl text-foreground">Stammerly</span>
             </div>
             <nav className="hidden md:flex items-center gap-6">
-              <button onClick={() => navigate("/about")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">About</button>
-              <button onClick={() => navigate("/our-story")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Our Story</button>
-              <button onClick={() => navigate("/research")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Research</button>
-              <button onClick={() => navigate("/privacy-policy")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy</button>
-              <button onClick={() => navigate("/reviews")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Reviews</button>
-              <button onClick={() => navigate("/contact")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Contact</button>
+              <button onClick={() => handleNavClick("/about")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">About</button>
+              <button onClick={() => handleNavClick("/our-story")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Our Story</button>
+              <button onClick={() => handleNavClick("/research")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Research</button>
+              <button onClick={() => handleNavClick("/privacy-policy")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy</button>
+              <button onClick={() => handleNavClick("/reviews")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Reviews</button>
+              <button onClick={() => handleNavClick("/contact")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Contact</button>
             </nav>
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="sm" onClick={() => navigate("/signin")}>
@@ -103,13 +107,14 @@ export const HeroSection = () => {
           {hubs.map((hub) => {
             const Icon = hub.icon;
             const isKid = hub.id === "kid";
+            const isTherapist = hub.id === "therapist";
 
             return (
               <button
                 key={hub.id}
                 onClick={() => navigate("/signin")}
                 className={`group relative overflow-hidden rounded-2xl p-8 text-left transition-all duration-300 hover:scale-105 hover:shadow-2xl ${hub.color} text-primary-foreground ${
-                  isKid || hub.id === "therapist" ? "rounded-kids" : ""
+                  isKid || isTherapist ? "rounded-kids" : ""
                 }`}
               >
                 <div className="inline-flex p-4 rounded-2xl mb-4 bg-primary-foreground/20">
