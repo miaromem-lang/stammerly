@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Shield, Lock, Trash2, Eye, Database, UserCheck, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Shield, Lock, Trash2, Eye, Database, UserCheck, AlertTriangle, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useState } from 'react';
@@ -75,6 +75,71 @@ const PrivacyPolicy = () => {
                   <UserCheck className="w-8 h-8 text-primary mb-3" />
                   <h4 className="font-semibold text-foreground mb-2">Anonymisation</h4>
                   <p className="text-sm text-muted-foreground">Personal identifiers are stripped from all voice data. AI models never see names, faces, or identifying information.</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Accuracy & Non-Bias */}
+          <Card className="mb-8 border-none shadow-xl bg-card/80 backdrop-blur-sm">
+            <CardHeader>
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-success/20 rounded-xl flex items-center justify-center">
+                  <Eye className="w-7 h-7 text-success" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl">AI Accuracy & Non-Bias</CardTitle>
+                  <p className="text-muted-foreground">Fair and accurate detection across all users</p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-6">
+                Our AI models are trained on diverse speech patterns across accents, ages, and speaking styles. Regular audits ensure fair and accurate detection.
+              </p>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center p-4 rounded-lg bg-secondary/50">
+                  <p className="text-2xl font-bold text-primary">15+</p>
+                  <p className="text-xs text-muted-foreground">Accent Variants</p>
+                </div>
+                <div className="text-center p-4 rounded-lg bg-secondary/50">
+                  <p className="text-2xl font-bold text-primary">4-18</p>
+                  <p className="text-xs text-muted-foreground">Age Range</p>
+                </div>
+                <div className="text-center p-4 rounded-lg bg-secondary/50">
+                  <p className="text-2xl font-bold text-primary">98%</p>
+                  <p className="text-xs text-muted-foreground">Accuracy Rate</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Human Oversight */}
+          <Card className="mb-8 border-none shadow-xl bg-card/80 backdrop-blur-sm">
+            <CardHeader>
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-accent-orange/20 rounded-xl flex items-center justify-center">
+                  <Users className="w-7 h-7 text-accent-orange" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl">Human Oversight</CardTitle>
+                  <p className="text-muted-foreground">AI supports, humans decide</p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">
+                Our AI flags patterns and provides insights, but all clinical decisions are made by qualified speech and language therapists.
+              </p>
+              <div className="p-4 rounded-lg bg-gold/10 border border-gold/30">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="w-5 h-5 text-gold mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Important Disclaimer</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      "AI flags patterns; humans make diagnoses. Stammerly is a support tool, not a replacement for professional clinical judgement."
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -171,9 +236,6 @@ const PrivacyPolicy = () => {
           <div className="flex flex-wrap gap-4 justify-center">
             <Button asChild size="lg" className="rounded-full">
               <Link to="/contact">Contact Us</Link>
-            </Button>
-            <Button asChild variant="outline" size="lg" className="rounded-full">
-              <Link to="/ethics">Full Ethics Policy</Link>
             </Button>
           </div>
         </div>

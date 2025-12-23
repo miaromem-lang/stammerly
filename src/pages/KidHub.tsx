@@ -134,9 +134,24 @@ const exerciseCategories = [
   },
 ];
 
+// Load therapist-created exercises from localStorage
+const getTherapistExercises = () => {
+  const saved = localStorage.getItem('stammerly_therapist_exercises');
+  if (saved) {
+    try {
+      const exercises = JSON.parse(saved);
+      return exercises.filter((e: any) => e.custom);
+    } catch {
+      return [];
+    }
+  }
+  return [];
+};
+
 const KidHub = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'quests' | 'practice'>('quests');
+  const [therapistExercises, setTherapistExercises] = useState(getTherapistExercises());
   
   // Load saved character from localStorage
   const [selectedCharacter, setSelectedCharacter] = useState(() => {
@@ -379,6 +394,34 @@ const KidHub = () => {
                       </button>
                     ))}
                   </div>
+                  
+                  {/* Therapist Recommended Exercises */}
+                  {therapistExercises.length > 0 && (
+                    <div className="mt-6">
+                      <h3 className="font-display text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-primary" />
+                        🩺 From Your Therapist
+                      </h3>
+                      <div className="space-y-3">
+                        {therapistExercises.map((ex: any) => (
+                          <button
+                            key={ex.id}
+                            onClick={() => navigate(`/practice?category=${ex.category.toLowerCase()}&title=${encodeURIComponent(ex.name)}`)}
+                            className="w-full p-4 rounded-kids bg-gradient-to-br from-primary/20 to-accent-orange/10 border-2 border-primary/30 text-left transition-all hover:scale-[1.02] hover:shadow-lg"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl">⭐</span>
+                              <div className="flex-1">
+                                <h4 className="font-display font-semibold text-foreground">{ex.name}</h4>
+                                <p className="text-sm text-muted-foreground">{ex.category} • {ex.difficulty}</p>
+                              </div>
+                              <Play className="w-5 h-5 text-primary" />
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}

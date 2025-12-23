@@ -38,12 +38,28 @@ const TherapistHub = () => {
   const [draggedExercise, setDraggedExercise] = useState<number | null>(null);
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
   const [showFullAnalytics, setShowFullAnalytics] = useState(false);
-  const [exercises, setExercises] = useState<Exercise[]>([
-    { id: 1, name: "Easy Onset Quest", category: "Onset", difficulty: "Beginner" },
-    { id: 2, name: "Slow Speech Safari", category: "Rate", difficulty: "Intermediate" },
-    { id: 3, name: "Breathing Bubbles", category: "Breathing", difficulty: "Beginner" },
-    { id: 4, name: "Word Mountain", category: "Complexity", difficulty: "Advanced" },
-  ]);
+  // Load exercises from localStorage (therapist-created exercises are shared with KidHub)
+  const [exercises, setExercises] = useState<Exercise[]>(() => {
+    const saved = localStorage.getItem('stammerly_therapist_exercises');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return [
+          { id: 1, name: "Easy Onset Quest", category: "Onset", difficulty: "Beginner" },
+          { id: 2, name: "Slow Speech Safari", category: "Rate", difficulty: "Intermediate" },
+          { id: 3, name: "Breathing Bubbles", category: "Breathing", difficulty: "Beginner" },
+          { id: 4, name: "Word Mountain", category: "Complexity", difficulty: "Advanced" },
+        ];
+      }
+    }
+    return [
+      { id: 1, name: "Easy Onset Quest", category: "Onset", difficulty: "Beginner" },
+      { id: 2, name: "Slow Speech Safari", category: "Rate", difficulty: "Intermediate" },
+      { id: 3, name: "Breathing Bubbles", category: "Breathing", difficulty: "Beginner" },
+      { id: 4, name: "Word Mountain", category: "Complexity", difficulty: "Advanced" },
+    ];
+  });
   
   const [newExercise, setNewExercise] = useState({
     name: "",
@@ -70,17 +86,22 @@ const TherapistHub = () => {
     }
 
     const newEx: Exercise = {
-      id: exercises.length + 1,
+      id: Date.now(), // Use timestamp for unique ID
       name: newExercise.name,
       category: newExercise.category,
       difficulty: newExercise.difficulty,
       custom: true,
     };
 
-    setExercises([...exercises, newEx]);
+    const updatedExercises = [...exercises, newEx];
+    setExercises(updatedExercises);
+    
+    // Save to localStorage so KidHub can access it
+    localStorage.setItem('stammerly_therapist_exercises', JSON.stringify(updatedExercises));
+    
     setNewExercise({ name: "", category: "", difficulty: "", targetPhrase: "", instructions: "", focusArea: "" });
     setIsBuilderOpen(false);
-    toast.success(`"${newExercise.name}" exercise created successfully!`);
+    toast.success(`"${newExercise.name}" exercise created and pushed to Kid Hub!`);
   };
 
   return (
