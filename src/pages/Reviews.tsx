@@ -92,7 +92,7 @@ const Reviews = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-amber-500/5 to-primary/10">
+    <div className="min-h-screen bg-white">
       <Helmet>
         <title>Reviews | Stammerly</title>
         <meta name="description" content="Read reviews from parents, therapists, and educators about their experience with Stammerly's AI-powered speech therapy platform." />

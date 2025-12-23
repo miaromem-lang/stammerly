@@ -22,7 +22,7 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/10">
+    <div className="min-h-screen bg-white">
       <Helmet>
         <title>Contact Us | Stammerly</title>
         <meta name="description" content="Get in touch with the Stammerly team. We're here to answer your questions about our AI-powered speech therapy platform." />

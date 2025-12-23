@@ -18,7 +18,7 @@ const PrivacyPolicy = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-blue-500/5 to-primary/10">
+    <div className="min-h-screen bg-white">
       <Helmet>
         <title>Privacy Policy & Ethical AI | Stammerly</title>
         <meta name="description" content="Learn about Stammerly's HIPAA/GDPR-compliant data practices, ethical AI disclosure, and how we protect your voice data." />

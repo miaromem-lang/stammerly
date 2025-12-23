@@ -33,7 +33,7 @@ const coreValues = [
 
 const Mission = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/10">
+    <div className="min-h-screen bg-white">
       <Helmet>
         <title>Our Mission | Stammerly - Empowering Children Through AI</title>
         <meta name="description" content="Discover Stammerly's mission to empower children with speech needs through human-centred AI and our core values of inclusivity, ethics, and empowerment." />

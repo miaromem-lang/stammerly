@@ -14,7 +14,7 @@ const About = () => {
         <meta name="description" content="Learn about Stammerly's mission to empower every voice through synchronized care. A platform connecting children, parents, teachers, and therapists." />
       </Helmet>
       
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/30">
+      <div className="min-h-screen bg-white">
         {/* Header */}
         <header className="bg-background/80 backdrop-blur-sm border-b border-border sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4">
