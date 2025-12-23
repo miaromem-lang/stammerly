@@ -111,8 +111,8 @@ const About = () => {
                 <Button variant="navy" onClick={() => navigate("/signin")}>
                   Start Your Journey
                 </Button>
-                <Button variant="outline" onClick={() => navigate("/ethics")}>
-                  Our Ethics
+                <Button variant="outline" onClick={() => navigate("/privacy-policy")}>
+                  Privacy Policy
                 </Button>
               </div>
             </CardContent>
@@ -122,8 +122,8 @@ const About = () => {
           <div className="text-center">
             <p className="text-muted-foreground mb-4">Learn more about how we protect your data</p>
             <div className="flex justify-center gap-4">
-              <Button variant="link" onClick={() => navigate("/ethics")}>
-                Privacy & Ethics →
+              <Button variant="link" onClick={() => navigate("/privacy-policy")}>
+                Privacy Policy →
               </Button>
             </div>
           </div>

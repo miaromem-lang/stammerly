@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Mail, FileText, Shield } from "lucide-react";
+import { Mail, FileText } from "lucide-react";
 
 export const Footer = () => {
   return (
@@ -47,9 +47,6 @@ export const Footer = () => {
             <div className="flex items-center gap-6 text-sm">
               <Link to="/privacy-policy" className="text-background/60 hover:text-background transition-colors flex items-center gap-1">
                 <FileText className="w-4 h-4" />Privacy Policy
-              </Link>
-              <Link to="/ethics" className="text-background/60 hover:text-background transition-colors flex items-center gap-1">
-                <Shield className="w-4 h-4" />Ethics
               </Link>
             </div>
           </div>
