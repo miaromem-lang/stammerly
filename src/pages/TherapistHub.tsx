@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Sparkles, ArrowLeft, BarChart3, Users, Calendar, FileText, TrendingUp, Smartphone, Upload, Plus, Save, X } from "lucide-react";
+import { Sparkles, ArrowLeft, BarChart3, Users, Calendar, FileText, Smartphone, Upload, Plus, Save, X } from "lucide-react";
 import { toast } from "sonner";
 import { HubNavigation } from "@/components/HubNavigation";
 
@@ -25,20 +25,12 @@ interface Exercise {
   custom?: boolean;
 }
 
-const disfluencyData = [
-  { type: "Blocks", count: 5, trend: "↓3", color: "bg-destructive", detail: "Silent pauses" },
-  { type: "Interjections", count: 8, trend: "↓2", color: "bg-amber-500", detail: "Um, uh insertions" },
-  { type: "Prolongations", count: 7, trend: "↓1", color: "bg-gold", detail: "Extended sounds" },
-  { type: "Sound Rep.", count: 4, trend: "↓2", color: "bg-primary", detail: "Initial repeats" },
-  { type: "Word Rep.", count: 6, trend: "↓1", color: "bg-accent-sky", detail: "Whole words" },
-  { type: "Modified", count: 12, trend: "↑4", color: "bg-success", detail: "Technique use" },
-];
 
 const TherapistHub = () => {
   const navigate = useNavigate();
   const [draggedExercise, setDraggedExercise] = useState<number | null>(null);
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
-  const [showFullAnalytics, setShowFullAnalytics] = useState(false);
+  
   // Load exercises from localStorage (therapist-created exercises are shared with KidHub)
   const [exercises, setExercises] = useState<Exercise[]>(() => {
     const saved = localStorage.getItem('stammerly_therapist_exercises');
@@ -133,7 +125,7 @@ const TherapistHub = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-4 gap-6">
+        <div className="grid lg:grid-cols-3 gap-6">
           {/* Left Column - Patient List */}
           <div className="space-y-6">
             <Card className="glass-card-strong">
@@ -316,7 +308,7 @@ const TherapistHub = () => {
             </Card>
           </div>
 
-          {/* Center - Main Dashboard */}
+          {/* Main Dashboard */}
           <div className="lg:col-span-2 space-y-6">
             {/* App Integration */}
             <Card className="glass-card-strong border-accent-orange/30">
@@ -337,68 +329,45 @@ const TherapistHub = () => {
               </CardContent>
             </Card>
 
-            {/* Quick Stats Grid */}
-            <div className="grid grid-cols-3 gap-4">
-              <Card className="glass-card">
-                <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold text-success">92%</p>
-                  <p className="text-xs text-muted-foreground">AI Confidence</p>
-                </CardContent>
-              </Card>
-              <Card className="glass-card">
-                <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold text-accent-orange">156</p>
-                  <p className="text-xs text-muted-foreground">SPM Average</p>
-                </CardContent>
-              </Card>
-              <Card className="glass-card">
-                <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold text-gold">+18%</p>
-                  <p className="text-xs text-muted-foreground">Avg Progress</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* SPM Comparison Chart */}
-            <Card className="glass-card-strong">
+            {/* Clinical Analytics Preview */}
+            <Card className="glass-card-strong border-accent-orange/30">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-foreground">
-                  <TrendingUp className="w-5 h-5 text-accent-orange" />
-                  SPM: Home vs Clinic Comparison
+                  <BarChart3 className="w-5 h-5 text-accent-orange" />
+                  Clinical Analytics Overview
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-48 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="flex items-end justify-center gap-2 mb-4">
-                      {[120, 145, 130, 160, 155, 170, 165].map((val, i) => (
-                        <div key={i} className="flex flex-col gap-1">
-                          <div 
-                            className="w-8 bg-accent-orange/60 rounded-t"
-                            style={{ height: `${val / 2}px` }}
-                          />
-                          <div 
-                            className="w-8 bg-gold/60 rounded-b"
-                            style={{ height: `${(val - 20) / 2}px` }}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-accent-orange/60 rounded" />
-                        <span>Clinic</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-gold/60 rounded" />
-                        <span>Home</span>
-                      </div>
-                    </div>
+                {/* Quick Stats */}
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="text-center p-3 bg-secondary/50 rounded-lg">
+                    <p className="text-2xl font-bold text-success">92%</p>
+                    <p className="text-xs text-muted-foreground">AI Confidence</p>
+                  </div>
+                  <div className="text-center p-3 bg-secondary/50 rounded-lg">
+                    <p className="text-2xl font-bold text-accent-orange">156</p>
+                    <p className="text-xs text-muted-foreground">SPM Average</p>
+                  </div>
+                  <div className="text-center p-3 bg-secondary/50 rounded-lg">
+                    <p className="text-2xl font-bold text-gold">+18%</p>
+                    <p className="text-xs text-muted-foreground">Avg Progress</p>
                   </div>
                 </div>
+
+                {/* AI Summary */}
+                <div className="p-4 bg-secondary/30 rounded-lg mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles className="w-4 h-4 text-accent-orange" />
+                    <span className="text-sm font-medium text-foreground">AI Insights</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Alex shows consistent improvement in easy onset technique. Word-initial blocks have decreased 40% over 2 weeks.
+                  </p>
+                </div>
+
                 <Button 
-                  variant="outline" 
-                  className="w-full mt-4"
+                  className="w-full"
+                  variant="navy"
                   onClick={() => navigate("/analytics/therapist")}
                 >
                   <BarChart3 className="w-4 h-4 mr-2" />
@@ -437,168 +406,6 @@ const TherapistHub = () => {
             </Card>
           </div>
 
-          {/* Right Column - AI Insights */}
-          <div className="space-y-6">
-            <Card className="glass-card-strong">
-              <CardHeader>
-                <CardTitle className="text-foreground text-sm">AI Block Detection</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Confidence</span>
-                    <span className="text-success font-bold">92%</span>
-                  </div>
-                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                    <div className="h-full w-[92%] bg-success rounded-full" />
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    AI flags patterns; humans make diagnoses
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Disfluency Summary with View All */}
-            <Card className="glass-card-strong">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-foreground text-sm">Disfluency Summary</CardTitle>
-                  <Dialog open={showFullAnalytics} onOpenChange={setShowFullAnalytics}>
-                    <DialogTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-accent-orange hover:text-accent-orange/80 h-6 px-2 text-xs"
-                      >
-                        View All →
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="bg-background border-border text-foreground max-w-2xl max-h-[80vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                          <BarChart3 className="w-5 h-5 text-accent-orange" />
-                          Detailed Disfluency Analytics
-                        </DialogTitle>
-                      </DialogHeader>
-                      
-                      <div className="space-y-6 mt-4">
-                        {/* Full Disfluency Grid */}
-                        <div className="grid grid-cols-2 gap-4">
-                          {disfluencyData.map((item) => (
-                            <div key={item.type} className="p-4 bg-secondary/30 rounded-lg">
-                              <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-2">
-                                  <div className={`w-3 h-3 rounded-full ${item.color}`} />
-                                  <span className="font-medium text-foreground">{item.type}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-lg font-bold text-foreground">{item.count}</span>
-                                  <span className={`text-sm ${item.trend.startsWith('↑') ? 'text-success' : 'text-success'}`}>{item.trend}</span>
-                                </div>
-                              </div>
-                              <p className="text-sm text-muted-foreground">{item.detail}</p>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Time Interval Chart */}
-                        <div className="border-t border-border pt-4">
-                          <h4 className="text-sm font-medium text-foreground mb-4">Disfluencies Over Time (5-min intervals)</h4>
-                          <div className="flex items-end justify-between h-32 gap-2 px-4">
-                            {[
-                              { time: "0-5", blocks: 3, other: 5 },
-                              { time: "5-10", blocks: 2, other: 4 },
-                              { time: "10-15", blocks: 1, other: 3 },
-                              { time: "15-20", blocks: 2, other: 2 },
-                              { time: "20-25", blocks: 1, other: 2 },
-                              { time: "25-30", blocks: 0, other: 1 },
-                            ].map((interval, i) => (
-                              <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                                <div className="w-full flex flex-col gap-0.5">
-                                  <div 
-                                    className="w-full bg-destructive/60 rounded-t"
-                                    style={{ height: `${interval.blocks * 15}px` }}
-                                  />
-                                  <div 
-                                    className="w-full bg-accent-orange/60 rounded-b"
-                                    style={{ height: `${interval.other * 10}px` }}
-                                  />
-                                </div>
-                                <span className="text-xs text-muted-foreground">{interval.time}</span>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="flex items-center justify-center gap-6 mt-3 text-sm text-muted-foreground">
-                            <div className="flex items-center gap-2">
-                              <div className="w-3 h-3 bg-destructive/60 rounded" />
-                              <span>Blocks</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div className="w-3 h-3 bg-accent-orange/60 rounded" />
-                              <span>Other Disfluencies</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Trend Analysis */}
-                        <div className="border-t border-border pt-4">
-                          <h4 className="text-sm font-medium text-foreground mb-3">Weekly Trend</h4>
-                          <p className="text-sm text-muted-foreground">
-                            Overall disfluencies decreased by <span className="text-success font-medium">23%</span> compared to last week. 
-                            Modified speech techniques increased by <span className="text-success font-medium">4 instances</span>, 
-                            indicating improved technique application.
-                          </p>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {disfluencyData.slice(0, 3).map((item) => (
-                  <div key={item.type} className="flex items-center justify-between p-2 bg-secondary/30 rounded">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${item.color}`} />
-                      <span className="text-xs text-foreground">{item.type}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs font-bold text-foreground">{item.count}</span>
-                      <span className="text-[10px] text-success">{item.trend}</span>
-                    </div>
-                  </div>
-                ))}
-                <p className="text-[10px] text-muted-foreground text-center pt-1">
-                  +3 more categories
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="glass-card-strong border-accent-orange/30">
-              <CardHeader>
-                <CardTitle className="text-foreground text-sm flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-accent-orange" />
-                  AI Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Alex shows consistent improvement in easy onset technique. Word-initial blocks have decreased 40% over 2 weeks.
-                </p>
-                <p className="text-sm text-muted-foreground mb-4">
-                  <strong className="text-accent-orange">Recommendation:</strong> Introduce phrase-level exercises focusing on /s/ and /b/ sounds.
-                </p>
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => navigate("/analytics/therapist")}
-                >
-                  <BarChart3 className="w-4 h-4 mr-2" />
-                  Detailed Analytics
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </main>
     </div>
