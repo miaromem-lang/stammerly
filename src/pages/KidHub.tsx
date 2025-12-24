@@ -7,6 +7,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { ArrowLeft, Play, Star, Trophy, Target, Zap, MapPin, Flame, BookOpen, Mic, Sparkles, Settings, ChevronRight, Brain, Clock, Check } from "lucide-react";
 import { HubNavigation } from "@/components/HubNavigation";
 import { PracticeAnalytics } from "@/components/PracticeAnalytics";
+import { PersonalizedQuestMap } from "@/components/PersonalizedQuestMap";
 import { 
   exerciseCategories as fullExerciseCategories, 
   questLevelMapping, 
@@ -62,11 +63,12 @@ const getTherapistExercises = () => {
 const KidHub = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'quests' | 'practice'>('quests');
+  const [activeDifficulty, setActiveDifficulty] = useState<'beginner' | 'intermediate' | 'advanced'>('beginner');
   const [therapistExercises, setTherapistExercises] = useState(getTherapistExercises());
   const [userProgress] = useState(getUserProgress());
   
   // Exercise selection state
-  const [selectedQuest, setSelectedQuest] = useState<typeof questLevelMapping[0] | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<ExerciseCategory | null>(null);
   const [showExerciseSheet, setShowExerciseSheet] = useState(false);
   
   // Load saved character from localStorage
@@ -87,18 +89,13 @@ const KidHub = () => {
     setShowCharacterPicker(false);
   };
 
-  const handleQuestClick = (quest: typeof questLevelMapping[0]) => {
-    const isCompleted = userProgress.completedQuests.includes(quest.id);
-    const isCurrent = quest.id === userProgress.currentQuest;
-    const isLocked = quest.id > userProgress.currentQuest;
-    
-    if (!isLocked) {
-      setSelectedQuest(quest);
-      setShowExerciseSheet(true);
-    }
+  const handleCategorySelect = (category: ExerciseCategory) => {
+    setSelectedCategory(category);
+    setShowExerciseSheet(true);
   };
 
   const handleExerciseStart = (exercise: Exercise, categoryId: string) => {
+    setShowExerciseSheet(false);
     if (categoryId === "free-talk") {
       navigate(`/free-talk?character=${selectedCharacter.emoji}&exercise=${exercise.id}`);
     } else {
@@ -112,17 +109,9 @@ const KidHub = () => {
     } else if (category.id === "reading") {
       navigate(`/story-exercise?character=${selectedCharacter.emoji}`);
     } else {
-      navigate(`/practice?category=${category.id}&title=${encodeURIComponent(category.title)}`);
+      handleCategorySelect(category);
     }
   };
-
-  const questLevels = questLevelMapping.map(quest => ({
-    ...quest,
-    completed: userProgress.completedQuests.includes(quest.id),
-    current: quest.id === userProgress.currentQuest,
-    locked: quest.id > userProgress.currentQuest,
-    gems: quest.requiredGems,
-  }));
 
   return (
     <div className="min-h-screen bg-white">
@@ -185,111 +174,74 @@ const KidHub = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Exercise Selection Sheet */}
+      {/* Exercise Selection Sheet - shows exercises by difficulty for a category */}
       <Sheet open={showExerciseSheet} onOpenChange={setShowExerciseSheet}>
         <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
           <SheetHeader>
             <SheetTitle className="text-2xl font-display flex items-center gap-2">
-              {selectedQuest && (
+              {selectedCategory && (
                 <>
-                  <span className="text-3xl">{getDifficultyStyle(selectedQuest.difficulty).emoji}</span>
-                  {selectedQuest.name}
+                  <span className="text-3xl">{selectedCategory.icon}</span>
+                  {selectedCategory.title}
                 </>
               )}
             </SheetTitle>
           </SheetHeader>
           
-          {selectedQuest && (
+          {selectedCategory && (
             <div className="mt-6 space-y-6">
-              <p className="text-muted-foreground">{selectedQuest.description}</p>
+              <p className="text-muted-foreground">{selectedCategory.focus}</p>
               
-              {/* AI Recommendation */}
-              {(() => {
-                const recommendation = getAIRecommendation(selectedQuest.id);
-                if (recommendation) {
-                  const exercises = getExercisesForQuestLevel(selectedQuest.id);
-                  let recommendedExercise: Exercise | null = null;
-                  let recommendedCategory: ExerciseCategory | null = null;
-                  
-                  for (const { category, exercises: exs } of exercises) {
-                    const found = exs.find(e => e.id === recommendation.exerciseId);
-                    if (found) {
-                      recommendedExercise = found;
-                      recommendedCategory = category;
-                      break;
-                    }
-                  }
-                  
-                  if (recommendedExercise && recommendedCategory) {
-                    return (
-                      <div className="bg-primary/10 border-2 border-primary/30 rounded-kids p-4">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                            <Brain className="w-5 h-5 text-primary" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-sm font-medium text-primary">AI Recommends</span>
-                              <Sparkles className="w-4 h-4 text-primary" />
-                            </div>
-                            <h4 className="font-display font-semibold text-foreground">{recommendedExercise.name}</h4>
-                            <p className="text-sm text-muted-foreground mt-1">{recommendation.reason}</p>
-                            <Button 
-                              size="sm" 
-                              className="mt-3 rounded-kids"
-                              onClick={() => handleExerciseStart(recommendedExercise!, recommendedCategory!.id)}
-                            >
-                              <Play className="w-4 h-4 mr-2" />
-                              Start This Exercise
-                            </Button>
-                          </div>
-                        </div>
+              {/* Difficulty selector */}
+              <div className="flex gap-2">
+                <Button
+                  variant={activeDifficulty === 'beginner' ? 'default' : 'outline'}
+                  size="sm"
+                  className="flex-1 rounded-kids"
+                  onClick={() => setActiveDifficulty('beginner')}
+                >
+                  🌱 Beginner
+                </Button>
+                <Button
+                  variant={activeDifficulty === 'intermediate' ? 'default' : 'outline'}
+                  size="sm"
+                  className="flex-1 rounded-kids"
+                  onClick={() => setActiveDifficulty('intermediate')}
+                >
+                  🌟 Growing
+                </Button>
+                <Button
+                  variant={activeDifficulty === 'advanced' ? 'default' : 'outline'}
+                  size="sm"
+                  className="flex-1 rounded-kids"
+                  onClick={() => setActiveDifficulty('advanced')}
+                >
+                  🏆 Expert
+                </Button>
+              </div>
+              
+              {/* Exercises for selected difficulty */}
+              <div className="space-y-3">
+                {selectedCategory[activeDifficulty].map((exercise) => (
+                  <button
+                    key={exercise.id}
+                    onClick={() => handleExerciseStart(exercise, selectedCategory.id)}
+                    className={`w-full p-4 rounded-kids bg-gradient-to-br ${selectedCategory.color} border border-border/50 text-left transition-all hover:scale-[1.01] hover:shadow-md group`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1">
+                        <h5 className="font-medium text-foreground">{exercise.name}</h5>
+                        <p className="text-sm text-muted-foreground">{exercise.description}</p>
                       </div>
-                    );
-                  }
-                }
-                return null;
-              })()}
-              
-              {/* All Exercises */}
-              <div className="space-y-4">
-                <h3 className="font-display font-semibold text-lg flex items-center gap-2">
-                  <BookOpen className="w-5 h-5 text-accent-orange" />
-                  Choose an Exercise
-                </h3>
-                
-                {getExercisesForQuestLevel(selectedQuest.id).map(({ category, exercises }) => (
-                  <div key={category.id} className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">{category.icon}</span>
-                      <h4 className="font-medium text-foreground">{category.title}</h4>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {exercise.duration}
+                        </span>
+                        <Play className="w-5 h-5 text-accent-orange" />
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mb-2">{category.focus}</p>
-                    
-                    <div className="space-y-2">
-                      {exercises.map((exercise) => (
-                        <button
-                          key={exercise.id}
-                          onClick={() => handleExerciseStart(exercise, category.id)}
-                          className={`w-full p-3 rounded-kids bg-gradient-to-br ${category.color} border border-border/50 text-left transition-all hover:scale-[1.01] hover:shadow-md group`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="flex-1">
-                              <h5 className="font-medium text-foreground text-sm">{exercise.name}</h5>
-                              <p className="text-xs text-muted-foreground line-clamp-1">{exercise.description}</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                {exercise.duration}
-                              </span>
-                              <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                            </div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -353,78 +305,10 @@ const KidHub = () => {
           {/* Main Content Area */}
           <div className="lg:col-span-2">
             {activeTab === 'quests' ? (
-              <Card className="rounded-kids overflow-hidden bg-card/80 backdrop-blur-sm">
-                <CardContent className="p-8">
-                  <h2 className="font-display text-2xl font-bold text-foreground mb-2 flex items-center gap-2">
-                    <MapPin className="w-6 h-6 text-accent-orange" />
-                    🗺️ The Quest Map
-                  </h2>
-                  <p className="text-muted-foreground text-sm mb-6">
-                    Tap a quest to choose your exercises. AI recommends based on your progress!
-                  </p>
-                  
-                  <div className="relative">
-                    <div className="absolute left-8 top-0 bottom-0 w-1 bg-accent-orange/20 rounded-full" />
-                    
-                    <div className="space-y-6">
-                      {questLevels.map((level) => {
-                        const diffStyle = getDifficultyStyle(level.difficulty);
-                        return (
-                          <button
-                            key={level.id}
-                            onClick={() => handleQuestClick(questLevelMapping.find(q => q.id === level.id)!)}
-                            disabled={level.locked}
-                            className={`flex items-center gap-4 relative w-full text-left transition-all ${
-                              level.locked ? 'opacity-50 cursor-not-allowed' : 'hover:scale-[1.02]'
-                            }`}
-                          >
-                            <div className={`relative z-10 w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold transition-all duration-300 ${
-                              level.completed 
-                                ? "bg-success text-success-foreground shadow-lg" 
-                                : level.current 
-                                  ? "bg-accent-orange text-primary-foreground shadow-xl scale-110 animate-pulse"
-                                  : "bg-muted text-muted-foreground"
-                            }`}>
-                              {level.completed ? <Check className="w-8 h-8" /> : level.id}
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <h4 className={`font-display font-semibold ${
-                                  level.current ? "text-accent-orange" : "text-foreground"
-                                }`}>
-                                  {level.name}
-                                </h4>
-                                <span className={`text-xs px-2 py-0.5 rounded-full ${diffStyle.color}`}>
-                                  {diffStyle.emoji} {diffStyle.label}
-                                </span>
-                              </div>
-                              <p className="text-sm text-muted-foreground">{level.description}</p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                  <Star className="w-4 h-4 text-gold" />
-                                  {level.gems} gems required
-                                </div>
-                              </div>
-                            </div>
-                            {level.current && (
-                              <div className="flex items-center gap-2 bg-accent-orange/20 px-3 py-2 rounded-kids">
-                                <Play className="w-4 h-4 text-accent-orange" />
-                                <span className="text-sm font-medium text-accent-orange">Play!</span>
-                              </div>
-                            )}
-                            {level.completed && !level.current && (
-                              <div className="flex items-center gap-2 bg-success/20 px-3 py-2 rounded-kids">
-                                <ChevronRight className="w-4 h-4 text-success" />
-                                <span className="text-sm font-medium text-success">Replay</span>
-                              </div>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <PersonalizedQuestMap 
+                selectedCharacter={selectedCharacter}
+                onExerciseStart={handleExerciseStart}
+              />
             ) : (
               <Card className="rounded-kids overflow-hidden bg-card/80 backdrop-blur-sm">
                 <CardContent className="p-8">
