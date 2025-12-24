@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Star, Trophy, TrendingUp, Calendar, Zap, Users, BarChart3, Activity, Brain, Target, Clock, Mic, FileText } from "lucide-react";
+import { RecommendationOutcomes } from "@/components/RecommendationOutcomes";
 import { HubNavigation } from "@/components/HubNavigation";
 
 const students = [
@@ -292,6 +293,11 @@ const TherapistAnalytics = () => {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Recommendation Outcomes - Therapist vs AI */}
+        <div className="mb-6">
+          <RecommendationOutcomes />
         </div>
 
         {/* Comparison Chart Placeholder */}

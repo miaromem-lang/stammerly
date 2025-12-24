@@ -163,10 +163,15 @@ export type Database = {
           ai_alternative_suggestion: string | null
           ai_feedback: string | null
           child_user_id: string | null
+          chosen_recommendation: string | null
+          completed_at: string | null
           created_at: string
           exercise_category: string
           exercise_id: string
           id: string
+          outcome_accuracy_score: number | null
+          outcome_fluency_score: number | null
+          outcome_notes: string | null
           priority: string
           quest_title: string
           status: string
@@ -179,10 +184,15 @@ export type Database = {
           ai_alternative_suggestion?: string | null
           ai_feedback?: string | null
           child_user_id?: string | null
+          chosen_recommendation?: string | null
+          completed_at?: string | null
           created_at?: string
           exercise_category: string
           exercise_id: string
           id?: string
+          outcome_accuracy_score?: number | null
+          outcome_fluency_score?: number | null
+          outcome_notes?: string | null
           priority?: string
           quest_title: string
           status?: string
@@ -195,10 +205,15 @@ export type Database = {
           ai_alternative_suggestion?: string | null
           ai_feedback?: string | null
           child_user_id?: string | null
+          chosen_recommendation?: string | null
+          completed_at?: string | null
           created_at?: string
           exercise_category?: string
           exercise_id?: string
           id?: string
+          outcome_accuracy_score?: number | null
+          outcome_fluency_score?: number | null
+          outcome_notes?: string | null
           priority?: string
           quest_title?: string
           status?: string
