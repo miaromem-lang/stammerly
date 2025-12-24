@@ -12,6 +12,10 @@ import { toast } from "sonner";
 import { HubNavigation } from "@/components/HubNavigation";
 import { SessionReviews } from "@/components/SessionReviews";
 import PageBackground from "@/components/PageBackground";
+import { QuestAssigner } from "@/components/QuestAssigner";
+import { RecommendationTrendCharts } from "@/components/RecommendationTrendCharts";
+import { AILearningHistory } from "@/components/AILearningHistory";
+import { MonthlyReport } from "@/components/MonthlyReport";
 
 const patients = [
   { id: 1, name: "Alex M.", age: 8, nextSession: "Today, 2:00 PM", progress: "+15%", risk: "low" },
@@ -410,6 +414,31 @@ const TherapistHub = () => {
 
             {/* Session Reviews */}
             <SessionReviews />
+
+            {/* Quest Assigner - AI Collaboration */}
+            <QuestAssigner />
+
+            {/* Recommendation Trend Charts */}
+            <RecommendationTrendCharts />
+
+            {/* AI Learning History */}
+            <AILearningHistory />
+
+            {/* Monthly Report */}
+            <Card className="glass-card-strong">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <FileText className="w-5 h-5 text-accent-orange" />
+                  Generate Reports
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4 text-sm">
+                  Download or email comprehensive monthly progress reports for patients.
+                </p>
+                <MonthlyReport recipientType="therapist" childName="Alex M." />
+              </CardContent>
+            </Card>
           </div>
 
         </div>
