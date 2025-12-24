@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, ArrowLeft, MessageSquare, Upload, Bell, Calendar, Send, Smartphone, Loader2, Eye, ChevronRight } from "lucide-react";
+import { Sparkles, ArrowLeft, MessageSquare, Upload, Bell, Calendar, Send, Smartphone, Loader2, Eye, ChevronRight, Brain } from "lucide-react";
 import { toast } from "sonner";
 import { HubNavigation } from "@/components/HubNavigation";
 import { TherapistReviewsSummary } from "@/components/TherapistReviewsSummary";
 import { PracticeAnalytics } from "@/components/PracticeAnalytics";
+import AIInsightsExplainer from "@/components/AIInsightsExplainer";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useVictoryLogs } from "@/hooks/useVictoryLogs";
 import { useContextNotes } from "@/hooks/useContextNotes";
@@ -178,6 +179,22 @@ const ParentHub = () => {
 
             {/* Practice Analytics from Database */}
             <PracticeAnalytics variant="parent" showRecent={true} limit={10} />
+
+            {/* AI Insights - Same as Therapist View */}
+            <Card className="glass-card-strong">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="w-5 h-5 text-accent-orange" />
+                  AI Observations & Insights
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  The same AI analysis your therapist sees, with full reasoning explained
+                </p>
+              </CardHeader>
+              <CardContent className="p-0">
+                <AIInsightsExplainer />
+              </CardContent>
+            </Card>
 
             {/* Fluency Journey */}
             <Card className="glass-card-strong">
