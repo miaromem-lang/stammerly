@@ -126,24 +126,6 @@ const TeacherHub = () => {
               </CardContent>
             </Card>
 
-            {/* App Integration */}
-            <Card className="glass-card-strong border-success/30">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <Smartphone className="w-5 h-5 text-success" />
-                  Connect Classroom App
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground mb-4">
-                  Sync observation recordings from the mobile app to generate personalized exercise recommendations for each student.
-                </p>
-                <Button onClick={handleConnectApp} className="w-full" variant="navy">
-                  <Upload className="w-4 h-4 mr-2" />
-                  Connect & Sync Data
-                </Button>
-              </CardContent>
-            </Card>
 
             {/* Comment System */}
             <Card className="glass-card-strong">
@@ -255,6 +237,25 @@ const TeacherHub = () => {
                 <p className="text-xs text-muted-foreground mt-2">
                   Evidence-based comments for IEP documentation
                 </p>
+              </CardContent>
+            </Card>
+
+            {/* App Integration */}
+            <Card className="glass-card-strong border-success/30">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <Smartphone className="w-5 h-5 text-success" />
+                  Connect Classroom App
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Sync observation recordings from the mobile app to generate personalized exercise recommendations for each student.
+                </p>
+                <Button onClick={handleConnectApp} className="w-full" variant="navy">
+                  <Upload className="w-4 h-4 mr-2" />
+                  Connect & Sync Data
+                </Button>
               </CardContent>
             </Card>
           </div>
