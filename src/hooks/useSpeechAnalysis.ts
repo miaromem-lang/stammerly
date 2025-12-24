@@ -1,0 +1,205 @@
+import { useState, useCallback, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+interface WordTiming {
+  word: string;
+  start: number;
+  end: number;
+  duration: number;
+}
+
+interface Disfluency {
+  type: string;
+  word: string;
+  severity: string;
+  suggestion: string;
+}
+
+interface AnalysisResult {
+  fluencyScore: number;
+  accuracy: number;
+  easyOnsetScore: number;
+  pacingScore: number;
+  syllablesPerMinute: number;
+  percentSyllablesStuttered: number;
+  disfluencies: Disfluency[];
+  strengths: string[];
+  areasToImprove: string[];
+  techniquesObserved: string[];
+  clinicalNote: string;
+  encouragement: string;
+  acousticAnalysis?: {
+    blocksDetected: number;
+    prolongationsDetected: number;
+  };
+}
+
+interface TranscriptionResult {
+  text: string;
+  words: WordTiming[];
+  duration: number;
+}
+
+export function useSpeechAnalysis() {
+  const [isRecording, setIsRecording] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [transcript, setTranscript] = useState<string>('');
+  const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+  const [recordingTime, setRecordingTime] = useState(0);
+  
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          sampleRate: 16000,
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
+
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
+
+      chunksRef.current = [];
+      
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunksRef.current.push(e.data);
+        }
+      };
+
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start(100); // Collect data every 100ms
+      setIsRecording(true);
+      setRecordingTime(0);
+      setTranscript('');
+      setAnalysis(null);
+
+      // Start timer
+      timerRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+
+      console.log('Recording started');
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      toast.error('Could not access microphone. Please check permissions.');
+    }
+  }, []);
+
+  const stopRecording = useCallback(async (targetPhrase: string) => {
+    if (!mediaRecorderRef.current) return;
+
+    return new Promise<void>((resolve) => {
+      const mediaRecorder = mediaRecorderRef.current!;
+      
+      mediaRecorder.onstop = async () => {
+        setIsRecording(false);
+        setIsProcessing(true);
+        
+        // Clear timer
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
+
+        // Stop all tracks
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+
+        try {
+          // Create blob from chunks
+          const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
+          console.log('Audio blob size:', audioBlob.size);
+
+          // Convert to base64
+          const reader = new FileReader();
+          reader.readAsDataURL(audioBlob);
+          
+          reader.onloadend = async () => {
+            const base64Audio = (reader.result as string).split(',')[1];
+            
+            try {
+              // Step 1: Transcribe with Whisper
+              console.log('Transcribing audio...');
+              const { data: transcriptionData, error: transcriptionError } = await supabase.functions.invoke('transcribe-speech', {
+                body: { audio: base64Audio, language: 'en' }
+              });
+
+              if (transcriptionError) {
+                throw new Error(transcriptionError.message || 'Transcription failed');
+              }
+
+              const transcription = transcriptionData as TranscriptionResult;
+              console.log('Transcription result:', transcription);
+              setTranscript(transcription.text);
+
+              // Step 2: Analyze with word timings
+              console.log('Analyzing speech...');
+              const { data: analysisData, error: analysisError } = await supabase.functions.invoke('analyze-speech', {
+                body: {
+                  transcript: transcription.text,
+                  targetPhrase,
+                  words: transcription.words
+                }
+              });
+
+              if (analysisError) {
+                throw new Error(analysisError.message || 'Analysis failed');
+              }
+
+              console.log('Analysis result:', analysisData);
+              setAnalysis(analysisData as AnalysisResult);
+              
+              toast.success('Analysis complete!');
+            } catch (error) {
+              console.error('Processing error:', error);
+              toast.error(error instanceof Error ? error.message : 'Failed to process speech');
+            } finally {
+              setIsProcessing(false);
+              resolve();
+            }
+          };
+        } catch (error) {
+          console.error('Error processing recording:', error);
+          setIsProcessing(false);
+          toast.error('Failed to process recording');
+          resolve();
+        }
+      };
+
+      mediaRecorder.stop();
+    });
+  }, []);
+
+  const reset = useCallback(() => {
+    setTranscript('');
+    setAnalysis(null);
+    setRecordingTime(0);
+    setIsProcessing(false);
+    setIsRecording(false);
+    
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  return {
+    isRecording,
+    isProcessing,
+    transcript,
+    analysis,
+    recordingTime,
+    startRecording,
+    stopRecording,
+    reset
+  };
+}
