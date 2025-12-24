@@ -20,7 +20,6 @@ import { QuestAssigner } from "@/components/QuestAssigner";
 import { RecommendationTrendCharts } from "@/components/RecommendationTrendCharts";
 import { AILearningHistory } from "@/components/AILearningHistory";
 import { MonthlyReport } from "@/components/MonthlyReport";
-import AIInsightsExplainer from "@/components/AIInsightsExplainer";
 import { supabase } from "@/integrations/supabase/client";
 
 const patients = [
@@ -691,9 +690,15 @@ const TherapistHub = () => {
                   </div>
                 </div>
 
-                {/* AI Insights Explainer */}
-                <div className="mb-4">
-                  <AIInsightsExplainer />
+                {/* AI Summary */}
+                <div className="p-4 bg-secondary/30 rounded-lg mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles className="w-4 h-4 text-accent-orange" />
+                    <span className="text-sm font-medium text-foreground">AI Insights</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Alex shows consistent improvement in easy onset technique. Word-initial blocks have decreased 40% over 2 weeks.
+                  </p>
                 </div>
 
                 <Button 
