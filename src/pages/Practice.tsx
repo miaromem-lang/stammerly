@@ -6,6 +6,8 @@ import { ArrowLeft, Mic, MicOff, Volume2, RefreshCw, Star, Trophy, Loader2, Thum
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveQuest } from "@/hooks/useActiveQuest";
+import { useUserProgress } from "@/hooks/useUserProgress";
+import { useAchievements } from "@/hooks/useAchievements";
 
 interface SpeechAnalysis {
   fluencyScore: number;
@@ -21,6 +23,8 @@ interface SpeechAnalysis {
 const Practice = () => {
   const navigate = useNavigate();
   const { getActiveQuest, clearActiveQuest } = useActiveQuest();
+  const { addGemsAndStars, progress } = useUserProgress();
+  const { checkAndAwardAchievements } = useAchievements();
   const [isRecording, setIsRecording] = useState(false);
   const [waveformBars, setWaveformBars] = useState<number[]>(Array(24).fill(0.3));
   const [activeWord, setActiveWord] = useState(-1);
@@ -278,6 +282,18 @@ const Practice = () => {
         console.error('Error saving session:', error);
       } else {
         console.log('Session saved to database:', sessionData?.id);
+        
+        // Update user progress with gems and stars, and update streak
+        await addGemsAndStars(gemsEarned, starsEarned);
+        
+        // Check for achievements based on updated progress
+        await checkAndAwardAchievements({
+          totalSessions: (progress.totalSessions || 0) + 1,
+          currentStreak: progress.currentStreak,
+          totalGems: (progress.totalGems || 0) + gemsEarned,
+          totalStars: (progress.totalStars || 0) + starsEarned,
+          fluencyScore: analysisData.fluencyScore,
+        });
         
         // Link session to active quest if one exists
         const activeQuest = getActiveQuest();

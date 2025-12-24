@@ -3,32 +3,44 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, ArrowLeft, BarChart3, MessageSquare, Upload, Bell, TrendingUp, Calendar, Send, Smartphone } from "lucide-react";
+import { Sparkles, ArrowLeft, MessageSquare, Upload, Bell, Calendar, Send, Smartphone, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { HubNavigation } from "@/components/HubNavigation";
 import { TherapistReviewsSummary } from "@/components/TherapistReviewsSummary";
 import { PracticeAnalytics } from "@/components/PracticeAnalytics";
-
-const recentActivities = [
-  { date: "Today", activity: "Easy Onset Quest", score: 87, improvement: "+5%" },
-  { date: "Yesterday", activity: "Slow Speech Safari", score: 82, improvement: "+3%" },
-  { date: "2 days ago", activity: "Breathing Bubbles", score: 79, improvement: "+7%" },
-];
-
-const teacherNotes = [
-  { from: "Mrs. Thompson", date: "Today", message: "Great participation in reading group! Used easy onset technique well." },
-  { from: "Mr. Davies", date: "Yesterday", message: "Presented to class with minimal blocks. Very confident!" },
-];
+import { useUserProgress } from "@/hooks/useUserProgress";
+import { useVictoryLogs } from "@/hooks/useVictoryLogs";
+import { useContextNotes } from "@/hooks/useContextNotes";
+import { useFluencyRatings } from "@/hooks/useFluencyRatings";
 
 const ParentHub = () => {
   const navigate = useNavigate();
+  const { progress, loading: progressLoading } = useUserProgress();
+  const { victories, formatVictoryTime } = useVictoryLogs();
+  const { addNote } = useContextNotes();
+  const { saveRating } = useFluencyRatings();
+  
   const [comment, setComment] = useState("");
   const [fluencyEntry, setFluencyEntry] = useState("");
+  const [savingComment, setSavingComment] = useState(false);
+  const [savingEntry, setSavingEntry] = useState(false);
 
-  const handleSubmitComment = () => {
+  const handleSubmitComment = async () => {
     if (comment.trim()) {
-      toast.success("Comment added to fluency journal");
+      setSavingComment(true);
+      await addNote(comment);
       setComment("");
+      setSavingComment(false);
+    }
+  };
+
+  const handleSaveFluencyEntry = async () => {
+    if (fluencyEntry.trim()) {
+      setSavingEntry(true);
+      // Save as a context note (fluency observations)
+      await addNote(`Fluency observation: ${fluencyEntry}`);
+      setFluencyEntry("");
+      setSavingEntry(false);
     }
   };
 
@@ -60,36 +72,56 @@ const ParentHub = () => {
             </div>
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full" />
+              {victories.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full" />
+              )}
             </Button>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        {/* Quick Stats */}
+        {/* Quick Stats - Dynamic */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card className="glass-card">
             <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-success">87%</p>
+              {progressLoading ? (
+                <Loader2 className="w-6 h-6 animate-spin mx-auto text-success" />
+              ) : (
+                <p className="text-3xl font-bold text-success">{progress.todayScore || 0}%</p>
+              )}
               <p className="text-sm text-muted-foreground">Today's Score</p>
             </CardContent>
           </Card>
           <Card className="glass-card">
             <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-primary">5</p>
+              {progressLoading ? (
+                <Loader2 className="w-6 h-6 animate-spin mx-auto text-primary" />
+              ) : (
+                <p className="text-3xl font-bold text-primary">{progress.currentStreak}</p>
+              )}
               <p className="text-sm text-muted-foreground">Day Streak</p>
             </CardContent>
           </Card>
           <Card className="glass-card">
             <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-gold">+12%</p>
+              {progressLoading ? (
+                <Loader2 className="w-6 h-6 animate-spin mx-auto text-gold" />
+              ) : (
+                <p className="text-3xl font-bold text-gold">
+                  {progress.weeklyImprovement >= 0 ? '+' : ''}{progress.weeklyImprovement}%
+                </p>
+              )}
               <p className="text-sm text-muted-foreground">This Week</p>
             </CardContent>
           </Card>
           <Card className="glass-card">
             <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-accent-orange">23</p>
+              {progressLoading ? (
+                <Loader2 className="w-6 h-6 animate-spin mx-auto text-accent-orange" />
+              ) : (
+                <p className="text-3xl font-bold text-accent-orange">{progress.totalSessions}</p>
+              )}
               <p className="text-sm text-muted-foreground">Sessions</p>
             </CardContent>
           </Card>
@@ -140,15 +172,12 @@ const ParentHub = () => {
                   rows={3}
                 />
                 <Button 
-                  onClick={() => {
-                    if (fluencyEntry.trim()) {
-                      toast.success("Journal entry saved");
-                      setFluencyEntry("");
-                    }
-                  }}
+                  onClick={handleSaveFluencyEntry}
                   className="w-full"
                   variant="navy"
+                  disabled={savingEntry || !fluencyEntry.trim()}
                 >
+                  {savingEntry && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   <Send className="w-4 h-4 mr-2" />
                   Save Today's Entry
                 </Button>
@@ -161,24 +190,32 @@ const ParentHub = () => {
             {/* Therapist Reviews Summary */}
             <TherapistReviewsSummary />
 
-            {/* Teacher Notes */}
+            {/* Victory Bell - Dynamic from database */}
             <Card className="glass-card-strong">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5 text-accent-orange" />
-                  Notes from School
+                  <Bell className="w-5 h-5 text-gold" />
+                  Victory Bell
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {teacherNotes.map((note, index) => (
-                  <div key={index} className="p-3 bg-accent-orange/10 rounded-lg border-l-4 border-accent-orange">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="font-medium text-foreground">{note.from}</p>
-                      <p className="text-xs text-muted-foreground">{note.date}</p>
+                {victories.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No victories logged yet. They'll appear here when teachers share wins!
+                  </p>
+                ) : (
+                  victories.slice(0, 3).map((victory) => (
+                    <div key={victory.id} className="p-3 bg-gold/10 rounded-lg border border-gold/20">
+                      <p className="text-sm text-foreground font-medium mb-1">
+                        🔔 {victory.victory_text}
+                      </p>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>{victory.reporter_name}</span>
+                        <span>{formatVictoryTime(victory.created_at)}</span>
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">{note.message}</p>
-                  </div>
-                ))}
+                  ))
+                )}
               </CardContent>
             </Card>
 
@@ -198,7 +235,13 @@ const ParentHub = () => {
                   className="mb-4"
                   rows={3}
                 />
-                <Button onClick={handleSubmitComment} className="w-full" variant="navy">
+                <Button 
+                  onClick={handleSubmitComment} 
+                  className="w-full" 
+                  variant="navy"
+                  disabled={savingComment || !comment.trim()}
+                >
+                  {savingComment && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   <Send className="w-4 h-4 mr-2" />
                   Share with Team
                 </Button>
