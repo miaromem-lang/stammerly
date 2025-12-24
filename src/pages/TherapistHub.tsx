@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Sparkles, ArrowLeft, BarChart3, Users, Calendar, FileText, Smartphone, Upload, Plus, Save, X } from "lucide-react";
 import { toast } from "sonner";
 import { HubNavigation } from "@/components/HubNavigation";
+import { SessionReviews } from "@/components/SessionReviews";
 
 const patients = [
   { id: 1, name: "Alex M.", age: 8, nextSession: "Today, 2:00 PM", progress: "+15%", risk: "low" },
@@ -404,6 +405,9 @@ const TherapistHub = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Session Reviews */}
+            <SessionReviews />
           </div>
 
         </div>
