@@ -7,8 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Sparkles, ArrowLeft, BarChart3, Users, Calendar, FileText, Smartphone, Upload, Plus, Save, X } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Sparkles, ArrowLeft, BarChart3, Users, Calendar, FileText, Smartphone, Upload, Plus, Save, X, CalendarIcon, Star } from "lucide-react";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { HubNavigation } from "@/components/HubNavigation";
 import { SessionReviews } from "@/components/SessionReviews";
 import PageBackground from "@/components/PageBackground";
@@ -16,6 +20,7 @@ import { QuestAssigner } from "@/components/QuestAssigner";
 import { RecommendationTrendCharts } from "@/components/RecommendationTrendCharts";
 import { AILearningHistory } from "@/components/AILearningHistory";
 import { MonthlyReport } from "@/components/MonthlyReport";
+import { supabase } from "@/integrations/supabase/client";
 
 const patients = [
   { id: 1, name: "Alex M.", age: 8, nextSession: "Today, 2:00 PM", progress: "+15%", risk: "low" },
@@ -36,6 +41,19 @@ const TherapistHub = () => {
   const navigate = useNavigate();
   const [draggedExercise, setDraggedExercise] = useState<number | null>(null);
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
+  const [isF2FDialogOpen, setIsF2FDialogOpen] = useState(false);
+  const [f2fSessionDate, setF2fSessionDate] = useState<Date | undefined>(new Date());
+  const [f2fSession, setF2fSession] = useState({
+    patient: "",
+    sessionType: "",
+    duration: "",
+    techniqueRating: 0,
+    progressRating: 0,
+    notes: "",
+    observations: "",
+    recommendations: "",
+    goals: "",
+  });
   
   // Load exercises from localStorage (therapist-created exercises are shared with KidHub)
   const [exercises, setExercises] = useState<Exercise[]>(() => {
@@ -102,6 +120,83 @@ const TherapistHub = () => {
     setIsBuilderOpen(false);
     toast.success(`"${newExercise.name}" exercise created and pushed to Kid Hub!`);
   };
+
+  const handleSaveF2FSession = async () => {
+    if (!f2fSession.patient || !f2fSession.sessionType || !f2fSessionDate) {
+      toast.error("Please fill in patient, session type, and date");
+      return;
+    }
+
+    try {
+      // Create a practice session entry for the face-to-face session
+      const { data: sessionData, error: sessionError } = await supabase
+        .from('practice_sessions')
+        .insert({
+          exercise_name: `Face-to-Face: ${f2fSession.sessionType}`,
+          exercise_category: 'In-Person',
+          exercise_difficulty: 'N/A',
+          session_date: format(f2fSessionDate, 'yyyy-MM-dd'),
+          duration_seconds: parseInt(f2fSession.duration) * 60 || 30 * 60,
+          fluency_score: f2fSession.progressRating * 20,
+          accuracy_score: f2fSession.techniqueRating * 20,
+        })
+        .select()
+        .single();
+
+      if (sessionError) throw sessionError;
+
+      // Create a session review for the face-to-face session
+      const { error: reviewError } = await supabase
+        .from('session_reviews')
+        .insert({
+          session_id: sessionData.id,
+          technique_rating: f2fSession.techniqueRating,
+          progress_rating: f2fSession.progressRating,
+          therapist_notes: f2fSession.notes,
+          recommendations: f2fSession.recommendations,
+        });
+
+      if (reviewError) throw reviewError;
+
+      toast.success("Face-to-face session review saved!");
+      setIsF2FDialogOpen(false);
+      setF2fSession({
+        patient: "",
+        sessionType: "",
+        duration: "",
+        techniqueRating: 0,
+        progressRating: 0,
+        notes: "",
+        observations: "",
+        recommendations: "",
+        goals: "",
+      });
+      setF2fSessionDate(new Date());
+    } catch (error) {
+      console.error('Error saving F2F session:', error);
+      toast.error("Failed to save session review");
+    }
+  };
+
+  const RatingStars = ({ value, onChange }: { value: number; onChange: (val: number) => void }) => (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          onClick={() => onChange(star)}
+          className="focus:outline-none"
+        >
+          <Star
+            className={cn(
+              "w-5 h-5 transition-colors",
+              star <= value ? "fill-gold text-gold" : "text-muted-foreground"
+            )}
+          />
+        </button>
+      ))}
+    </div>
+  );
 
   return (
     <div className="min-h-screen relative">
@@ -346,24 +441,6 @@ const TherapistHub = () => {
             {/* Quest Assigner */}
             <QuestAssigner />
 
-            {/* Connect Recording App */}
-            <Card className="glass-card-strong border-accent-orange/30">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-foreground text-base">
-                  <Smartphone className="w-4 h-4 text-accent-orange" />
-                  Connect Recording App
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Sync patient recordings for analytics.
-                </p>
-                <Button onClick={handleConnectApp} size="sm" className="w-full" variant="navy">
-                  <Upload className="w-3 h-3 mr-2" />
-                  Connect & Sync
-                </Button>
-              </CardContent>
-            </Card>
 
             {/* Session Reviews with Add Button */}
             <Card className="glass-card-strong">
@@ -373,14 +450,179 @@ const TherapistHub = () => {
                     <FileText className="w-4 h-4 text-gold" />
                     Session Reviews
                   </CardTitle>
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
-                    onClick={() => toast.info("Add face-to-face session review - coming soon!")}
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
+                  <Dialog open={isF2FDialogOpen} onOpenChange={setIsF2FDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="bg-card border-border text-foreground max-w-lg max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <Plus className="w-5 h-5 text-accent-orange" />
+                          Add Face-to-Face Session Review
+                        </DialogTitle>
+                      </DialogHeader>
+                      
+                      <div className="space-y-4 mt-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Patient *</Label>
+                            <Select 
+                              value={f2fSession.patient} 
+                              onValueChange={(val) => setF2fSession({ ...f2fSession, patient: val })}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select patient..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {patients.map((p) => (
+                                  <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>Session Date *</Label>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    "w-full justify-start text-left font-normal",
+                                    !f2fSessionDate && "text-muted-foreground"
+                                  )}
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {f2fSessionDate ? format(f2fSessionDate, "PPP") : "Pick a date"}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <CalendarComponent
+                                  mode="single"
+                                  selected={f2fSessionDate}
+                                  onSelect={setF2fSessionDate}
+                                  initialFocus
+                                  className="p-3 pointer-events-auto"
+                                />
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Session Type *</Label>
+                            <Select 
+                              value={f2fSession.sessionType} 
+                              onValueChange={(val) => setF2fSession({ ...f2fSession, sessionType: val })}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select type..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="In-Person Session">In-Person Session</SelectItem>
+                                <SelectItem value="Home Visit">Home Visit</SelectItem>
+                                <SelectItem value="Phone Consultation">Phone Consultation</SelectItem>
+                                <SelectItem value="Video Call">Video Call</SelectItem>
+                                <SelectItem value="Group Session">Group Session</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>Duration (minutes)</Label>
+                            <Input 
+                              type="number"
+                              placeholder="e.g., 30"
+                              value={f2fSession.duration}
+                              onChange={(e) => setF2fSession({ ...f2fSession, duration: e.target.value })}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Technique Rating</Label>
+                            <RatingStars 
+                              value={f2fSession.techniqueRating} 
+                              onChange={(val) => setF2fSession({ ...f2fSession, techniqueRating: val })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Progress Rating</Label>
+                            <RatingStars 
+                              value={f2fSession.progressRating} 
+                              onChange={(val) => setF2fSession({ ...f2fSession, progressRating: val })}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Session Notes</Label>
+                          <Textarea 
+                            placeholder="Key observations from the session..."
+                            value={f2fSession.notes}
+                            onChange={(e) => setF2fSession({ ...f2fSession, notes: e.target.value })}
+                            className="min-h-[60px]"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Observations</Label>
+                          <Textarea 
+                            placeholder="Specific behaviors or patterns noticed..."
+                            value={f2fSession.observations}
+                            onChange={(e) => setF2fSession({ ...f2fSession, observations: e.target.value })}
+                            className="min-h-[60px]"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Recommendations</Label>
+                          <Textarea 
+                            placeholder="Recommendations for practice at home..."
+                            value={f2fSession.recommendations}
+                            onChange={(e) => setF2fSession({ ...f2fSession, recommendations: e.target.value })}
+                            className="min-h-[60px]"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Goals for Next Session</Label>
+                          <Textarea 
+                            placeholder="Goals to work on before next meeting..."
+                            value={f2fSession.goals}
+                            onChange={(e) => setF2fSession({ ...f2fSession, goals: e.target.value })}
+                            className="min-h-[60px]"
+                          />
+                        </div>
+                        
+                        <div className="flex gap-3 pt-2">
+                          <Button 
+                            variant="outline" 
+                            className="flex-1"
+                            onClick={() => setIsF2FDialogOpen(false)}
+                          >
+                            <X className="w-4 h-4 mr-2" />
+                            Cancel
+                          </Button>
+                          <Button 
+                            className="flex-1"
+                            onClick={handleSaveF2FSession}
+                          >
+                            <Save className="w-4 h-4 mr-2" />
+                            Save Review
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </CardHeader>
               <CardContent>
@@ -388,21 +630,37 @@ const TherapistHub = () => {
               </CardContent>
             </Card>
 
-            {/* Generate Reports */}
-            <Card className="glass-card-strong">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-foreground text-base">
-                  <FileText className="w-4 h-4 text-accent-orange" />
-                  Reports
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Download monthly progress reports.
-                </p>
-                <MonthlyReport recipientType="therapist" childName="Alex M." />
-              </CardContent>
-            </Card>
+            {/* Side-by-side: Connect Recording App & Reports */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Connect Recording App */}
+              <Card className="glass-card-strong border-accent-orange/30">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2 text-foreground text-sm">
+                    <Smartphone className="w-4 h-4 text-accent-orange" />
+                    Connect App
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <Button onClick={handleConnectApp} size="sm" className="w-full" variant="navy">
+                    <Upload className="w-3 h-3 mr-2" />
+                    Sync
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Generate Reports */}
+              <Card className="glass-card-strong">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2 text-foreground text-sm">
+                    <FileText className="w-4 h-4 text-accent-orange" />
+                    Reports
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <MonthlyReport recipientType="therapist" childName="Alex M." />
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
           {/* Main Dashboard */}
