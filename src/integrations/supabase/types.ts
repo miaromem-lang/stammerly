@@ -89,6 +89,33 @@ export type Database = {
         }
         Relationships: []
       }
+      quest_completions: {
+        Row: {
+          completed_at: string
+          created_at: string
+          exercise_id: string
+          id: string
+          quest_id: string
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string
+          created_at?: string
+          exercise_id: string
+          id?: string
+          quest_id: string
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string
+          created_at?: string
+          exercise_id?: string
+          id?: string
+          quest_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       session_reviews: {
         Row: {
           created_at: string
