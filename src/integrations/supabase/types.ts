@@ -14,10 +14,99 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      practice_sessions: {
+        Row: {
+          accuracy_score: number | null
+          blocks_count: number | null
+          created_at: string
+          duration_seconds: number | null
+          easy_onset_score: number | null
+          exercise_category: string
+          exercise_difficulty: string
+          exercise_name: string
+          fluency_score: number | null
+          gems_earned: number | null
+          id: string
+          interjections_count: number | null
+          messages_count: number | null
+          pacing_score: number | null
+          prolongations_count: number | null
+          repetitions_count: number | null
+          session_date: string
+          stars_earned: number | null
+          target_phrase: string | null
+          topic_id: string | null
+          transcript: string | null
+          user_id: string | null
+        }
+        Insert: {
+          accuracy_score?: number | null
+          blocks_count?: number | null
+          created_at?: string
+          duration_seconds?: number | null
+          easy_onset_score?: number | null
+          exercise_category: string
+          exercise_difficulty?: string
+          exercise_name: string
+          fluency_score?: number | null
+          gems_earned?: number | null
+          id?: string
+          interjections_count?: number | null
+          messages_count?: number | null
+          pacing_score?: number | null
+          prolongations_count?: number | null
+          repetitions_count?: number | null
+          session_date?: string
+          stars_earned?: number | null
+          target_phrase?: string | null
+          topic_id?: string | null
+          transcript?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          accuracy_score?: number | null
+          blocks_count?: number | null
+          created_at?: string
+          duration_seconds?: number | null
+          easy_onset_score?: number | null
+          exercise_category?: string
+          exercise_difficulty?: string
+          exercise_name?: string
+          fluency_score?: number | null
+          gems_earned?: number | null
+          id?: string
+          interjections_count?: number | null
+          messages_count?: number | null
+          pacing_score?: number | null
+          prolongations_count?: number | null
+          repetitions_count?: number | null
+          session_date?: string
+          stars_earned?: number | null
+          target_phrase?: string | null
+          topic_id?: string | null
+          transcript?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      daily_analytics: {
+        Row: {
+          avg_accuracy: number | null
+          avg_fluency: number | null
+          practice_date: string | null
+          total_blocks: number | null
+          total_gems: number | null
+          total_interjections: number | null
+          total_practice_time: number | null
+          total_prolongations: number | null
+          total_repetitions: number | null
+          total_sessions: number | null
+          total_stars: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
