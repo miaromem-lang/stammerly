@@ -7,7 +7,7 @@ import { Play, CheckCircle2, AlertTriangle, Brain, Sparkles, UserCircle, Star, T
 import { supabase } from "@/integrations/supabase/client";
 import { exerciseCategories, type Exercise } from "@/data/exerciseData";
 import { toast } from "sonner";
-
+import { QuestMessages } from "./QuestMessages";
 interface AssignedQuest {
   id: string;
   quest_title: string;
@@ -257,6 +257,15 @@ export const TherapistAssignedQuests = ({ selectedCharacter, onExerciseStart }: 
                         Great job completing this quest!
                       </div>
                     )}
+
+                    {/* Messaging */}
+                    <QuestMessages
+                      questId={quest.id}
+                      questTitle={quest.quest_title}
+                      senderRole="child"
+                      senderName={selectedCharacter.name}
+                      compact
+                    />
                   </div>
                 </div>
               </CardContent>
