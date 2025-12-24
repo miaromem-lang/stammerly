@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, ArrowLeft, MessageSquare, Upload, Bell, Calendar, Send, Smartphone, Loader2 } from "lucide-react";
+import { Sparkles, ArrowLeft, MessageSquare, Upload, Bell, Calendar, Send, Smartphone, Loader2, Eye, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { HubNavigation } from "@/components/HubNavigation";
 import { TherapistReviewsSummary } from "@/components/TherapistReviewsSummary";
@@ -132,6 +132,31 @@ const ParentHub = () => {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-6">
+            {/* View Child's Hub */}
+            <Card className="glass-card-strong border-accent-orange/30 bg-gradient-to-r from-accent-orange/5 to-gold/5">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-accent-orange/20 flex items-center justify-center">
+                      <Eye className="w-6 h-6 text-accent-orange" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground">View Child's Hub</h3>
+                      <p className="text-sm text-muted-foreground">See quests, exercises & daily goals</p>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => navigate("/hub/kid-overview")}
+                    variant="orange"
+                    className="gap-2"
+                  >
+                    Open Kid's View
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* App Integration */}
             <Card className="glass-card-strong border-primary/30">
               <CardHeader>
