@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Sparkles, ArrowLeft, BarChart3, MessageSquare, Upload, Bell, TrendingUp, Calendar, Send, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { HubNavigation } from "@/components/HubNavigation";
+import { TherapistReviewsSummary } from "@/components/TherapistReviewsSummary";
 
 const recentActivities = [
   { date: "Today", activity: "Easy Onset Quest", score: 87, improvement: "+5%" },
@@ -194,6 +195,9 @@ const ParentHub = () => {
 
           {/* Right Column */}
           <div className="space-y-6">
+            {/* Therapist Reviews Summary */}
+            <TherapistReviewsSummary />
+
             {/* Teacher Notes */}
             <Card className="glass-card-strong">
               <CardHeader>
