@@ -30,7 +30,11 @@ interface SessionReview {
   reviewed_at: string;
 }
 
-export const SessionReviews = () => {
+interface SessionReviewsProps {
+  compact?: boolean;
+}
+
+export const SessionReviews = ({ compact = false }: SessionReviewsProps) => {
   const [sessions, setSessions] = useState<PracticeSession[]>([]);
   const [reviews, setReviews] = useState<Record<string, SessionReview>>({});
   const [loading, setLoading] = useState(true);
@@ -201,6 +205,118 @@ export const SessionReviews = () => {
     );
   }
 
+  // Compact view for sidebar - no wrapper card
+  if (compact) {
+    return (
+      <>
+        {sessions.length === 0 ? (
+          <p className="text-muted-foreground text-center py-2 text-xs">
+            No sessions to review yet.
+          </p>
+        ) : (
+          <div className="space-y-2 max-h-[200px] overflow-y-auto">
+            {sessions.slice(0, 5).map((session) => {
+              const hasReview = !!reviews[session.id];
+              return (
+                <div
+                  key={session.id}
+                  onClick={() => openReviewDialog(session)}
+                  className="p-2 bg-secondary/50 rounded-lg cursor-pointer hover:bg-secondary transition-colors"
+                >
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="font-medium text-xs text-foreground truncate flex-1">
+                      {session.exercise_name}
+                    </span>
+                    {hasReview && (
+                      <span className="text-[9px] bg-success/20 text-success px-1.5 py-0.5 rounded-full shrink-0">
+                        ✓
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    {formatDate(session.session_date)} • {session.fluency_score ?? 0}%
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Review Dialog - shared */}
+        <Dialog open={isReviewOpen} onOpenChange={setIsReviewOpen}>
+          <DialogContent className="bg-card border-border text-foreground max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-accent-orange" />
+                Review Session
+              </DialogTitle>
+            </DialogHeader>
+
+            {selectedSession && (
+              <div className="space-y-4 mt-2">
+                <div className="p-3 bg-secondary/50 rounded-lg">
+                  <p className="font-medium text-foreground mb-1">
+                    {selectedSession.exercise_name}
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                    <span>Category: {selectedSession.exercise_category}</span>
+                    <span>Duration: {Math.round((selectedSession.duration_seconds || 0) / 60)}min</span>
+                    <span>Fluency: {selectedSession.fluency_score ?? 0}%</span>
+                    <span>Accuracy: {selectedSession.accuracy_score ?? 0}%</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <RatingStars
+                    value={reviewForm.technique_rating}
+                    onChange={(val) => setReviewForm({ ...reviewForm, technique_rating: val })}
+                    label="Technique Rating"
+                  />
+                  <RatingStars
+                    value={reviewForm.progress_rating}
+                    onChange={(val) => setReviewForm({ ...reviewForm, progress_rating: val })}
+                    label="Progress Rating"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Therapist Notes</label>
+                  <Textarea
+                    placeholder="Observations about the session..."
+                    value={reviewForm.therapist_notes}
+                    onChange={(e) => setReviewForm({ ...reviewForm, therapist_notes: e.target.value })}
+                    className="min-h-[80px]"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Recommendations</label>
+                  <Textarea
+                    placeholder="Suggestions for next session..."
+                    value={reviewForm.recommendations}
+                    onChange={(e) => setReviewForm({ ...reviewForm, recommendations: e.target.value })}
+                    className="min-h-[60px]"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <Button variant="outline" className="flex-1" onClick={() => setIsReviewOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button className="flex-1" onClick={handleSaveReview} disabled={saving}>
+                    {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    Save Review
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      </>
+    );
+  }
+
+  // Full view
   return (
     <>
       <Card className="glass-card-strong">

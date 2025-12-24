@@ -42,7 +42,11 @@ interface GroupedConversation {
   messages: Conversation[];
 }
 
-export const AILearningHistory = () => {
+interface AILearningHistoryProps {
+  maxHeight?: string;
+}
+
+export const AILearningHistory = ({ maxHeight = "400px" }: AILearningHistoryProps) => {
   const [groupedConversations, setGroupedConversations] = useState<GroupedConversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedQuests, setExpandedQuests] = useState<Set<string>>(new Set());
@@ -161,7 +165,7 @@ export const AILearningHistory = () => {
         </div>
 
         {/* Conversation Timeline */}
-        <ScrollArea className="h-[400px] pr-4">
+        <ScrollArea className={`pr-4`} style={{ height: maxHeight }}>
           {groupedConversations.length === 0 ? (
             <div className="text-center py-8 text-background/50">
               <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-50" />
