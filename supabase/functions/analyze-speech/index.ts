@@ -6,13 +6,103 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface WordTiming {
+  word: string;
+  start: number;
+  end: number;
+  duration: number;
+}
+
+// Analyze word timings for acoustic disfluency patterns
+function analyzeAcousticPatterns(words: WordTiming[]) {
+  const patterns: any[] = [];
+  
+  if (!words || words.length === 0) return patterns;
+  
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    const prevWord = words[i - 1];
+    
+    // Detect prolongations (unusually long words)
+    const avgDuration = words.reduce((sum, w) => sum + w.duration, 0) / words.length;
+    if (word.duration > avgDuration * 2) {
+      patterns.push({
+        type: 'Prolongation',
+        word: word.word,
+        severity: word.duration > avgDuration * 3 ? 'severe' : 'moderate',
+        details: `Word "${word.word}" was ${(word.duration * 1000).toFixed(0)}ms (avg: ${(avgDuration * 1000).toFixed(0)}ms)`
+      });
+    }
+    
+    // Detect blocks (long pauses before words)
+    if (prevWord) {
+      const gap = word.start - prevWord.end;
+      if (gap > 0.5) { // > 500ms pause
+        patterns.push({
+          type: 'Block',
+          word: word.word,
+          severity: gap > 1.0 ? 'severe' : gap > 0.7 ? 'moderate' : 'mild',
+          details: `${(gap * 1000).toFixed(0)}ms pause before "${word.word}"`
+        });
+      }
+    }
+  }
+  
+  return patterns;
+}
+
+// Detect text-based disfluencies
+function detectTextDisfluencies(text: string) {
+  const disfluencies: any[] = [];
+  const lowerText = text.toLowerCase();
+  
+  // Sound/syllable repetitions: "b-b-ball", "ba-ba-baby"
+  const repetitionPattern = /\b(\w{1,3})-\1+(-\w+)?\b/gi;
+  let match;
+  while ((match = repetitionPattern.exec(text)) !== null) {
+    disfluencies.push({
+      type: 'SoundRepetition',
+      word: match[0],
+      severity: 'moderate',
+      suggestion: 'Try starting the word more gently with easy onset'
+    });
+  }
+  
+  // Word repetitions: "the the", "I I I"
+  const wordRepPattern = /\b(\w+)\s+\1\b/gi;
+  while ((match = wordRepPattern.exec(text)) !== null) {
+    disfluencies.push({
+      type: 'WordRepetition',
+      word: match[0],
+      severity: 'mild',
+      suggestion: 'Pause, take a breath, then continue smoothly'
+    });
+  }
+  
+  // Interjections
+  const interjections = ['um', 'uh', 'er', 'ah', 'like', 'you know', 'well'];
+  for (const filler of interjections) {
+    const regex = new RegExp(`\\b${filler}\\b`, 'gi');
+    while ((match = regex.exec(lowerText)) !== null) {
+      disfluencies.push({
+        type: 'Interjection',
+        word: filler,
+        severity: 'mild',
+        suggestion: 'It\'s okay to pause silently instead of using filler words'
+      });
+    }
+  }
+  
+  return disfluencies;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { transcript, targetPhrase } = await req.json();
+    const { transcript, targetPhrase, words } = await req.json();
     
     if (!transcript) {
       throw new Error('No transcript provided');
@@ -23,110 +113,44 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    console.log('Analyzing speech:', { transcript, targetPhrase });
+    console.log('Analyzing speech:', { transcript, targetPhrase, wordCount: words?.length });
 
-    // Enhanced system prompt for better fluency analysis
-    const systemPrompt = `You are an expert speech-language pathologist with 20+ years of experience in fluency disorders, particularly stammering/stuttering in children ages 4-12. You specialize in evidence-based assessment using the Lidcombe Program and Camperdown Program methodologies.
+    // Pre-analyze acoustic patterns from word timings
+    const acousticPatterns = analyzeAcousticPatterns(words || []);
+    const textDisfluencies = detectTextDisfluencies(transcript);
+    
+    console.log('Pre-analysis:', { 
+      acousticPatterns: acousticPatterns.length, 
+      textDisfluencies: textDisfluencies.length 
+    });
 
-CRITICAL ANALYSIS FRAMEWORK:
+    // Enhanced system prompt with pre-analyzed data
+    const systemPrompt = `You are an expert speech-language pathologist specializing in fluency disorders in children ages 4-12. You use evidence-based assessment methods.
 
-## 1. DISFLUENCY DETECTION (Be thorough and precise)
+ACOUSTIC ANALYSIS ALREADY DETECTED:
+${acousticPatterns.length > 0 ? acousticPatterns.map(p => `- ${p.type}: "${p.word}" (${p.severity}) - ${p.details}`).join('\n') : 'No acoustic anomalies detected'}
 
-### CORE DISFLUENCY TYPES (Count each occurrence):
+TEXT PATTERN ANALYSIS DETECTED:
+${textDisfluencies.length > 0 ? textDisfluencies.map(d => `- ${d.type}: "${d.word}"`).join('\n') : 'No text-based disfluencies detected'}
 
-**BLOCKS (B)** - Most severe, score heavily:
-- Complete stops in airflow before or during speech
-- Indicated by: "...", "I... want", sudden pauses mid-word
-- Often accompanied by physical tension
-- Score: -10 points per block detected
+SCORING FRAMEWORK:
+- Base score: 100
+- Per Block: -10 (severe), -7 (moderate), -5 (mild)
+- Per Repetition: -8 (sound), -6 (syllable), -4 (word)
+- Per Prolongation: -6
+- Per Interjection: -2
+- Bonus for detected techniques: +5 each
 
-**SOUND REPETITIONS (SR)** - Characteristic of stammering:
-- Single sound repeated: "b-b-ball", "s-s-see", "th-th-the"
-- Initial phoneme repetitions are most common
-- Score: -8 points per occurrence
+Be precise: incorporate the pre-analyzed patterns into your assessment. Don't ignore them.`;
 
-**SYLLABLE REPETITIONS (SyR)**:
-- Partial word repetitions: "ba-ba-baby", "ta-ta-table"
-- Score: -7 points per occurrence
-
-**WORD REPETITIONS (WR)**:
-- Whole word repeated: "I I I want", "the the dog"
-- Score: -5 points per occurrence
-
-**PROLONGATIONS (P)**:
-- Sound stretched abnormally: "sssssun", "mmmmom", "aaand"
-- Vowels or continuant consonants held too long
-- Score: -6 points per occurrence
-
-**INTERJECTIONS (I)**:
-- Filler sounds: "um", "uh", "er", "like", "you know"
-- May indicate struggle or avoidance
-- Score: -3 points per occurrence
-
-**REVISIONS (R)**:
-- False starts and changes: "I want... I need... I want to go"
-- Abandoning a word/phrase to start again
-- Score: -4 points per occurrence
-
-## 2. FLUENCY ENHANCEMENT TECHNIQUES (Reward when detected):
-
-**EASY ONSET** - Starting words gently with breathy quality:
-- Look for gentle, relaxed word beginnings
-- +5 points if detected
-
-**LIGHT ARTICULATORY CONTACT** - Soft consonant production:
-- Gentle touching of tongue/lips for sounds
-- +4 points if speech sounds relaxed
-
-**APPROPRIATE PACING** - Natural rhythm with pauses:
-- Reasonable rate, deliberate but not rushed
-- +5 points for good pacing
-
-**CONTINUOUS PHONATION** - Smooth connections between words:
-- Linking words without abrupt stops
-- +4 points if detected
-
-## 3. SCORING CALCULATION:
-
-Base Score: 100 points
-- Subtract for each disfluency (weights above)
-- Add for detected techniques
-- Minimum score: 0, Maximum: 100
-
-ACCURACY CALCULATION:
-- Compare transcript to target phrase
-- Calculate word-by-word match percentage
-- Account for minor pronunciation variations
-
-## 4. RESPONSE REQUIREMENTS:
-
-You MUST provide precise, clinically accurate feedback:
-- Count EACH disfluency individually
-- Identify SPECIFIC words where disfluencies occur
-- Note patterns (word-initial sounds, specific phonemes, etc.)
-- Provide actionable, child-friendly encouragement
-
-BE OBJECTIVE: Don't inflate scores. A transcript with multiple disfluencies should NOT score above 70. 
-A clean transcript with no issues can score 85-95.
-Perfect technique usage with zero disfluencies: 95-100.`;
-
-    const userPrompt = `## SPEECH SAMPLE ANALYSIS
+    const userPrompt = `## SPEECH SAMPLE
 
 **Target Phrase:** "${targetPhrase}"
 **Spoken Transcript:** "${transcript}"
+**Word Count:** ${(words || []).length}
+**Total Duration:** ${words && words.length > 0 ? (words[words.length - 1].end).toFixed(2) : 0}s
 
-ANALYZE THIS SAMPLE:
-
-1. First, identify ANY differences between target and transcript
-2. Count all disfluency types present (even subtle ones)
-3. Note any fluency techniques being used
-4. Calculate scores based on the framework
-5. Provide specific, constructive feedback
-
-Be CLINICALLY ACCURATE. If the transcript shows disfluencies, the fluency score must reflect this.
-If the transcript is clean and matches the target well, score appropriately high.
-
-Provide your analysis using the analyze_speech function.`;
+Analyze this sample incorporating the pre-detected patterns. Provide accurate clinical assessment.`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -145,84 +169,72 @@ Provide your analysis using the analyze_speech function.`;
             type: 'function',
             function: {
               name: 'analyze_speech',
-              description: 'Provide detailed clinical analysis of speech sample with accurate scoring',
+              description: 'Provide detailed clinical analysis of speech sample',
               parameters: {
                 type: 'object',
                 properties: {
                   fluencyScore: {
                     type: 'number',
-                    description: 'Overall fluency score from 0-100 based on disfluency count and severity. Be accurate: many disfluencies = low score (40-60), some disfluencies = medium score (60-80), few/none = high score (80-100)'
+                    description: 'Overall fluency score 0-100. Use the scoring framework accurately.'
                   },
                   accuracy: {
                     type: 'number',
-                    description: 'Word accuracy percentage - how closely the transcript matches the target phrase (0-100)'
+                    description: 'Word accuracy percentage comparing transcript to target (0-100)'
                   },
                   easyOnsetScore: {
                     type: 'number',
-                    description: 'Score for easy onset technique usage (0-100). 0 if hard/tense beginnings detected, 100 if all words started gently'
+                    description: 'Easy onset technique usage score (0-100)'
                   },
                   pacingScore: {
                     type: 'number',
-                    description: 'Score for appropriate pacing (0-100). Consider if speech was too fast, too slow, or well-paced'
+                    description: 'Pacing appropriateness score (0-100)'
                   },
                   syllablesPerMinute: {
                     type: 'number',
-                    description: 'Estimated syllables per minute based on transcript length (typical range 100-200 for children)'
+                    description: 'Estimated syllables per minute'
                   },
                   percentSyllablesStuttered: {
                     type: 'number',
-                    description: 'Percentage of syllables with disfluencies (0-100). Clinical measure of stuttering severity'
+                    description: 'Percentage of syllables with disfluencies'
                   },
                   disfluencies: {
                     type: 'array',
                     items: {
                       type: 'object',
                       properties: {
-                        type: { 
-                          type: 'string',
-                          description: 'Type: Block, SoundRepetition, SyllableRepetition, WordRepetition, Prolongation, Interjection, Revision'
-                        },
-                        word: { 
-                          type: 'string',
-                          description: 'The specific word or sound where disfluency occurred'
-                        },
-                        severity: {
-                          type: 'string',
-                          description: 'Severity: mild, moderate, severe'
-                        },
-                        suggestion: { 
-                          type: 'string',
-                          description: 'Child-friendly tip to address this specific disfluency'
-                        }
+                        type: { type: 'string' },
+                        word: { type: 'string' },
+                        severity: { type: 'string' },
+                        suggestion: { type: 'string' }
                       }
                     },
-                    description: 'List of ALL identified disfluencies with details. Include every instance found.'
+                    description: 'All disfluencies including pre-detected ones'
                   },
                   strengths: {
                     type: 'array',
                     items: { type: 'string' },
-                    description: 'Specific positive aspects observed (e.g., "Good use of easy onset on word Sally", "Smooth connection between words")'
+                    description: 'Specific positive aspects observed'
                   },
                   areasToImprove: {
                     type: 'array',
                     items: { type: 'string' },
-                    description: 'Specific areas needing practice (e.g., "Focus on gentle start for S sounds", "Practice slowing down on longer words")'
+                    description: 'Areas needing practice'
                   },
                   techniquesObserved: {
                     type: 'array',
                     items: { type: 'string' },
-                    description: 'Any fluency shaping techniques detected in the speech'
+                    description: 'Fluency techniques detected'
                   },
                   clinicalNote: {
                     type: 'string',
-                    description: 'Brief clinical observation for therapist review (1-2 sentences)'
+                    description: 'Brief clinical observation'
                   },
                   encouragement: {
                     type: 'string',
-                    description: 'A warm, specific, encouraging message for the child based on their actual performance. Be genuine and specific to what they did well.'
+                    description: 'Warm, specific encouragement for the child'
                   }
                 },
-                required: ['fluencyScore', 'accuracy', 'easyOnsetScore', 'pacingScore', 'disfluencies', 'strengths', 'encouragement']
+                required: ['fluencyScore', 'accuracy', 'disfluencies', 'strengths', 'encouragement']
               }
             }
           }
@@ -252,27 +264,46 @@ Provide your analysis using the analyze_speech function.`;
     }
 
     const result = await response.json();
-    console.log('AI response:', JSON.stringify(result, null, 2));
+    console.log('AI response received');
 
     // Extract the tool call arguments
     const toolCall = result.choices?.[0]?.message?.tool_calls?.[0];
     if (toolCall?.function?.arguments) {
       const analysis = JSON.parse(toolCall.function.arguments);
       
-      // Ensure we have all required fields with defaults
+      // Merge pre-detected disfluencies with AI analysis
+      const allDisfluencies = [
+        ...acousticPatterns.map(p => ({
+          type: p.type,
+          word: p.word,
+          severity: p.severity,
+          suggestion: p.type === 'Block' ? 'Try taking a gentle breath before speaking' : 'Let the sound flow smoothly'
+        })),
+        ...(analysis.disfluencies || [])
+      ];
+      
+      // Remove duplicates based on word
+      const uniqueDisfluencies = allDisfluencies.filter((d, i, arr) => 
+        arr.findIndex(x => x.word === d.word && x.type === d.type) === i
+      );
+      
       const finalAnalysis = {
-        fluencyScore: analysis.fluencyScore ?? 75,
+        fluencyScore: Math.max(0, Math.min(100, analysis.fluencyScore ?? 75)),
         accuracy: analysis.accuracy ?? 80,
         easyOnsetScore: analysis.easyOnsetScore ?? 70,
         pacingScore: analysis.pacingScore ?? 75,
         syllablesPerMinute: analysis.syllablesPerMinute ?? 120,
         percentSyllablesStuttered: analysis.percentSyllablesStuttered ?? 5,
-        disfluencies: analysis.disfluencies ?? [],
+        disfluencies: uniqueDisfluencies,
         strengths: analysis.strengths ?? ["Good effort!"],
         areasToImprove: analysis.areasToImprove ?? [],
         techniquesObserved: analysis.techniquesObserved ?? [],
         clinicalNote: analysis.clinicalNote ?? "",
-        encouragement: analysis.encouragement ?? "Great job practicing! Keep it up!"
+        encouragement: analysis.encouragement ?? "Great job practicing! Keep it up!",
+        acousticAnalysis: {
+          blocksDetected: acousticPatterns.filter(p => p.type === 'Block').length,
+          prolongationsDetected: acousticPatterns.filter(p => p.type === 'Prolongation').length
+        }
       };
       
       console.log('Final analysis:', JSON.stringify(finalAnalysis, null, 2));

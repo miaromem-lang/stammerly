@@ -127,11 +127,46 @@ const Practice = () => {
     animationFrameRef.current = requestAnimationFrame(updateWaveform);
   }, [isRecording]);
 
-  const analyzeWithAI = async (spokenText: string) => {
+  const analyzeWithWhisper = async (audioBlob: Blob) => {
     setIsAnalyzing(true);
     try {
+      // Convert blob to base64
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve, reject) => {
+        reader.onloadend = () => {
+          const result = reader.result as string;
+          resolve(result.split(',')[1]);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(audioBlob);
+      });
+      
+      const base64Audio = await base64Promise;
+      
+      // Step 1: Transcribe with OpenAI Whisper
+      console.log('Transcribing with Whisper...');
+      const { data: transcriptionData, error: transcriptionError } = await supabase.functions.invoke('transcribe-speech', {
+        body: { audio: base64Audio, language: 'en' }
+      });
+
+      if (transcriptionError) {
+        console.error('Transcription error:', transcriptionError);
+        throw new Error('Transcription failed');
+      }
+
+      const transcribedText = transcriptionData?.text || '';
+      const wordTimings = transcriptionData?.words || [];
+      setTranscript(transcribedText);
+      console.log('Transcription:', transcribedText);
+
+      // Step 2: Analyze with AI including word timings for acoustic analysis
+      console.log('Analyzing speech...');
       const { data, error } = await supabase.functions.invoke('analyze-speech', {
-        body: { transcript: spokenText, targetPhrase }
+        body: { 
+          transcript: transcribedText, 
+          targetPhrase,
+          words: wordTimings 
+        }
       });
 
       if (error) {
@@ -143,7 +178,6 @@ const Practice = () => {
         } else {
           toast.error("Could not analyze speech. Showing basic results.");
         }
-        // Fallback to basic analysis
         setAnalysis({
           fluencyScore: 75,
           accuracy: 80,
@@ -173,6 +207,7 @@ const Practice = () => {
       }
     } catch (err) {
       console.error('Failed to analyze:', err);
+      toast.error("Analysis failed. Please try again.");
       setAnalysis({
         fluencyScore: 75,
         accuracy: 80,
@@ -245,11 +280,8 @@ const Practice = () => {
           recognitionRef.current.stop();
         }
         
-        // Get final transcript and analyze
-        setTimeout(() => {
-          const finalText = transcript.trim() || targetPhrase;
-          analyzeWithAI(finalText);
-        }, 500);
+        // Analyze with Whisper (uses the recorded audio blob)
+        analyzeWithWhisper(audioBlob);
       };
       
       mediaRecorderRef.current.start(100);
