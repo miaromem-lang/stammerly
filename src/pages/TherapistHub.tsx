@@ -133,25 +133,25 @@ const TherapistHub = () => {
 
       <main className="container mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Left Column - Patient List */}
-          <div className="space-y-6">
+          {/* Left Column - Patient List & Quick Actions */}
+          <div className="space-y-4">
             <Card className="glass-card-strong">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <Users className="w-5 h-5 text-accent-orange" />
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-foreground text-base">
+                  <Users className="w-4 h-4 text-accent-orange" />
                   Patients
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-2">
                 {patients.map((patient) => (
                   <div 
                     key={patient.id}
-                    className="p-3 bg-secondary/50 rounded-lg cursor-pointer hover:bg-secondary transition-colors"
+                    className="p-2.5 bg-secondary/50 rounded-lg cursor-pointer hover:bg-secondary transition-colors"
                     onClick={() => navigate("/analytics/therapist")}
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-foreground">{patient.name}</span>
-                      <span className={`text-xs px-2 py-1 rounded-full ${
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span className="font-medium text-sm text-foreground">{patient.name}</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
                         patient.risk === "low" ? "bg-success/20 text-success" : "bg-gold/20 text-gold"
                       }`}>
                         {patient.progress}
@@ -165,15 +165,15 @@ const TherapistHub = () => {
 
             {/* Exercise Library */}
             <Card className="glass-card-strong">
-              <CardHeader>
+              <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2 text-foreground">
-                    <FileText className="w-5 h-5 text-gold" />
+                  <CardTitle className="flex items-center gap-2 text-foreground text-base">
+                    <FileText className="w-4 h-4 text-gold" />
                     Exercise Library
                   </CardTitle>
                   <Dialog open={isBuilderOpen} onOpenChange={setIsBuilderOpen}>
                     <DialogTrigger asChild>
-                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground">
                         <Plus className="w-4 h-4" />
                       </Button>
                     </DialogTrigger>
@@ -288,29 +288,51 @@ const TherapistHub = () => {
                   </Dialog>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-2">
-                {exercises.map((exercise) => (
+              <CardContent className="space-y-1.5">
+                {exercises.slice(0, 4).map((exercise) => (
                   <div 
                     key={exercise.id}
                     draggable
                     onDragStart={() => setDraggedExercise(exercise.id)}
                     onDragEnd={() => setDraggedExercise(null)}
-                    className={`p-3 bg-secondary/50 rounded-lg cursor-grab active:cursor-grabbing transition-all ${
+                    className={`p-2 bg-secondary/50 rounded-lg cursor-grab active:cursor-grabbing transition-all ${
                       draggedExercise === exercise.id ? "opacity-50 scale-95" : "hover:bg-secondary"
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <p className="font-medium text-sm text-foreground">{exercise.name}</p>
+                      <p className="font-medium text-xs text-foreground">{exercise.name}</p>
                       {exercise.custom && (
-                        <span className="text-[10px] bg-accent-orange/20 text-accent-orange px-2 py-0.5 rounded-full">
+                        <span className="text-[9px] bg-accent-orange/20 text-accent-orange px-1.5 py-0.5 rounded-full">
                           Custom
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground">{exercise.category} • {exercise.difficulty}</p>
+                    <p className="text-[10px] text-muted-foreground">{exercise.category} • {exercise.difficulty}</p>
                   </div>
                 ))}
-                <p className="text-xs text-muted-foreground mt-2">Drag exercises to patient cards to assign</p>
+                <p className="text-[10px] text-muted-foreground pt-1">Drag to patient cards to assign</p>
+              </CardContent>
+            </Card>
+
+            {/* Session Reviews - Compact */}
+            <SessionReviews />
+
+            {/* Quest Assigner - Compact */}
+            <QuestAssigner />
+
+            {/* Generate Reports - Compact */}
+            <Card className="glass-card-strong">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-foreground text-base">
+                  <FileText className="w-4 h-4 text-accent-orange" />
+                  Reports
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Download monthly progress reports.
+                </p>
+                <MonthlyReport recipientType="therapist" childName="Alex M." />
               </CardContent>
             </Card>
           </div>
@@ -412,33 +434,11 @@ const TherapistHub = () => {
               </CardContent>
             </Card>
 
-            {/* Session Reviews */}
-            <SessionReviews />
-
-            {/* Quest Assigner - AI Collaboration */}
-            <QuestAssigner />
-
             {/* Recommendation Trend Charts */}
             <RecommendationTrendCharts />
 
             {/* AI Learning History */}
             <AILearningHistory />
-
-            {/* Monthly Report */}
-            <Card className="glass-card-strong">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <FileText className="w-5 h-5 text-accent-orange" />
-                  Generate Reports
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground mb-4 text-sm">
-                  Download or email comprehensive monthly progress reports for patients.
-                </p>
-                <MonthlyReport recipientType="therapist" childName="Alex M." />
-              </CardContent>
-            </Card>
           </div>
 
         </div>
