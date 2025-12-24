@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart3, Loader2, Star, Flame, TrendingUp, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface AnalyticsData {
   totalSessions: number;
@@ -35,7 +36,29 @@ export const PracticeAnalytics = ({
 
   useEffect(() => {
     fetchAnalytics();
-  }, []);
+
+    // Subscribe to realtime updates
+    const channel = supabase
+      .channel('practice-sessions-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'practice_sessions'
+        },
+        (payload) => {
+          console.log('New practice session:', payload);
+          toast.success("New practice session completed! 🎉");
+          fetchAnalytics(); // Refresh data when new session is added
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [limit]);
 
   const fetchAnalytics = async () => {
     try {
