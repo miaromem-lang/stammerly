@@ -5,6 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Activity, Brain, Calendar, TrendingUp, Settings, FileBarChart, Loader2, HelpCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { QuestAssigner } from "./QuestAssigner";
 
 const spmData = [
   { label: "Mon", home: 145, clinic: 160 },
@@ -334,6 +335,9 @@ export const TherapistPortal = () => {
               </Button>
             </CardContent>
           </Card>
+          
+          {/* Quest Assigner */}
+          <QuestAssigner />
           
           {/* Quick Stats */}
           <Card variant="dark" className="border-background/10">
