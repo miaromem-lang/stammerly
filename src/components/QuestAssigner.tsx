@@ -6,12 +6,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Brain, Loader2, Send, CheckCircle2, XCircle, AlertTriangle, Trash2, Sparkles, MessageCircle } from "lucide-react";
+import { Brain, Loader2, Send, CheckCircle2, XCircle, AlertTriangle, Trash2, Sparkles, MessageCircle, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { exerciseCategories, type Exercise } from "@/data/exerciseData";
 import { toast } from "sonner";
 import { QuestMessages } from "./QuestMessages";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
+import { AIInsightsChat } from "./AIInsightsChat";
 
 interface AssignedQuest {
   id: string;
@@ -209,21 +210,24 @@ export const QuestAssigner = () => {
     return exerciseCategories.find(c => c.id === id)?.title || id;
   };
 
-  // Inner component for quest cards with messaging
+  // Inner component for quest cards with messaging and AI chat
   const QuestCardItem = ({ 
     quest, 
     onDelete, 
     getCategoryName,
     unreadCount,
-    onMarkRead
+    onMarkRead,
+    getChildAnalytics
   }: { 
     quest: AssignedQuest; 
     onDelete: (id: string) => void;
     getCategoryName: (id: string) => string;
     unreadCount: number;
     onMarkRead: () => void;
+    getChildAnalytics: () => Promise<ChildAnalytics>;
   }) => {
     const [showMessages, setShowMessages] = useState(false);
+    const [childAnalytics, setChildAnalytics] = useState<ChildAnalytics | null>(null);
     
     const handleToggleMessages = () => {
       const wasHidden = !showMessages;
@@ -232,6 +236,15 @@ export const QuestAssigner = () => {
         onMarkRead();
       }
     };
+
+    const loadAnalytics = async () => {
+      const analytics = await getChildAnalytics();
+      setChildAnalytics(analytics);
+    };
+
+    useEffect(() => {
+      loadAnalytics();
+    }, []);
     
     return (
       <div className="p-3 rounded-lg bg-background/10 border border-background/20">
@@ -252,6 +265,29 @@ export const QuestAssigner = () => {
             </p>
           </div>
           <div className="flex items-center gap-1">
+            {/* AI Chat Button */}
+            <AIInsightsChat
+              quest={{
+                questId: quest.id,
+                questTitle: quest.quest_title,
+                exerciseCategory: quest.exercise_category,
+                therapistReason: quest.therapist_reason,
+                aiFeedback: quest.ai_feedback,
+                aiAgrees: quest.ai_agrees,
+                aiAlternativeSuggestion: quest.ai_alternative_suggestion,
+                childAnalytics: childAnalytics || undefined,
+              }}
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-background/50 hover:text-primary shrink-0"
+                  title="Chat with AI about this quest"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                </Button>
+              }
+            />
             <Button
               variant="ghost"
               size="sm"
@@ -483,6 +519,7 @@ export const QuestAssigner = () => {
                 getCategoryName={getCategoryName}
                 unreadCount={unreadCounts[quest.id] || 0}
                 onMarkRead={() => markAsRead(quest.id)}
+                getChildAnalytics={getChildAnalytics}
               />
             ))}
           </div>
