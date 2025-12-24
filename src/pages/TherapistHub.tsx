@@ -314,13 +314,81 @@ const TherapistHub = () => {
               </CardContent>
             </Card>
 
-            {/* Session Reviews - Compact */}
-            <SessionReviews />
+            {/* Push Exercises to Patients */}
+            <Card className="glass-card-strong">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-foreground text-base">
+                  <Calendar className="w-4 h-4 text-accent-orange" />
+                  Push Exercises
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {patients.map((patient) => (
+                    <div 
+                      key={patient.id}
+                      className="p-3 bg-secondary/50 rounded-lg border-2 border-dashed border-border text-center"
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={() => {
+                        if (draggedExercise) {
+                          handlePushExercise(draggedExercise, patient.name);
+                        }
+                      }}
+                    >
+                      <p className="font-medium text-sm text-foreground">{patient.name}</p>
+                      <p className="text-xs text-muted-foreground">Drop exercise here</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
 
-            {/* Quest Assigner - Compact */}
+            {/* Quest Assigner */}
             <QuestAssigner />
 
-            {/* Generate Reports - Compact */}
+            {/* Connect Recording App */}
+            <Card className="glass-card-strong border-accent-orange/30">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-foreground text-base">
+                  <Smartphone className="w-4 h-4 text-accent-orange" />
+                  Connect Recording App
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Sync patient recordings for analytics.
+                </p>
+                <Button onClick={handleConnectApp} size="sm" className="w-full" variant="navy">
+                  <Upload className="w-3 h-3 mr-2" />
+                  Connect & Sync
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Session Reviews with Add Button */}
+            <Card className="glass-card-strong">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-foreground text-base">
+                    <FileText className="w-4 h-4 text-gold" />
+                    Session Reviews
+                  </CardTitle>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                    onClick={() => toast.info("Add face-to-face session review - coming soon!")}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <SessionReviews compact />
+              </CardContent>
+            </Card>
+
+            {/* Generate Reports */}
             <Card className="glass-card-strong">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-foreground text-base">
@@ -339,25 +407,6 @@ const TherapistHub = () => {
 
           {/* Main Dashboard */}
           <div className="lg:col-span-2 space-y-6">
-            {/* App Integration */}
-            <Card className="glass-card-strong border-accent-orange/30">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <Smartphone className="w-5 h-5 text-accent-orange" />
-                  Connect Recording App
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground mb-4">
-                  Sync all patient recordings from the mobile app to generate comprehensive analytics and personalized exercise plans.
-                </p>
-                <Button onClick={handleConnectApp} className="w-full" variant="navy">
-                  <Upload className="w-4 h-4 mr-2" />
-                  Connect & Sync All Patient Data
-                </Button>
-              </CardContent>
-            </Card>
-
             {/* Clinical Analytics Preview */}
             <Card className="glass-card-strong border-accent-orange/30">
               <CardHeader>
@@ -405,40 +454,11 @@ const TherapistHub = () => {
               </CardContent>
             </Card>
 
-            {/* Session Planner */}
-            <Card className="glass-card-strong">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <Calendar className="w-5 h-5 text-accent-orange" />
-                  Push Exercises to Patients
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-3 gap-3">
-                  {patients.map((patient) => (
-                    <div 
-                      key={patient.id}
-                      className="p-4 bg-secondary/50 rounded-lg border-2 border-dashed border-border text-center"
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={() => {
-                        if (draggedExercise) {
-                          handlePushExercise(draggedExercise, patient.name);
-                        }
-                      }}
-                    >
-                      <p className="font-medium text-sm mb-1 text-foreground">{patient.name}</p>
-                      <p className="text-xs text-muted-foreground">Drop exercise here</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Recommendation Trend Charts */}
             <RecommendationTrendCharts />
 
-            {/* AI Learning History */}
-            <AILearningHistory />
+            {/* AI Learning History - Limited Height */}
+            <AILearningHistory maxHeight="280px" />
           </div>
 
         </div>
