@@ -6,6 +6,7 @@ import { MapPin, Play, Star, Brain, Sparkles, TrendingUp, Target, Loader2, Chevr
 import { supabase } from "@/integrations/supabase/client";
 import { exerciseCategories, type Exercise, type ExerciseCategory } from "@/data/exerciseData";
 import { toast } from "sonner";
+import { TherapistAssignedQuests } from "./TherapistAssignedQuests";
 
 interface QuestRecommendation {
   id: string;
@@ -361,6 +362,12 @@ export const PersonalizedQuestMap = ({ selectedCharacter, onExerciseStart }: Per
         <p className="text-muted-foreground text-sm mb-4">
           Personalized quests based on your practice! {selectedCharacter.emoji} {selectedCharacter.name} picked these just for you!
         </p>
+
+        {/* Therapist Assigned Quests - Priority Section */}
+        <TherapistAssignedQuests 
+          selectedCharacter={selectedCharacter} 
+          onExerciseStart={onExerciseStart} 
+        />
 
         {/* Progress Bar */}
         <div className="mb-6 p-4 bg-gradient-to-r from-gold/10 to-success/10 rounded-kids border border-gold/20">

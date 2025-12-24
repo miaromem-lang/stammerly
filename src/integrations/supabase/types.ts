@@ -157,6 +157,57 @@ export type Database = {
           },
         ]
       }
+      therapist_assigned_quests: {
+        Row: {
+          ai_agrees: boolean | null
+          ai_alternative_suggestion: string | null
+          ai_feedback: string | null
+          child_user_id: string | null
+          created_at: string
+          exercise_category: string
+          exercise_id: string
+          id: string
+          priority: string
+          quest_title: string
+          status: string
+          therapist_id: string | null
+          therapist_reason: string
+          updated_at: string
+        }
+        Insert: {
+          ai_agrees?: boolean | null
+          ai_alternative_suggestion?: string | null
+          ai_feedback?: string | null
+          child_user_id?: string | null
+          created_at?: string
+          exercise_category: string
+          exercise_id: string
+          id?: string
+          priority?: string
+          quest_title: string
+          status?: string
+          therapist_id?: string | null
+          therapist_reason: string
+          updated_at?: string
+        }
+        Update: {
+          ai_agrees?: boolean | null
+          ai_alternative_suggestion?: string | null
+          ai_feedback?: string | null
+          child_user_id?: string | null
+          created_at?: string
+          exercise_category?: string
+          exercise_id?: string
+          id?: string
+          priority?: string
+          quest_title?: string
+          status?: string
+          therapist_id?: string | null
+          therapist_reason?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       daily_analytics: {
