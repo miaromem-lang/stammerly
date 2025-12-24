@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, Smile, Users, GraduationCap, Stethoscope, Star } from "lucide-react";
 
@@ -41,10 +40,6 @@ const hubs = [
 export const HeroSection = () => {
   const navigate = useNavigate();
 
-  const handleNavClick = (path: string) => {
-    navigate(path);
-  };
-
   const handleHubClick = (hubId: string) => {
     navigate("/signin");
   };
@@ -74,13 +69,13 @@ export const HeroSection = () => {
               <span className="font-display font-bold text-2xl text-foreground">Stammerly</span>
             </div>
             <nav className="hidden md:flex items-center gap-6">
-              <button onClick={() => handleNavClick("/about")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">About</button>
-              <button onClick={() => handleNavClick("/our-story")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Our Story</button>
-              <button onClick={() => handleNavClick("/mission")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Mission</button>
-              <button onClick={() => handleNavClick("/research")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Research</button>
-              <button onClick={() => handleNavClick("/privacy-policy")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy</button>
-              <button onClick={() => handleNavClick("/reviews")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Reviews</button>
-              <button onClick={() => handleNavClick("/contact")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Contact</button>
+              <Link to="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">About</Link>
+              <Link to="/our-story" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Our Story</Link>
+              <Link to="/mission" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Mission</Link>
+              <Link to="/research" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Research</Link>
+              <Link to="/privacy-policy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy</Link>
+              <Link to="/reviews" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Reviews</Link>
+              <Link to="/contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Contact</Link>
             </nav>
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="sm" onClick={() => navigate("/signin")}>
