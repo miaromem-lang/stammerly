@@ -189,16 +189,19 @@ const Practice = () => {
       } else if (data?.error) {
         console.error('Analysis error:', data.error);
         toast.error(data.error);
-        setAnalysis({
+        const fallbackAnalysis = {
           fluencyScore: 75,
           accuracy: 80,
           easyOnsetScore: 70,
           pacingScore: 75,
           strengths: ["Good effort!"],
           encouragement: "Keep practicing!"
-        });
+        };
+        setAnalysis(fallbackAnalysis);
+        await saveSessionToDatabase(fallbackAnalysis, transcribedText);
       } else {
         setAnalysis(data);
+        await saveSessionToDatabase(data, transcribedText);
         if (data.fluencyScore >= 80) {
           toast.success("Excellent fluency! 🌟");
         } else if (data.fluencyScore >= 60) {
@@ -208,17 +211,73 @@ const Practice = () => {
     } catch (err) {
       console.error('Failed to analyze:', err);
       toast.error("Analysis failed. Please try again.");
-      setAnalysis({
+      const fallbackAnalysis = {
         fluencyScore: 75,
         accuracy: 80,
         easyOnsetScore: 70,
         pacingScore: 75,
         strengths: ["Good effort!"],
         encouragement: "Keep practicing!"
-      });
+      };
+      setAnalysis(fallbackAnalysis);
+      await saveSessionToDatabase(fallbackAnalysis, '');
     } finally {
       setIsAnalyzing(false);
       setShowResults(true);
+    }
+  };
+
+  const saveSessionToDatabase = async (analysisData: SpeechAnalysis, transcriptText: string) => {
+    try {
+      const category = new URLSearchParams(window.location.search).get('category') || 'onset';
+      const difficulty = new URLSearchParams(window.location.search).get('difficulty') || 'beginner';
+      const exerciseName = new URLSearchParams(window.location.search).get('title') || 'Easy Onset Quest';
+
+      const starsEarned = analysisData.fluencyScore >= 90 ? 3 : analysisData.fluencyScore >= 70 ? 2 : 1;
+      const gemsEarned = Math.floor(analysisData.fluencyScore / 10);
+
+      // Count disfluencies by type
+      let blocksCount = 0;
+      let repetitionsCount = 0;
+      let prolongationsCount = 0;
+      let interjectionsCount = 0;
+
+      if (analysisData.disfluencies) {
+        analysisData.disfluencies.forEach(d => {
+          const type = d.type.toLowerCase();
+          if (type.includes('block')) blocksCount++;
+          else if (type.includes('repetition')) repetitionsCount++;
+          else if (type.includes('prolongation')) prolongationsCount++;
+          else if (type.includes('interjection')) interjectionsCount++;
+        });
+      }
+
+      const { error } = await supabase.from('practice_sessions').insert({
+        exercise_name: exerciseName,
+        exercise_category: category,
+        exercise_difficulty: difficulty,
+        target_phrase: targetPhrase,
+        transcript: transcriptText,
+        fluency_score: analysisData.fluencyScore,
+        accuracy_score: analysisData.accuracy,
+        easy_onset_score: analysisData.easyOnsetScore,
+        pacing_score: analysisData.pacingScore,
+        duration_seconds: recordingTime,
+        stars_earned: starsEarned,
+        gems_earned: gemsEarned,
+        blocks_count: blocksCount,
+        repetitions_count: repetitionsCount,
+        prolongations_count: prolongationsCount,
+        interjections_count: interjectionsCount,
+      });
+
+      if (error) {
+        console.error('Error saving session:', error);
+      } else {
+        console.log('Session saved to database');
+      }
+    } catch (err) {
+      console.error('Failed to save session:', err);
     }
   };
 

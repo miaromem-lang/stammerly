@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ArrowLeft, Play, Star, Trophy, Target, Zap, MapPin, Flame, BookOpen, Mic, Sparkles, Settings, ChevronRight, Brain, Clock, Check } from "lucide-react";
 import { HubNavigation } from "@/components/HubNavigation";
+import { PracticeAnalytics } from "@/components/PracticeAnalytics";
 import { 
   exerciseCategories as fullExerciseCategories, 
   questLevelMapping, 
@@ -543,6 +544,9 @@ const KidHub = () => {
                 </Button>
               </CardContent>
             </Card>
+
+            {/* Practice Analytics */}
+            <PracticeAnalytics variant="kid" showRecent={false} />
 
             <Card className="rounded-kids overflow-hidden bg-card/80 backdrop-blur-sm">
               <CardContent className="p-6">
