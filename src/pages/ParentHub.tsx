@@ -7,6 +7,7 @@ import { Sparkles, ArrowLeft, BarChart3, MessageSquare, Upload, Bell, TrendingUp
 import { toast } from "sonner";
 import { HubNavigation } from "@/components/HubNavigation";
 import { TherapistReviewsSummary } from "@/components/TherapistReviewsSummary";
+import { PracticeAnalytics } from "@/components/PracticeAnalytics";
 
 const recentActivities = [
   { date: "Today", activity: "Easy Onset Quest", score: 87, improvement: "+5%" },
@@ -116,46 +117,8 @@ const ParentHub = () => {
               </CardContent>
             </Card>
 
-            {/* Recent Activities */}
-            <Card className="glass-card-strong">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-primary" />
-                  Recent Practice Sessions
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {recentActivities.map((activity, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
-                    <div>
-                      <p className="font-medium text-foreground">{activity.activity}</p>
-                      <p className="text-sm text-muted-foreground">{activity.date}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-foreground">{activity.score}%</p>
-                      <p className="text-sm text-success">{activity.improvement}</p>
-                    </div>
-                  </div>
-                ))}
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    className="flex-1"
-                    onClick={() => navigate("/analytics/parent")}
-                  >
-                    View Analytics
-                    <TrendingUp className="w-4 h-4 ml-2" />
-                  </Button>
-                  <Button 
-                    variant="navy" 
-                    className="flex-1"
-                    onClick={() => navigate("/hub/kid-overview")}
-                  >
-                    Kid Hub Guide
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Practice Analytics from Database */}
+            <PracticeAnalytics variant="parent" showRecent={true} limit={10} />
 
             {/* Fluency Journey */}
             <Card className="glass-card-strong">
