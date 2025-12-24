@@ -89,6 +89,47 @@ export type Database = {
         }
         Relationships: []
       }
+      session_reviews: {
+        Row: {
+          created_at: string
+          id: string
+          progress_rating: number | null
+          recommendations: string | null
+          reviewed_at: string
+          session_id: string
+          technique_rating: number | null
+          therapist_notes: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          progress_rating?: number | null
+          recommendations?: string | null
+          reviewed_at?: string
+          session_id: string
+          technique_rating?: number | null
+          therapist_notes?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          progress_rating?: number | null
+          recommendations?: string | null
+          reviewed_at?: string
+          session_id?: string
+          technique_rating?: number | null
+          therapist_notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_reviews_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "practice_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       daily_analytics: {
