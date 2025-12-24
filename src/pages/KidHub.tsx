@@ -2,17 +2,19 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, Play, Star, Trophy, Target, Zap, MapPin, Flame, BookOpen, Mic, Sparkles, Settings, Wind, Hand, Turtle, Link2, MessageCircle, Brain, Eye } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { ArrowLeft, Play, Star, Trophy, Target, Zap, MapPin, Flame, BookOpen, Mic, Sparkles, Settings, ChevronRight, Brain, Clock, Check } from "lucide-react";
 import { HubNavigation } from "@/components/HubNavigation";
-
-const questLevels = [
-  { id: 1, name: "Easy Start", completed: true, gems: 12 },
-  { id: 2, name: "Sound Safari", completed: true, gems: 15 },
-  { id: 3, name: "Word Builder", completed: false, current: true, gems: 20 },
-  { id: 4, name: "Story Time", completed: false, gems: 25 },
-  { id: 5, name: "Chat Champion", completed: false, gems: 30 },
-];
+import { 
+  exerciseCategories as fullExerciseCategories, 
+  questLevelMapping, 
+  getExercisesForQuestLevel, 
+  getAIRecommendation,
+  getDifficultyStyle,
+  type Exercise,
+  type ExerciseCategory
+} from "@/data/exerciseData";
 
 const badges = [
   { id: 1, name: "First Words", emoji: "🌟", earned: true },
@@ -29,111 +31,18 @@ const characters = [
   { id: "monkey", name: "Max the Monkey", emoji: "🐵", color: "from-amber-400 to-yellow-500", personality: "fun and silly" },
 ];
 
-// Proper exercise categories based on speech therapy techniques
-const exerciseCategories = [
-  {
-    id: "breathing",
-    title: "Belly Breathing",
-    description: "Deep controlled breathing for relaxation",
-    icon: "💨",
-    difficulty: "Beginner",
-    color: "from-blue-500/20 to-cyan-500/10",
-    exercises: [
-      { name: "Deep Belly Breath", duration: "2 min" },
-      { name: "4-7-8 Breathing", duration: "3 min" },
-      { name: "Balloon Breathing", duration: "2 min" },
-    ],
-  },
-  {
-    id: "easy-onset",
-    title: "Easy Onset",
-    description: "Start gently with an 'h' sound (hhhhapple)",
-    icon: "🌊",
-    difficulty: "Beginner",
-    color: "from-green-500/20 to-emerald-500/10",
-    exercises: [
-      { name: "H-Sound Starter", duration: "3 min" },
-      { name: "Soft Start Words", duration: "4 min" },
-      { name: "Gentle Beginnings", duration: "3 min" },
-    ],
-  },
-  {
-    id: "light-contact",
-    title: "Light Contact",
-    description: "Soft lips and tongue, like a feather touch",
-    icon: "🪶",
-    difficulty: "Beginner",
-    color: "from-pink-500/20 to-rose-500/10",
-    exercises: [
-      { name: "Feather Touch Sounds", duration: "3 min" },
-      { name: "Soft P, B, M Practice", duration: "4 min" },
-      { name: "Light Lip Placement", duration: "3 min" },
-    ],
-  },
-  {
-    id: "pacing",
-    title: "Slow & Steady",
-    description: "Slow your rate with pauses between words",
-    icon: "🐢",
-    difficulty: "Intermediate",
-    color: "from-amber-500/20 to-yellow-500/10",
-    exercises: [
-      { name: "Word Pause Practice", duration: "4 min" },
-      { name: "Sentence Stretching", duration: "5 min" },
-      { name: "Rhythm Speaking", duration: "4 min" },
-    ],
-  },
-  {
-    id: "reading",
-    title: "Read Aloud",
-    description: "Practice with stories and passages",
-    icon: "📖",
-    difficulty: "Intermediate",
-    color: "from-purple-500/20 to-violet-500/10",
-    exercises: [
-      { name: "Short Story Reading", duration: "5 min" },
-      { name: "Poem Practice", duration: "4 min" },
-      { name: "AI Story Adventure", duration: "6 min", aiEnabled: true },
-    ],
-  },
-  {
-    id: "articulation",
-    title: "Tongue Twisters",
-    description: "Clear sounds and articulation practice",
-    icon: "👅",
-    difficulty: "Advanced",
-    color: "from-red-500/20 to-orange-500/10",
-    exercises: [
-      { name: "Easy Twisters", duration: "3 min" },
-      { name: "P & B Twisters", duration: "4 min" },
-      { name: "S & SH Sounds", duration: "4 min" },
-    ],
-  },
-  {
-    id: "mirror",
-    title: "Mirror Practice",
-    description: "Build awareness with visual feedback",
-    icon: "🪞",
-    difficulty: "Intermediate",
-    color: "from-sky-500/20 to-blue-500/10",
-    exercises: [
-      { name: "Face & Mouth Awareness", duration: "3 min" },
-      { name: "Watch Your Words", duration: "4 min" },
-      { name: "Expression Practice", duration: "3 min" },
-    ],
-  },
-  {
-    id: "free-talk",
-    title: "Free Talk",
-    description: "Chat with your animal buddy!",
-    icon: "💬",
-    difficulty: "Advanced",
-    color: "from-indigo-500/20 to-violet-500/10",
-    exercises: [
-      { name: "Chat with Buddy", duration: "5 min", aiEnabled: true },
-    ],
-  },
-];
+// Mock user progress - in production this would come from the database
+const getUserProgress = () => {
+  const saved = localStorage.getItem('stammerly_user_progress');
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return { currentQuest: 3, completedQuests: [1, 2], gems: 127 };
+    }
+  }
+  return { currentQuest: 3, completedQuests: [1, 2], gems: 127 };
+};
 
 // Load therapist-created exercises from localStorage
 const getTherapistExercises = () => {
@@ -153,6 +62,11 @@ const KidHub = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'quests' | 'practice'>('quests');
   const [therapistExercises, setTherapistExercises] = useState(getTherapistExercises());
+  const [userProgress] = useState(getUserProgress());
+  
+  // Exercise selection state
+  const [selectedQuest, setSelectedQuest] = useState<typeof questLevelMapping[0] | null>(null);
+  const [showExerciseSheet, setShowExerciseSheet] = useState(false);
   
   // Load saved character from localStorage
   const [selectedCharacter, setSelectedCharacter] = useState(() => {
@@ -172,7 +86,26 @@ const KidHub = () => {
     setShowCharacterPicker(false);
   };
 
-  const handleCategoryClick = (category: typeof exerciseCategories[0]) => {
+  const handleQuestClick = (quest: typeof questLevelMapping[0]) => {
+    const isCompleted = userProgress.completedQuests.includes(quest.id);
+    const isCurrent = quest.id === userProgress.currentQuest;
+    const isLocked = quest.id > userProgress.currentQuest;
+    
+    if (!isLocked) {
+      setSelectedQuest(quest);
+      setShowExerciseSheet(true);
+    }
+  };
+
+  const handleExerciseStart = (exercise: Exercise, categoryId: string) => {
+    if (categoryId === "free-talk") {
+      navigate(`/free-talk?character=${selectedCharacter.emoji}&exercise=${exercise.id}`);
+    } else {
+      navigate(`/practice?category=${categoryId}&exercise=${exercise.id}&title=${encodeURIComponent(exercise.name)}`);
+    }
+  };
+
+  const handleCategoryClick = (category: ExerciseCategory) => {
     if (category.id === "free-talk") {
       navigate(`/free-talk?character=${selectedCharacter.emoji}`);
     } else if (category.id === "reading") {
@@ -181,6 +114,14 @@ const KidHub = () => {
       navigate(`/practice?category=${category.id}&title=${encodeURIComponent(category.title)}`);
     }
   };
+
+  const questLevels = questLevelMapping.map(quest => ({
+    ...quest,
+    completed: userProgress.completedQuests.includes(quest.id),
+    current: quest.id === userProgress.currentQuest,
+    locked: quest.id > userProgress.currentQuest,
+    gems: quest.requiredGems,
+  }));
 
   return (
     <div className="min-h-screen bg-white">
@@ -209,7 +150,7 @@ const KidHub = () => {
             </div>
             <div className="flex items-center gap-2 bg-gold/20 px-4 py-2 rounded-full">
               <Star className="w-5 h-5 text-gold fill-gold" />
-              <span className="font-bold text-foreground">127</span>
+              <span className="font-bold text-foreground">{userProgress.gems}</span>
             </div>
           </div>
         </div>
@@ -225,10 +166,7 @@ const KidHub = () => {
             {characters.map((character) => (
               <button
                 key={character.id}
-                onClick={() => {
-                  setSelectedCharacter(character);
-                  setShowCharacterPicker(false);
-                }}
+                onClick={() => handleCharacterSelect(character)}
                 className={`p-4 rounded-kids transition-all hover:scale-105 ${
                   selectedCharacter.id === character.id 
                     ? "ring-4 ring-accent-orange bg-accent-orange/10" 
@@ -245,6 +183,118 @@ const KidHub = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Exercise Selection Sheet */}
+      <Sheet open={showExerciseSheet} onOpenChange={setShowExerciseSheet}>
+        <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="text-2xl font-display flex items-center gap-2">
+              {selectedQuest && (
+                <>
+                  <span className="text-3xl">{getDifficultyStyle(selectedQuest.difficulty).emoji}</span>
+                  {selectedQuest.name}
+                </>
+              )}
+            </SheetTitle>
+          </SheetHeader>
+          
+          {selectedQuest && (
+            <div className="mt-6 space-y-6">
+              <p className="text-muted-foreground">{selectedQuest.description}</p>
+              
+              {/* AI Recommendation */}
+              {(() => {
+                const recommendation = getAIRecommendation(selectedQuest.id);
+                if (recommendation) {
+                  const exercises = getExercisesForQuestLevel(selectedQuest.id);
+                  let recommendedExercise: Exercise | null = null;
+                  let recommendedCategory: ExerciseCategory | null = null;
+                  
+                  for (const { category, exercises: exs } of exercises) {
+                    const found = exs.find(e => e.id === recommendation.exerciseId);
+                    if (found) {
+                      recommendedExercise = found;
+                      recommendedCategory = category;
+                      break;
+                    }
+                  }
+                  
+                  if (recommendedExercise && recommendedCategory) {
+                    return (
+                      <div className="bg-primary/10 border-2 border-primary/30 rounded-kids p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                            <Brain className="w-5 h-5 text-primary" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-sm font-medium text-primary">AI Recommends</span>
+                              <Sparkles className="w-4 h-4 text-primary" />
+                            </div>
+                            <h4 className="font-display font-semibold text-foreground">{recommendedExercise.name}</h4>
+                            <p className="text-sm text-muted-foreground mt-1">{recommendation.reason}</p>
+                            <Button 
+                              size="sm" 
+                              className="mt-3 rounded-kids"
+                              onClick={() => handleExerciseStart(recommendedExercise!, recommendedCategory!.id)}
+                            >
+                              <Play className="w-4 h-4 mr-2" />
+                              Start This Exercise
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                }
+                return null;
+              })()}
+              
+              {/* All Exercises */}
+              <div className="space-y-4">
+                <h3 className="font-display font-semibold text-lg flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-accent-orange" />
+                  Choose an Exercise
+                </h3>
+                
+                {getExercisesForQuestLevel(selectedQuest.id).map(({ category, exercises }) => (
+                  <div key={category.id} className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{category.icon}</span>
+                      <h4 className="font-medium text-foreground">{category.title}</h4>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-2">{category.focus}</p>
+                    
+                    <div className="space-y-2">
+                      {exercises.map((exercise) => (
+                        <button
+                          key={exercise.id}
+                          onClick={() => handleExerciseStart(exercise, category.id)}
+                          className={`w-full p-3 rounded-kids bg-gradient-to-br ${category.color} border border-border/50 text-left transition-all hover:scale-[1.01] hover:shadow-md group`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="flex-1">
+                              <h5 className="font-medium text-foreground text-sm">{exercise.name}</h5>
+                              <p className="text-xs text-muted-foreground line-clamp-1">{exercise.description}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {exercise.duration}
+                              </span>
+                              <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
 
       <main className="container mx-auto px-4 py-8">
         {/* Welcome Banner with Character */}
@@ -294,7 +344,7 @@ const KidHub = () => {
             onClick={() => setActiveTab('practice')}
           >
             <Mic className="w-4 h-4 mr-2" />
-            Practice Exercises
+            All Exercises
           </Button>
         </div>
 
@@ -304,48 +354,72 @@ const KidHub = () => {
             {activeTab === 'quests' ? (
               <Card className="rounded-kids overflow-hidden bg-card/80 backdrop-blur-sm">
                 <CardContent className="p-8">
-                  <h2 className="font-display text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-2 flex items-center gap-2">
                     <MapPin className="w-6 h-6 text-accent-orange" />
                     🗺️ The Quest Map
                   </h2>
+                  <p className="text-muted-foreground text-sm mb-6">
+                    Tap a quest to choose your exercises. AI recommends based on your progress!
+                  </p>
                   
                   <div className="relative">
                     <div className="absolute left-8 top-0 bottom-0 w-1 bg-accent-orange/20 rounded-full" />
                     
                     <div className="space-y-6">
-                      {questLevels.map((level) => (
-                        <div key={level.id} className="flex items-center gap-4 relative">
-                          <div className={`relative z-10 w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold transition-all duration-300 ${
-                            level.completed 
-                              ? "bg-success text-success-foreground shadow-lg" 
-                              : level.current 
-                                ? "bg-accent-orange text-primary-foreground shadow-xl scale-110 animate-pulse"
-                                : "bg-muted text-muted-foreground"
-                          }`}>
-                            {level.completed ? "✓" : level.id}
-                          </div>
-                          <div className="flex-1">
-                            <h4 className={`font-display font-semibold ${
-                              level.current ? "text-accent-orange" : "text-foreground"
+                      {questLevels.map((level) => {
+                        const diffStyle = getDifficultyStyle(level.difficulty);
+                        return (
+                          <button
+                            key={level.id}
+                            onClick={() => handleQuestClick(questLevelMapping.find(q => q.id === level.id)!)}
+                            disabled={level.locked}
+                            className={`flex items-center gap-4 relative w-full text-left transition-all ${
+                              level.locked ? 'opacity-50 cursor-not-allowed' : 'hover:scale-[1.02]'
+                            }`}
+                          >
+                            <div className={`relative z-10 w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold transition-all duration-300 ${
+                              level.completed 
+                                ? "bg-success text-success-foreground shadow-lg" 
+                                : level.current 
+                                  ? "bg-accent-orange text-primary-foreground shadow-xl scale-110 animate-pulse"
+                                  : "bg-muted text-muted-foreground"
                             }`}>
-                              {level.name}
-                            </h4>
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <Star className="w-4 h-4 text-gold" />
-                              {level.gems} gems
+                              {level.completed ? <Check className="w-8 h-8" /> : level.id}
                             </div>
-                          </div>
-                          {level.current && (
-                            <Button 
-                              className="rounded-kids bg-accent-orange hover:bg-accent-orange/90 text-primary-foreground text-lg px-6 py-3 h-auto"
-                              onClick={() => navigate("/practice")}
-                            >
-                              <Play className="w-5 h-5 mr-2" />
-                              Play Now!
-                            </Button>
-                          )}
-                        </div>
-                      ))}
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <h4 className={`font-display font-semibold ${
+                                  level.current ? "text-accent-orange" : "text-foreground"
+                                }`}>
+                                  {level.name}
+                                </h4>
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${diffStyle.color}`}>
+                                  {diffStyle.emoji} {diffStyle.label}
+                                </span>
+                              </div>
+                              <p className="text-sm text-muted-foreground">{level.description}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                  <Star className="w-4 h-4 text-gold" />
+                                  {level.gems} gems required
+                                </div>
+                              </div>
+                            </div>
+                            {level.current && (
+                              <div className="flex items-center gap-2 bg-accent-orange/20 px-3 py-2 rounded-kids">
+                                <Play className="w-4 h-4 text-accent-orange" />
+                                <span className="text-sm font-medium text-accent-orange">Play!</span>
+                              </div>
+                            )}
+                            {level.completed && !level.current && (
+                              <div className="flex items-center gap-2 bg-success/20 px-3 py-2 rounded-kids">
+                                <ChevronRight className="w-4 h-4 text-success" />
+                                <span className="text-sm font-medium text-success">Replay</span>
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 </CardContent>
@@ -355,48 +429,47 @@ const KidHub = () => {
                 <CardContent className="p-8">
                   <h2 className="font-display text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
                     <BookOpen className="w-6 h-6 text-primary" />
-                    📚 Practice Exercises
+                    📚 All Practice Exercises
                   </h2>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {exerciseCategories.map((category) => (
-                      <button
-                        key={category.id}
-                        onClick={() => handleCategoryClick(category)}
-                        className={`p-4 rounded-kids bg-gradient-to-br ${category.color} border border-border/50 text-left transition-all hover:scale-[1.02] hover:shadow-lg group`}
-                      >
-                        <div className="flex items-start gap-3">
-                          <span className="text-3xl group-hover:scale-110 transition-transform">{category.icon}</span>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-display font-semibold text-foreground">{category.title}</h4>
-                              {category.exercises.some(e => e.aiEnabled) && (
-                                <Sparkles className="w-4 h-4 text-primary" />
-                              )}
+                    {fullExerciseCategories.map((category) => {
+                      const totalExercises = category.beginner.length + category.intermediate.length + category.advanced.length;
+                      return (
+                        <button
+                          key={category.id}
+                          onClick={() => handleCategoryClick(category)}
+                          className={`p-4 rounded-kids bg-gradient-to-br ${category.color} border border-border/50 text-left transition-all hover:scale-[1.02] hover:shadow-lg group`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <span className="text-3xl group-hover:scale-110 transition-transform">{category.icon}</span>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="font-display font-semibold text-foreground">{category.title}</h4>
+                              </div>
+                              <p className="text-sm text-muted-foreground mb-2">
+                                {category.id === "free-talk" 
+                                  ? `Chat with ${selectedCharacter.name}!` 
+                                  : category.description
+                                }
+                              </p>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-xs px-2 py-1 rounded-full bg-success/20 text-success">
+                                  🌱 {category.beginner.length}
+                                </span>
+                                <span className="text-xs px-2 py-1 rounded-full bg-amber-500/20 text-amber-600">
+                                  🌟 {category.intermediate.length}
+                                </span>
+                                <span className="text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-600">
+                                  🏆 {category.advanced.length}
+                                </span>
+                              </div>
                             </div>
-                            <p className="text-sm text-muted-foreground mb-2">
-                              {category.id === "free-talk" 
-                                ? `Chat with ${selectedCharacter.name}!` 
-                                : category.description
-                              }
-                            </p>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className={`text-xs px-2 py-1 rounded-full ${
-                                category.difficulty === 'Beginner' ? 'bg-success/20 text-success' :
-                                category.difficulty === 'Intermediate' ? 'bg-amber-500/20 text-amber-600' :
-                                'bg-purple-500/20 text-purple-600'
-                              }`}>
-                                {category.difficulty}
-                              </span>
-                              <span className="text-xs text-muted-foreground">
-                                {category.exercises.length} exercises
-                              </span>
-                            </div>
+                            <Play className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                           </div>
-                          <Play className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                        </div>
-                      </button>
-                    ))}
+                        </button>
+                      );
+                    })}
                   </div>
                   
                   {/* Therapist Recommended Exercises */}
