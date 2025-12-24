@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Play, Star, Brain, Sparkles, TrendingUp, Target, Loader2, ChevronRight, Zap } from "lucide-react";
+import { MapPin, Play, Star, Brain, Sparkles, TrendingUp, Target, Loader2, ChevronRight, Zap, CheckCircle2, Trophy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { exerciseCategories, type Exercise, type ExerciseCategory } from "@/data/exerciseData";
+import { toast } from "sonner";
 
 interface QuestRecommendation {
   id: string;
@@ -15,6 +16,7 @@ interface QuestRecommendation {
   exercise: Exercise;
   priority: "high" | "medium" | "low";
   icon: string;
+  completed?: boolean;
 }
 
 interface PersonalizedQuestMapProps {
@@ -27,13 +29,48 @@ export const PersonalizedQuestMap = ({ selectedCharacter, onExerciseStart }: Per
   const [recommendations, setRecommendations] = useState<QuestRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [weakAreas, setWeakAreas] = useState<string[]>([]);
+  const [completedQuests, setCompletedQuests] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     generateRecommendations();
   }, []);
 
+  const fetchCompletedQuests = async () => {
+    const { data, error } = await supabase
+      .from("quest_completions")
+      .select("quest_id");
+    
+    if (!error && data) {
+      setCompletedQuests(new Set(data.map(q => q.quest_id)));
+    }
+  };
+
+  const markQuestComplete = async (questId: string, exerciseId: string) => {
+    const { error } = await supabase
+      .from("quest_completions")
+      .upsert({ 
+        quest_id: questId, 
+        exercise_id: exerciseId 
+      }, { 
+        onConflict: "user_id,quest_id" 
+      });
+    
+    if (error) {
+      console.error("Error marking quest complete:", error);
+      return;
+    }
+    
+    setCompletedQuests(prev => new Set([...prev, questId]));
+    toast.success("Quest completed! ⭐", {
+      description: "Great job! You earned a star!",
+    });
+  };
+
   const generateRecommendations = async () => {
     try {
+      // Fetch completed quests first
+      await fetchCompletedQuests();
+
       // Fetch recent practice sessions to analyze
       const { data: sessions, error } = await supabase
         .from("practice_sessions")
@@ -242,7 +279,16 @@ export const PersonalizedQuestMap = ({ selectedCharacter, onExerciseStart }: Per
     setRecommendations(recs);
   };
 
-  const getPriorityStyles = (priority: string) => {
+  const getPriorityStyles = (priority: string, isCompleted: boolean) => {
+    if (isCompleted) {
+      return {
+        border: "border-success/50",
+        bg: "bg-gradient-to-br from-success/20 to-success/5",
+        badge: "bg-success text-primary-foreground",
+        badgeText: "Completed! ⭐",
+      };
+    }
+    
     switch (priority) {
       case "high":
         return {
@@ -267,6 +313,24 @@ export const PersonalizedQuestMap = ({ selectedCharacter, onExerciseStart }: Per
         };
     }
   };
+
+  const handleQuestClick = async (quest: QuestRecommendation) => {
+    const isCompleted = completedQuests.has(quest.id);
+    
+    if (quest.category.id === "free-talk") {
+      navigate(`/free-talk?character=${selectedCharacter.emoji}`);
+    } else {
+      onExerciseStart(quest.exercise, quest.category.id);
+    }
+    
+    // Mark quest as complete after starting it
+    if (!isCompleted) {
+      await markQuestComplete(quest.id, quest.exercise.id);
+    }
+  };
+
+  const completedCount = recommendations.filter(q => completedQuests.has(q.id)).length;
+  const progressPercent = recommendations.length > 0 ? (completedCount / recommendations.length) * 100 : 0;
 
   if (loading) {
     return (
@@ -294,9 +358,29 @@ export const PersonalizedQuestMap = ({ selectedCharacter, onExerciseStart }: Per
             <span className="text-xs font-medium text-primary">AI Powered</span>
           </div>
         </div>
-        <p className="text-muted-foreground text-sm mb-6">
+        <p className="text-muted-foreground text-sm mb-4">
           Personalized quests based on your practice! {selectedCharacter.emoji} {selectedCharacter.name} picked these just for you!
         </p>
+
+        {/* Progress Bar */}
+        <div className="mb-6 p-4 bg-gradient-to-r from-gold/10 to-success/10 rounded-kids border border-gold/20">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-gold" />
+              <span className="font-medium text-foreground">Quest Progress</span>
+            </div>
+            <span className="text-sm font-bold text-gold">{completedCount}/{recommendations.length} Complete</span>
+          </div>
+          <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-gold to-success rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+          {completedCount === recommendations.length && recommendations.length > 0 && (
+            <p className="text-success text-sm mt-2 font-medium text-center">🎉 All quests completed! You're a champion!</p>
+          )}
+        </div>
 
         {/* Weak areas alert */}
         {weakAreas.length > 0 && (
@@ -317,27 +401,22 @@ export const PersonalizedQuestMap = ({ selectedCharacter, onExerciseStart }: Per
           
           <div className="space-y-6">
             {recommendations.map((quest, index) => {
-              const styles = getPriorityStyles(quest.priority);
+              const isCompleted = completedQuests.has(quest.id);
+              const styles = getPriorityStyles(quest.priority, isCompleted);
               return (
                 <button
                   key={quest.id}
-                  onClick={() => {
-                    if (quest.category.id === "free-talk") {
-                      navigate(`/free-talk?character=${selectedCharacter.emoji}`);
-                    } else {
-                      onExerciseStart(quest.exercise, quest.category.id);
-                    }
-                  }}
-                  className={`flex items-start gap-4 relative w-full text-left transition-all hover:scale-[1.02] p-4 rounded-kids ${styles.bg} border-2 ${styles.border}`}
+                  onClick={() => handleQuestClick(quest)}
+                  className={`flex items-start gap-4 relative w-full text-left transition-all hover:scale-[1.02] p-4 rounded-kids ${styles.bg} border-2 ${styles.border} ${isCompleted ? 'opacity-80' : ''}`}
                 >
                   <div className={`relative z-10 w-16 h-16 rounded-full flex items-center justify-center text-3xl font-bold bg-card shadow-lg border-4 ${
-                    quest.priority === "high" ? "border-accent-orange" : quest.priority === "medium" ? "border-primary" : "border-muted"
+                    isCompleted ? "border-success" : quest.priority === "high" ? "border-accent-orange" : quest.priority === "medium" ? "border-primary" : "border-muted"
                   }`}>
-                    {quest.icon}
+                    {isCompleted ? <CheckCircle2 className="w-8 h-8 text-success" /> : quest.icon}
                   </div>
                   <div className="flex-1 pt-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-display font-semibold text-foreground">
+                      <h4 className={`font-display font-semibold ${isCompleted ? 'text-success' : 'text-foreground'}`}>
                         {quest.title}
                       </h4>
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${styles.badge}`}>
@@ -350,9 +429,20 @@ export const PersonalizedQuestMap = ({ selectedCharacter, onExerciseStart }: Per
                       <p className="text-xs text-muted-foreground">{quest.reason}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 bg-accent-orange/20 px-3 py-2 rounded-kids self-center">
-                    <Play className="w-4 h-4 text-accent-orange" />
-                    <span className="text-sm font-medium text-accent-orange">Play!</span>
+                  <div className={`flex items-center gap-2 px-3 py-2 rounded-kids self-center ${
+                    isCompleted ? 'bg-success/20' : 'bg-accent-orange/20'
+                  }`}>
+                    {isCompleted ? (
+                      <>
+                        <Star className="w-4 h-4 text-gold fill-gold" />
+                        <span className="text-sm font-medium text-success">Done!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-4 h-4 text-accent-orange" />
+                        <span className="text-sm font-medium text-accent-orange">Play!</span>
+                      </>
+                    )}
                   </div>
                 </button>
               );
