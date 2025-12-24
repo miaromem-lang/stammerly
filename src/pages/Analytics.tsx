@@ -7,6 +7,7 @@ import { ArrowLeft, Star, Trophy, TrendingUp, Calendar, Zap, Users, BarChart3, A
 import { RecommendationOutcomes } from "@/components/RecommendationOutcomes";
 import { HubNavigation } from "@/components/HubNavigation";
 import PageBackground from "@/components/PageBackground";
+import AIInsightsExplainer from "@/components/AIInsightsExplainer";
 
 const students = [
   { id: "alex", name: "Alex M.", age: 8, sessions: 23, progress: "+15%" },
@@ -224,15 +225,16 @@ const TherapistAnalytics = () => {
             </div></CardContent>
           </Card>
           
-          {/* AI Insights */}
-          <Card className="glass-card-strong"><CardHeader><CardTitle className="text-foreground flex items-center gap-2"><Brain className="w-5 h-5" />AI Insights</CardTitle></CardHeader>
-            <CardContent><ul className="space-y-3 text-muted-foreground text-sm">
-              <li className="flex items-start gap-2"><span className="text-primary">•</span>Pattern detected: Increased blocks on word-initial /s/ and /f/ sounds</li>
-              <li className="flex items-start gap-2"><span className="text-primary">•</span>Recommendation: Focus on easy onset technique with sibilants</li>
-              <li className="flex items-start gap-2"><span className="text-primary">•</span>Home vs Clinic: 15% better fluency observed in clinical settings</li>
-              <li className="flex items-start gap-2"><span className="text-primary">•</span>Best performance time: Morning sessions (9-11am)</li>
-              <li className="flex items-start gap-2"><span className="text-primary">•</span>Technique adoption: Easy onset used in 67% of prompted situations</li>
-            </ul></CardContent>
+          {/* AI Insights with Explainer */}
+          <Card className="glass-card-strong">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-foreground flex items-center gap-2">
+                <Brain className="w-5 h-5" />AI Insights
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <AIInsightsExplainer />
+            </CardContent>
           </Card>
         </div>
 
