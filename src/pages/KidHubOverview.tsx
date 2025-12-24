@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, MapPin, Star, Zap, Trophy, Target, BookOpen, Mic, Sparkles, Play, Eye } from "lucide-react";
+import PageBackground from "@/components/PageBackground";
 
 const questLevels = [
   { id: 1, name: "Easy Start", completed: true, gems: 12, description: "Learn gentle voice beginnings" },
@@ -68,7 +69,8 @@ const KidHubOverview = () => {
   const [selectedExercise, setSelectedExercise] = useState<number | null>(null);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen relative">
+      <PageBackground />
       {/* Header */}
       <header className="bg-card border-b border-border">
         <div className="container mx-auto px-4 py-4">
