@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { QuestAssigner } from "./QuestAssigner";
 import { WeeklyProgressReport } from "./WeeklyProgressReport";
 import { RecommendationTrendCharts } from "./RecommendationTrendCharts";
+import { MonthlyReport } from "./MonthlyReport";
 
 const spmData = [
   { label: "Mon", home: 145, clinic: 160 },
@@ -164,6 +165,9 @@ export const TherapistPortal = () => {
           <p className="text-lg text-background/70 max-w-2xl mx-auto">
             Deep data insights for evidence-based therapy decisions
           </p>
+          <div className="mt-4">
+            <MonthlyReport recipientType="therapist" />
+          </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">

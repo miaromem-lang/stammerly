@@ -8,6 +8,7 @@ import { ArrowLeft, Play, Star, Trophy, Target, Zap, MapPin, Flame, BookOpen, Mi
 import { HubNavigation } from "@/components/HubNavigation";
 import { PracticeAnalytics } from "@/components/PracticeAnalytics";
 import { PersonalizedQuestMap } from "@/components/PersonalizedQuestMap";
+import { KidContact } from "@/components/KidContact";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useAchievements } from "@/hooks/useAchievements";
 import { 
@@ -127,6 +128,10 @@ const KidHub = () => {
               <Star className="w-5 h-5 text-gold fill-gold" />
               <span className="font-bold text-foreground">{progress.totalGems}</span>
             </div>
+            <KidContact 
+              characterName={selectedCharacter.name}
+              characterEmoji={selectedCharacter.emoji}
+            />
           </div>
         </div>
       </header>

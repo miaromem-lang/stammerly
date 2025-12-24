@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Clock, FileText, MessageSquare, StickyNote } from "lucide-react";
+import { MonthlyReport } from "./MonthlyReport";
 
 const emojiOptions = [
   { emoji: "😃", label: "Great", value: "great" },
@@ -36,6 +37,9 @@ export const TeacherPortal = () => {
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Frictionless tools designed for busy educators
           </p>
+          <div className="mt-4">
+            <MonthlyReport recipientType="teacher" />
+          </div>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
