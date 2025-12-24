@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import PageBackground from "@/components/PageBackground";
 
 const PrivacyPolicy = () => {
   const [isDeleting, setIsDeleting] = useState(false);
@@ -18,7 +19,8 @@ const PrivacyPolicy = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen relative">
+      <PageBackground />
       <Helmet>
         <title>Privacy Policy & Ethical AI | Stammerly</title>
         <meta name="description" content="Learn about Stammerly's HIPAA/GDPR-compliant data practices, ethical AI disclosure, and how we protect your voice data." />

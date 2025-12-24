@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import PageBackground from "@/components/PageBackground";
 
 interface Review {
   id: string;
@@ -92,7 +93,8 @@ const Reviews = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen relative">
+      <PageBackground />
       <Helmet>
         <title>Reviews | Stammerly</title>
         <meta name="description" content="Read reviews from parents, therapists, and educators about their experience with Stammerly's AI-powered speech therapy platform." />

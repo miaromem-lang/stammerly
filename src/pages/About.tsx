@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Sparkles, Heart, Users, Target, Award } from "lucide-react";
 import { Helmet } from "react-helmet-async";
+import PageBackground from "@/components/PageBackground";
 
 const About = () => {
   const navigate = useNavigate();
@@ -14,7 +15,8 @@ const About = () => {
         <meta name="description" content="Learn about Stammerly's mission to empower every voice through synchronized care. A platform connecting children, parents, teachers, and therapists." />
       </Helmet>
       
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen relative">
+        <PageBackground />
         {/* Header */}
         <header className="bg-background/80 backdrop-blur-sm border-b border-border sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4">

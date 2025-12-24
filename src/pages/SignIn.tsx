@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles, ArrowLeft, Mail, Lock, Smile, Users, GraduationCap, Stethoscope } from "lucide-react";
+import PageBackground from "@/components/PageBackground";
 
 const hubs = [
   { id: "kid", label: "Kid Hub", icon: Smile, emoji: "🎮" },
@@ -26,7 +27,8 @@ const SignIn = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent-orange/5 flex flex-col">
+    <div className="min-h-screen relative flex flex-col">
+      <PageBackground />
       {/* Header */}
       <header className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between">

@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import PageBackground from "@/components/PageBackground";
 
 const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -22,7 +23,8 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen relative">
+      <PageBackground />
       <Helmet>
         <title>Contact Us | Stammerly</title>
         <meta name="description" content="Get in touch with the Stammerly team. We're here to answer your questions about our AI-powered speech therapy platform." />

@@ -4,6 +4,7 @@ import { ArrowLeft, BookOpen, Plus, ExternalLink, Calendar, Users } from 'lucide
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useState } from 'react';
+import PageBackground from "@/components/PageBackground";
 
 interface ResearchItem {
   id: string;
@@ -46,7 +47,8 @@ const Research = () => {
   const [research] = useState<ResearchItem[]>(initialResearch);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen relative">
+      <PageBackground />
       <Helmet>
         <title>Academic Research | Stammerly</title>
         <meta name="description" content="Explore the academic research and evidence base behind Stammerly's approach to supporting children who stammer." />

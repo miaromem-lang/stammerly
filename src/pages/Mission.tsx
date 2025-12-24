@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Target, Shield, Lightbulb, BookOpen, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import PageBackground from "@/components/PageBackground";
 
 const coreValues = [
   {
@@ -33,7 +34,8 @@ const coreValues = [
 
 const Mission = () => {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen relative">
+      <PageBackground />
       <Helmet>
         <title>Our Mission | Stammerly - Empowering Children Through AI</title>
         <meta name="description" content="Discover Stammerly's mission to empower children with speech needs through human-centred AI and our core values of inclusivity, ethics, and empowerment." />
