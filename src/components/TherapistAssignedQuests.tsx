@@ -59,8 +59,9 @@ export const TherapistAssignedQuests = ({ selectedCharacter, onExerciseStart }: 
     }
   };
 
-  const markQuestComplete = async (questId: string, exerciseId: string) => {
-    const { error } = await supabase
+  const markQuestComplete = async (questId: string, exerciseId: string, chosenRecommendation: "therapist" | "ai") => {
+    // Mark quest completion in quest_completions table
+    const { error: completionError } = await supabase
       .from("quest_completions")
       .upsert({ 
         quest_id: `therapist-${questId}`, 
@@ -69,7 +70,16 @@ export const TherapistAssignedQuests = ({ selectedCharacter, onExerciseStart }: 
         onConflict: "user_id,quest_id" 
       });
     
-    if (!error) {
+    // Update the therapist_assigned_quests with choice and completion time
+    const { error: updateError } = await supabase
+      .from("therapist_assigned_quests")
+      .update({ 
+        chosen_recommendation: chosenRecommendation,
+        completed_at: new Date().toISOString()
+      })
+      .eq("id", questId);
+    
+    if (!completionError && !updateError) {
       setCompletedQuests(prev => new Set([...prev, `therapist-${questId}`]));
       toast.success("Quest completed! ⭐");
     }
@@ -106,6 +116,7 @@ export const TherapistAssignedQuests = ({ selectedCharacter, onExerciseStart }: 
     }
 
     const exercise = getExerciseFromId(categoryId, exerciseId);
+    const chosenRecommendation: "therapist" | "ai" = useAlternative ? "ai" : "therapist";
     
     if (exercise) {
       if (categoryId === "free-talk") {
@@ -115,7 +126,7 @@ export const TherapistAssignedQuests = ({ selectedCharacter, onExerciseStart }: 
       }
       
       if (!completedQuests.has(`therapist-${quest.id}`)) {
-        await markQuestComplete(quest.id, exerciseId);
+        await markQuestComplete(quest.id, exerciseId, chosenRecommendation);
       }
     }
   };
