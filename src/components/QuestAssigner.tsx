@@ -6,10 +6,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Brain, Loader2, Send, CheckCircle2, XCircle, AlertTriangle, Trash2, Sparkles } from "lucide-react";
+import { Brain, Loader2, Send, CheckCircle2, XCircle, AlertTriangle, Trash2, Sparkles, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { exerciseCategories, type Exercise } from "@/data/exerciseData";
 import { toast } from "sonner";
+import { QuestMessages } from "./QuestMessages";
 
 interface AssignedQuest {
   id: string;
@@ -204,6 +205,70 @@ export const QuestAssigner = () => {
     return exerciseCategories.find(c => c.id === id)?.title || id;
   };
 
+  // Inner component for quest cards with messaging
+  const QuestCardItem = ({ 
+    quest, 
+    onDelete, 
+    getCategoryName 
+  }: { 
+    quest: AssignedQuest; 
+    onDelete: (id: string) => void;
+    getCategoryName: (id: string) => string;
+  }) => {
+    const [showMessages, setShowMessages] = useState(false);
+    
+    return (
+      <div className="p-3 rounded-lg bg-background/10 border border-background/20">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-medium text-background text-sm truncate">
+                {quest.quest_title}
+              </span>
+              {quest.ai_agrees !== null && (
+                <Badge variant={quest.ai_agrees ? "success" : "warning"} className="shrink-0">
+                  {quest.ai_agrees ? "AI Agrees" : "AI Differs"}
+                </Badge>
+              )}
+            </div>
+            <p className="text-xs text-background/60">
+              {getCategoryName(quest.exercise_category)}
+            </p>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowMessages(!showMessages)}
+              className="text-background/50 hover:text-background shrink-0"
+            >
+              <MessageCircle className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onDelete(quest.id)}
+              className="text-background/50 hover:text-destructive shrink-0"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+        
+        {showMessages && (
+          <div className="mt-3 rounded-lg overflow-hidden bg-card">
+            <QuestMessages
+              questId={quest.id}
+              questTitle={quest.quest_title}
+              senderRole="therapist"
+              senderName="Dr. Smith"
+            />
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <Card variant="dark" className="border-background/10">
       <CardHeader>
@@ -388,38 +453,14 @@ export const QuestAssigner = () => {
             No quests assigned yet. Click "New Quest" to create one.
           </p>
         ) : (
-          <div className="space-y-3 max-h-64 overflow-y-auto">
+          <div className="space-y-3 max-h-80 overflow-y-auto">
             {assignedQuests.map(quest => (
-              <div
-                key={quest.id}
-                className="p-3 rounded-lg bg-background/10 border border-background/20"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-background text-sm truncate">
-                        {quest.quest_title}
-                      </span>
-                      {quest.ai_agrees !== null && (
-                        <Badge variant={quest.ai_agrees ? "success" : "warning"} className="shrink-0">
-                          {quest.ai_agrees ? "AI Agrees" : "AI Differs"}
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-xs text-background/60">
-                      {getCategoryName(quest.exercise_category)}
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => deleteQuest(quest.id)}
-                    className="text-background/50 hover:text-destructive shrink-0"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
+              <QuestCardItem 
+                key={quest.id} 
+                quest={quest} 
+                onDelete={deleteQuest}
+                getCategoryName={getCategoryName}
+              />
             ))}
           </div>
         )}

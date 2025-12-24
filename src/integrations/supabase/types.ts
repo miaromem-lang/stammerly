@@ -116,6 +116,41 @@ export type Database = {
         }
         Relationships: []
       }
+      quest_messages: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          quest_id: string
+          sender_name: string
+          sender_role: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          quest_id: string
+          sender_name: string
+          sender_role: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          quest_id?: string
+          sender_name?: string
+          sender_role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_messages_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "therapist_assigned_quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       session_reviews: {
         Row: {
           created_at: string
@@ -169,6 +204,7 @@ export type Database = {
           exercise_category: string
           exercise_id: string
           id: string
+          linked_session_id: string | null
           outcome_accuracy_score: number | null
           outcome_fluency_score: number | null
           outcome_notes: string | null
@@ -190,6 +226,7 @@ export type Database = {
           exercise_category: string
           exercise_id: string
           id?: string
+          linked_session_id?: string | null
           outcome_accuracy_score?: number | null
           outcome_fluency_score?: number | null
           outcome_notes?: string | null
@@ -211,6 +248,7 @@ export type Database = {
           exercise_category?: string
           exercise_id?: string
           id?: string
+          linked_session_id?: string | null
           outcome_accuracy_score?: number | null
           outcome_fluency_score?: number | null
           outcome_notes?: string | null
@@ -221,7 +259,15 @@ export type Database = {
           therapist_reason?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "therapist_assigned_quests_linked_session_id_fkey"
+            columns: ["linked_session_id"]
+            isOneToOne: false
+            referencedRelation: "practice_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
