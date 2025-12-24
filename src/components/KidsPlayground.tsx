@@ -1,23 +1,36 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Star, Trophy, Flame, Sparkles, MapPin } from "lucide-react";
+import { Star, Trophy, Flame, Sparkles, MapPin, Loader2 } from "lucide-react";
+import { useUserProgress } from "@/hooks/useUserProgress";
+import { useAchievements } from "@/hooks/useAchievements";
 
 const questLevels = [
-  { id: 1, name: "Easy Start", completed: true, gems: 12 },
-  { id: 2, name: "Sound Safari", completed: true, gems: 15 },
-  { id: 3, name: "Word Builder", completed: false, current: true, gems: 20 },
-  { id: 4, name: "Story Time", completed: false, gems: 25 },
-  { id: 5, name: "Chat Champion", completed: false, gems: 30 },
-];
-
-const badges = [
-  { id: 1, name: "First Words", emoji: "🌟", earned: true },
-  { id: 2, name: "3 Day Streak", emoji: "🔥", earned: true },
-  { id: 3, name: "Fluent Flow", emoji: "💎", earned: false },
-  { id: 4, name: "Super Star", emoji: "⭐", earned: false },
+  { id: 1, name: "Easy Start", gems: 12 },
+  { id: 2, name: "Sound Safari", gems: 15 },
+  { id: 3, name: "Word Builder", gems: 20 },
+  { id: 4, name: "Story Time", gems: 25 },
+  { id: 5, name: "Chat Champion", gems: 30 },
 ];
 
 export const KidsPlayground = () => {
+  const { progress, loading: progressLoading } = useUserProgress();
+  const { getAllAchievementsWithStatus, getAchievementProgress, loading: achievementsLoading } = useAchievements();
+
+  const loading = progressLoading || achievementsLoading;
+  const badges = getAllAchievementsWithStatus().slice(0, 4);
+  const achievementProgress = getAchievementProgress();
+
+  // Determine which quests are completed based on current quest level
+  const getQuestStatus = (questId: number) => {
+    if (questId < progress.currentQuestLevel) return { completed: true, current: false };
+    if (questId === progress.currentQuestLevel) return { completed: false, current: true };
+    return { completed: false, current: false };
+  };
+
+  // Calculate progress to next badge
+  const gemsToNextBadge = 100 - (progress.totalGems % 100);
+  const progressPercentage = ((progress.totalGems % 100) / 100) * 100;
+
   return (
     <section className="py-24 bg-accent-orange/5 relative overflow-hidden">
       {/* Playful background shapes */}
@@ -50,42 +63,51 @@ export const KidsPlayground = () => {
                 The Quest Map
               </h3>
               
-              <div className="relative">
-                {/* Path visualization */}
-                <div className="absolute left-8 top-0 bottom-0 w-1 bg-accent-orange/20 rounded-full" />
-                
-                <div className="space-y-6">
-                  {questLevels.map((level, index) => (
-                    <div key={level.id} className="flex items-center gap-4 relative">
-                      <div className={`relative z-10 w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold transition-all duration-300 ${
-                        level.completed 
-                          ? "bg-success text-success-foreground shadow-lg" 
-                          : level.current 
-                            ? "bg-accent-orange text-primary-foreground shadow-xl scale-110 animate-pulse"
-                            : "bg-muted text-muted-foreground"
-                      }`}>
-                        {level.completed ? "✓" : level.id}
-                      </div>
-                      <div className="flex-1">
-                        <h4 className={`font-display font-semibold ${
-                          level.current ? "text-accent-orange" : "text-foreground"
-                        }`}>
-                          {level.name}
-                        </h4>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Star className="w-4 h-4 text-gold" />
-                          {level.gems} gems
-                        </div>
-                      </div>
-                      {level.current && (
-                        <Button variant="kids" size="kids">
-                          Play Now!
-                        </Button>
-                      )}
-                    </div>
-                  ))}
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
                 </div>
-              </div>
+              ) : (
+                <div className="relative">
+                  {/* Path visualization */}
+                  <div className="absolute left-8 top-0 bottom-0 w-1 bg-accent-orange/20 rounded-full" />
+                  
+                  <div className="space-y-6">
+                    {questLevels.map((level) => {
+                      const status = getQuestStatus(level.id);
+                      return (
+                        <div key={level.id} className="flex items-center gap-4 relative">
+                          <div className={`relative z-10 w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold transition-all duration-300 ${
+                            status.completed 
+                              ? "bg-success text-success-foreground shadow-lg" 
+                              : status.current 
+                                ? "bg-accent-orange text-primary-foreground shadow-xl scale-110 animate-pulse"
+                                : "bg-muted text-muted-foreground"
+                          }`}>
+                            {status.completed ? "✓" : level.id}
+                          </div>
+                          <div className="flex-1">
+                            <h4 className={`font-display font-semibold ${
+                              status.current ? "text-accent-orange" : "text-foreground"
+                            }`}>
+                              {level.name}
+                            </h4>
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                              <Star className="w-4 h-4 text-gold" />
+                              {level.gems} gems
+                            </div>
+                          </div>
+                          {status.current && (
+                            <Button variant="kids" size="kids">
+                              Play Now!
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
           
@@ -119,7 +141,7 @@ export const KidsPlayground = () => {
                     <Flame className="w-5 h-5 text-accent-orange" />
                     Daily Streak
                   </h3>
-                  <span className="text-2xl font-bold text-accent-orange">5 🔥</span>
+                  <span className="text-2xl font-bold text-accent-orange">{progress.currentStreak} 🔥</span>
                 </div>
                 
                 <div className="grid grid-cols-4 gap-2 mb-4">
@@ -143,11 +165,11 @@ export const KidsPlayground = () => {
                 <div className="bg-muted rounded-full h-3 overflow-hidden">
                   <div 
                     className="h-full bg-gradient-to-r from-accent-orange to-gold rounded-full transition-all duration-500"
-                    style={{ width: "65%" }}
+                    style={{ width: `${progressPercentage}%` }}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground text-center mt-2">
-                  35 more gems to next badge!
+                  {gemsToNextBadge} more gems to next badge!
                 </p>
               </CardContent>
             </Card>

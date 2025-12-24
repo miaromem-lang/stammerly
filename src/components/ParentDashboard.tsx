@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Play, Bell, ChevronRight, Heart } from "lucide-react";
+import { Play, Bell, ChevronRight, Heart, Loader2 } from "lucide-react";
+import { useVictoryLogs } from "@/hooks/useVictoryLogs";
+import { useFluencyRatings } from "@/hooks/useFluencyRatings";
 
 const ratingDescriptions: Record<number, string> = {
   1: "Completely fluent speech",
@@ -17,12 +19,6 @@ const ratingDescriptions: Record<number, string> = {
   10: "Extremely severe stuttering",
 };
 
-const victories = [
-  { id: 1, text: "Great show-and-tell presentation!", from: "Mrs. Thompson", time: "2 hours ago" },
-  { id: 2, text: "Used wait time perfectly in maths!", from: "Mr. Davies", time: "Yesterday" },
-  { id: 3, text: "Volunteered to read aloud!", from: "Mrs. Thompson", time: "2 days ago" },
-];
-
 const tips = [
   { id: 1, title: "Easy Onset Practice", duration: "0:45", thumbnail: "🎤" },
   { id: 2, title: "Positive Reinforcement", duration: "1:20", thumbnail: "⭐" },
@@ -30,7 +26,17 @@ const tips = [
 ];
 
 export const ParentDashboard = () => {
-  const [rating, setRating] = useState([5]);
+  const { victories, loading: victoriesLoading, formatVictoryTime } = useVictoryLogs();
+  const { todayRating, saveRating, loading: ratingsLoading } = useFluencyRatings();
+  
+  const [rating, setRating] = useState([todayRating?.rating || 5]);
+  const [saving, setSaving] = useState(false);
+
+  const handleLogRating = async () => {
+    setSaving(true);
+    await saveRating(rating[0]);
+    setSaving(false);
+  };
 
   return (
     <section className="py-24 bg-secondary/30">
@@ -83,8 +89,9 @@ export const ParentDashboard = () => {
                 </div>
               </div>
               
-              <Button variant="navy" className="w-full">
-                Log Today's Rating
+              <Button variant="navy" className="w-full" onClick={handleLogRating} disabled={saving}>
+                {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                {todayRating ? "Update Today's Rating" : "Log Today's Rating"}
               </Button>
             </CardContent>
           </Card>
@@ -129,22 +136,32 @@ export const ParentDashboard = () => {
               <p className="text-sm text-muted-foreground">Wins shared by teachers</p>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {victories.map((victory) => (
-                  <div
-                    key={victory.id}
-                    className="p-3 rounded-lg bg-gold/10 border border-gold/20"
-                  >
-                    <p className="text-sm text-foreground font-medium mb-1">
-                      🔔 {victory.text}
-                    </p>
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>{victory.from}</span>
-                      <span>{victory.time}</span>
+              {victoriesLoading ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                </div>
+              ) : victories.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No victories logged yet. They'll appear here when teachers share wins!
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {victories.slice(0, 3).map((victory) => (
+                    <div
+                      key={victory.id}
+                      className="p-3 rounded-lg bg-gold/10 border border-gold/20"
+                    >
+                      <p className="text-sm text-foreground font-medium mb-1">
+                        🔔 {victory.victory_text}
+                      </p>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>{victory.reporter_name}</span>
+                        <span>{formatVictoryTime(victory.created_at)}</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

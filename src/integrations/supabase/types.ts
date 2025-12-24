@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      context_notes: {
+        Row: {
+          child_user_id: string | null
+          created_at: string
+          id: string
+          note_date: string
+          note_text: string
+          parent_user_id: string | null
+        }
+        Insert: {
+          child_user_id?: string | null
+          created_at?: string
+          id?: string
+          note_date?: string
+          note_text: string
+          parent_user_id?: string | null
+        }
+        Update: {
+          child_user_id?: string | null
+          created_at?: string
+          id?: string
+          note_date?: string
+          note_text?: string
+          parent_user_id?: string | null
+        }
+        Relationships: []
+      }
+      daily_fluency_ratings: {
+        Row: {
+          child_user_id: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          parent_user_id: string | null
+          rating: number
+          rating_date: string
+        }
+        Insert: {
+          child_user_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          parent_user_id?: string | null
+          rating: number
+          rating_date?: string
+        }
+        Update: {
+          child_user_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          parent_user_id?: string | null
+          rating?: number
+          rating_date?: string
+        }
+        Relationships: []
+      }
       practice_sessions: {
         Row: {
           accuracy_score: number | null
@@ -268,6 +325,138 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_achievements: {
+        Row: {
+          achievement_category: string
+          achievement_emoji: string
+          achievement_id: string
+          achievement_name: string
+          created_at: string
+          earned_at: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          achievement_category?: string
+          achievement_emoji: string
+          achievement_id: string
+          achievement_name: string
+          created_at?: string
+          earned_at?: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          achievement_category?: string
+          achievement_emoji?: string
+          achievement_id?: string
+          achievement_name?: string
+          created_at?: string
+          earned_at?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_progress: {
+        Row: {
+          created_at: string
+          current_quest_level: number
+          daily_goals_completed: number
+          daily_goals_target: number
+          id: string
+          total_gems: number
+          total_sessions: number
+          total_stars: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_quest_level?: number
+          daily_goals_completed?: number
+          daily_goals_target?: number
+          id?: string
+          total_gems?: number
+          total_sessions?: number
+          total_stars?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_quest_level?: number
+          daily_goals_completed?: number
+          daily_goals_target?: number
+          id?: string
+          total_gems?: number
+          total_sessions?: number
+          total_stars?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_streaks: {
+        Row: {
+          created_at: string
+          current_streak: number
+          id: string
+          last_practice_date: string | null
+          longest_streak: number
+          total_practice_days: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_practice_date?: string | null
+          longest_streak?: number
+          total_practice_days?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_practice_date?: string | null
+          longest_streak?: number
+          total_practice_days?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      victory_logs: {
+        Row: {
+          child_user_id: string | null
+          created_at: string
+          id: string
+          reporter_name: string
+          reporter_role: string
+          victory_text: string
+        }
+        Insert: {
+          child_user_id?: string | null
+          created_at?: string
+          id?: string
+          reporter_name: string
+          reporter_role?: string
+          victory_text: string
+        }
+        Update: {
+          child_user_id?: string | null
+          created_at?: string
+          id?: string
+          reporter_name?: string
+          reporter_role?: string
+          victory_text?: string
+        }
+        Relationships: []
       }
     }
     Views: {

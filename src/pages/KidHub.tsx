@@ -8,6 +8,8 @@ import { ArrowLeft, Play, Star, Trophy, Target, Zap, MapPin, Flame, BookOpen, Mi
 import { HubNavigation } from "@/components/HubNavigation";
 import { PracticeAnalytics } from "@/components/PracticeAnalytics";
 import { PersonalizedQuestMap } from "@/components/PersonalizedQuestMap";
+import { useUserProgress } from "@/hooks/useUserProgress";
+import { useAchievements } from "@/hooks/useAchievements";
 import { 
   exerciseCategories as fullExerciseCategories, 
   questLevelMapping, 
@@ -18,13 +20,6 @@ import {
   type ExerciseCategory
 } from "@/data/exerciseData";
 
-const badges = [
-  { id: 1, name: "First Words", emoji: "🌟", earned: true },
-  { id: 2, name: "3 Day Streak", emoji: "🔥", earned: true },
-  { id: 3, name: "Fluent Flow", emoji: "💎", earned: false },
-  { id: 4, name: "Super Star", emoji: "⭐", earned: false },
-];
-
 const characters = [
   { id: "otter", name: "Echo the Otter", emoji: "🦦", color: "from-cyan-400 to-blue-500", personality: "playful and encouraging" },
   { id: "owl", name: "Luna the Owl", emoji: "🦉", color: "from-purple-400 to-indigo-500", personality: "wise and patient" },
@@ -32,19 +27,6 @@ const characters = [
   { id: "bunny", name: "Bella the Bunny", emoji: "🐰", color: "from-pink-400 to-rose-500", personality: "gentle and kind" },
   { id: "monkey", name: "Max the Monkey", emoji: "🐵", color: "from-amber-400 to-yellow-500", personality: "fun and silly" },
 ];
-
-// Mock user progress - in production this would come from the database
-const getUserProgress = () => {
-  const saved = localStorage.getItem('stammerly_user_progress');
-  if (saved) {
-    try {
-      return JSON.parse(saved);
-    } catch {
-      return { currentQuest: 3, completedQuests: [1, 2], gems: 127 };
-    }
-  }
-  return { currentQuest: 3, completedQuests: [1, 2], gems: 127 };
-};
 
 // Load therapist-created exercises from localStorage
 const getTherapistExercises = () => {
@@ -62,10 +44,11 @@ const getTherapistExercises = () => {
 
 const KidHub = () => {
   const navigate = useNavigate();
+  const { progress, loading: progressLoading } = useUserProgress();
+  const { getAllAchievementsWithStatus, getAchievementProgress } = useAchievements();
   const [activeTab, setActiveTab] = useState<'quests' | 'practice'>('quests');
   const [activeDifficulty, setActiveDifficulty] = useState<'beginner' | 'intermediate' | 'advanced'>('beginner');
   const [therapistExercises, setTherapistExercises] = useState(getTherapistExercises());
-  const [userProgress] = useState(getUserProgress());
   
   // Exercise selection state
   const [selectedCategory, setSelectedCategory] = useState<ExerciseCategory | null>(null);
@@ -140,7 +123,7 @@ const KidHub = () => {
             </div>
             <div className="flex items-center gap-2 bg-gold/20 px-4 py-2 rounded-full">
               <Star className="w-5 h-5 text-gold fill-gold" />
-              <span className="font-bold text-foreground">{userProgress.gems}</span>
+              <span className="font-bold text-foreground">{progress.totalGems}</span>
             </div>
           </div>
         </div>
@@ -269,15 +252,15 @@ const KidHub = () => {
         <div className="flex items-center gap-4 mb-8 overflow-x-auto pb-2">
           <div className="flex items-center gap-2 bg-success/20 px-4 py-3 rounded-kids min-w-fit">
             <Zap className="w-6 h-6 text-success" />
-            <span className="font-bold text-foreground">5 Day Streak! 🔥</span>
+            <span className="font-bold text-foreground">{progress.currentStreak} Day Streak! 🔥</span>
           </div>
           <div className="flex items-center gap-2 bg-primary/20 px-4 py-3 rounded-kids min-w-fit">
             <Trophy className="w-6 h-6 text-primary" />
-            <span className="font-bold text-foreground">3 Badges Today</span>
+            <span className="font-bold text-foreground">{getAchievementProgress().earned} Badges Earned</span>
           </div>
           <div className="flex items-center gap-2 bg-gold/20 px-4 py-3 rounded-kids min-w-fit">
             <Target className="w-6 h-6 text-gold" />
-            <span className="font-bold text-foreground">2/3 Goals Done</span>
+            <span className="font-bold text-foreground">{progress.dailyGoalsCompleted}/{progress.dailyGoalsTarget} Goals Done</span>
           </div>
         </div>
 
@@ -439,11 +422,11 @@ const KidHub = () => {
                     <Flame className="w-5 h-5 text-accent-orange" />
                     Daily Streak
                   </h3>
-                  <span className="text-2xl font-bold text-accent-orange">5 🔥</span>
+                  <span className="text-2xl font-bold text-accent-orange">{progress.currentStreak} 🔥</span>
                 </div>
                 
                 <div className="grid grid-cols-4 gap-2 mb-4">
-                  {badges.map((badge) => (
+                  {getAllAchievementsWithStatus().slice(0, 4).map((badge) => (
                     <div
                       key={badge.id}
                       className={`aspect-square rounded-2xl flex flex-col items-center justify-center p-2 transition-all ${
@@ -463,11 +446,13 @@ const KidHub = () => {
                 <div className="bg-muted rounded-full h-3 overflow-hidden">
                   <div 
                     className="h-full bg-gradient-to-r from-accent-orange to-gold rounded-full transition-all duration-500"
-                    style={{ width: "65%" }}
+                    style={{ width: `${getAchievementProgress().percentage}%` }}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground text-center mt-2">
-                  35 more gems to next badge!
+                  {getAchievementProgress().nextAchievement 
+                    ? `Next: ${getAchievementProgress().nextAchievement?.name}`
+                    : "All badges earned! 🎉"}
                 </p>
               </CardContent>
             </Card>
