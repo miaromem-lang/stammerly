@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Mic, MicOff, Volume2, RefreshCw, Star, Trophy, Loader2, ThumbsUp, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveQuest } from "@/hooks/useActiveQuest";
 
 interface SpeechAnalysis {
   fluencyScore: number;
@@ -19,6 +20,7 @@ interface SpeechAnalysis {
 
 const Practice = () => {
   const navigate = useNavigate();
+  const { getActiveQuest, clearActiveQuest } = useActiveQuest();
   const [isRecording, setIsRecording] = useState(false);
   const [waveformBars, setWaveformBars] = useState<number[]>(Array(24).fill(0.3));
   const [activeWord, setActiveWord] = useState(-1);
@@ -252,7 +254,8 @@ const Practice = () => {
         });
       }
 
-      const { error } = await supabase.from('practice_sessions').insert({
+      // Insert practice session
+      const { data: sessionData, error } = await supabase.from('practice_sessions').insert({
         exercise_name: exerciseName,
         exercise_category: category,
         exercise_difficulty: difficulty,
@@ -269,12 +272,34 @@ const Practice = () => {
         repetitions_count: repetitionsCount,
         prolongations_count: prolongationsCount,
         interjections_count: interjectionsCount,
-      });
+      }).select('id').single();
 
       if (error) {
         console.error('Error saving session:', error);
       } else {
-        console.log('Session saved to database');
+        console.log('Session saved to database:', sessionData?.id);
+        
+        // Link session to active quest if one exists
+        const activeQuest = getActiveQuest();
+        if (activeQuest && sessionData?.id) {
+          const { error: questError } = await supabase
+            .from('therapist_assigned_quests')
+            .update({
+              linked_session_id: sessionData.id,
+              outcome_fluency_score: analysisData.fluencyScore,
+              outcome_accuracy_score: analysisData.accuracy,
+              outcome_notes: `Completed with ${starsEarned} stars. Fluency: ${analysisData.fluencyScore}%, Accuracy: ${analysisData.accuracy}%`,
+              status: 'completed'
+            })
+            .eq('id', activeQuest.questId);
+          
+          if (questError) {
+            console.error('Error updating quest outcome:', questError);
+          } else {
+            console.log('Quest outcome linked to session');
+            clearActiveQuest();
+          }
+        }
       }
     } catch (err) {
       console.error('Failed to save session:', err);

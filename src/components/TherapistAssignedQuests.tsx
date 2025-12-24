@@ -9,6 +9,7 @@ import { exerciseCategories, type Exercise } from "@/data/exerciseData";
 import { toast } from "sonner";
 import { QuestMessages } from "./QuestMessages";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
+import { useActiveQuest } from "@/hooks/useActiveQuest";
 interface AssignedQuest {
   id: string;
   quest_title: string;
@@ -34,6 +35,7 @@ export const TherapistAssignedQuests = ({ selectedCharacter, onExerciseStart }: 
 
   const questIds = useMemo(() => quests.map(q => q.id), [quests]);
   const { unreadCounts, markAsRead } = useUnreadMessages(questIds, "child");
+  const { setActiveQuest } = useActiveQuest();
 
   useEffect(() => {
     fetchAssignedQuests();
@@ -123,8 +125,16 @@ export const TherapistAssignedQuests = ({ selectedCharacter, onExerciseStart }: 
     const chosenRecommendation: "therapist" | "ai" = useAlternative ? "ai" : "therapist";
     
     if (exercise) {
+      // Set active quest for outcome tracking
+      setActiveQuest({
+        questId: quest.id,
+        chosenRecommendation,
+        exerciseId,
+        exerciseCategory: categoryId
+      });
+
       if (categoryId === "free-talk") {
-        navigate(`/free-talk?character=${selectedCharacter.emoji}`);
+        navigate(`/free-talk?character=${selectedCharacter.emoji}&questId=${quest.id}`);
       } else {
         onExerciseStart(exercise, categoryId);
       }

@@ -6,6 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Activity, Brain, Calendar, TrendingUp, Settings, FileBarChart, Loader2, HelpCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { QuestAssigner } from "./QuestAssigner";
+import { WeeklyProgressReport } from "./WeeklyProgressReport";
 
 const spmData = [
   { label: "Mon", home: 145, clinic: 160 },
@@ -338,6 +339,11 @@ export const TherapistPortal = () => {
           
           {/* Quest Assigner */}
           <QuestAssigner />
+          
+          {/* Weekly Progress Report */}
+          <div className="lg:col-span-2">
+            <WeeklyProgressReport />
+          </div>
           
           {/* Quick Stats */}
           <Card variant="dark" className="border-background/10">
