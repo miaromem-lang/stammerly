@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { exerciseCategories, type Exercise } from "@/data/exerciseData";
 import { toast } from "sonner";
 import { QuestMessages } from "./QuestMessages";
+import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 interface AssignedQuest {
   id: string;
   quest_title: string;
@@ -30,6 +31,9 @@ export const TherapistAssignedQuests = ({ selectedCharacter, onExerciseStart }: 
   const [quests, setQuests] = useState<AssignedQuest[]>([]);
   const [loading, setLoading] = useState(true);
   const [completedQuests, setCompletedQuests] = useState<Set<string>>(new Set());
+
+  const questIds = useMemo(() => quests.map(q => q.id), [quests]);
+  const { unreadCounts, markAsRead } = useUnreadMessages(questIds, "child");
 
   useEffect(() => {
     fetchAssignedQuests();
@@ -265,6 +269,8 @@ export const TherapistAssignedQuests = ({ selectedCharacter, onExerciseStart }: 
                       senderRole="child"
                       senderName={selectedCharacter.name}
                       compact
+                      unreadCount={unreadCounts[quest.id] || 0}
+                      onOpen={() => markAsRead(quest.id)}
                     />
                   </div>
                 </div>

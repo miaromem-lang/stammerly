@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { exerciseCategories, type Exercise } from "@/data/exerciseData";
 import { toast } from "sonner";
 import { QuestMessages } from "./QuestMessages";
+import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 
 interface AssignedQuest {
   id: string;
@@ -53,6 +54,9 @@ export const QuestAssigner = () => {
     feedback: string;
     alternativeSuggestion: string | null;
   } | null>(null);
+
+  const questIds = useMemo(() => assignedQuests.map(q => q.id), [assignedQuests]);
+  const { unreadCounts, markAsRead } = useUnreadMessages(questIds, "therapist");
 
   useEffect(() => {
     fetchAssignedQuests();
@@ -209,13 +213,25 @@ export const QuestAssigner = () => {
   const QuestCardItem = ({ 
     quest, 
     onDelete, 
-    getCategoryName 
+    getCategoryName,
+    unreadCount,
+    onMarkRead
   }: { 
     quest: AssignedQuest; 
     onDelete: (id: string) => void;
     getCategoryName: (id: string) => string;
+    unreadCount: number;
+    onMarkRead: () => void;
   }) => {
     const [showMessages, setShowMessages] = useState(false);
+    
+    const handleToggleMessages = () => {
+      const wasHidden = !showMessages;
+      setShowMessages(!showMessages);
+      if (wasHidden) {
+        onMarkRead();
+      }
+    };
     
     return (
       <div className="p-3 rounded-lg bg-background/10 border border-background/20">
@@ -239,10 +255,15 @@ export const QuestAssigner = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowMessages(!showMessages)}
-              className="text-background/50 hover:text-background shrink-0"
+              onClick={handleToggleMessages}
+              className="text-background/50 hover:text-background shrink-0 relative"
             >
               <MessageCircle className="w-4 h-4" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold px-0.5">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
             </Button>
             <Button
               variant="ghost"
@@ -460,6 +481,8 @@ export const QuestAssigner = () => {
                 quest={quest} 
                 onDelete={deleteQuest}
                 getCategoryName={getCategoryName}
+                unreadCount={unreadCounts[quest.id] || 0}
+                onMarkRead={() => markAsRead(quest.id)}
               />
             ))}
           </div>
