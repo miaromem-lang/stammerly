@@ -76,6 +76,7 @@ export const HeroSection = () => {
             <nav className="hidden md:flex items-center gap-6">
               <button onClick={() => handleNavClick("/about")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">About</button>
               <button onClick={() => handleNavClick("/our-story")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Our Story</button>
+              <button onClick={() => handleNavClick("/mission")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Mission</button>
               <button onClick={() => handleNavClick("/research")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Research</button>
               <button onClick={() => handleNavClick("/privacy-policy")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy</button>
               <button onClick={() => handleNavClick("/reviews")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Reviews</button>

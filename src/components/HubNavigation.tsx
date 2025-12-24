@@ -18,6 +18,7 @@ export const HubNavigation = () => {
           <nav className="flex items-center gap-4">
             <Link to="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">About</Link>
             <Link to="/our-story" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Our Story</Link>
+            <Link to="/mission" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Mission</Link>
             <Link to="/research" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Research</Link>
             <Link to="/privacy-policy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy</Link>
             <Link to="/reviews" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Reviews</Link>
