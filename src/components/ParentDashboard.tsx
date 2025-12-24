@@ -6,6 +6,7 @@ import { Play, Bell, ChevronRight, Heart, Loader2 } from "lucide-react";
 import { useVictoryLogs } from "@/hooks/useVictoryLogs";
 import { useFluencyRatings } from "@/hooks/useFluencyRatings";
 import { RecommendationTrendCharts } from "./RecommendationTrendCharts";
+import { MonthlyReport } from "./MonthlyReport";
 
 const ratingDescriptions: Record<number, string> = {
   1: "Completely fluent speech",
@@ -52,6 +53,9 @@ export const ParentDashboard = () => {
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Track progress, log observations, and connect with your child's support network
           </p>
+          <div className="mt-4">
+            <MonthlyReport recipientType="parent" />
+          </div>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">

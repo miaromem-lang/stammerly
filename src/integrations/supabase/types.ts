@@ -71,6 +71,33 @@ export type Database = {
         }
         Relationships: []
       }
+      kid_messages: {
+        Row: {
+          child_user_id: string | null
+          created_at: string
+          id: string
+          message: string
+          read_at: string | null
+          recipient_role: string
+        }
+        Insert: {
+          child_user_id?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          read_at?: string | null
+          recipient_role: string
+        }
+        Update: {
+          child_user_id?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          read_at?: string | null
+          recipient_role?: string
+        }
+        Relationships: []
+      }
       practice_sessions: {
         Row: {
           accuracy_score: number | null

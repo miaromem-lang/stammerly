@@ -5,3 +5,15 @@ verify_jwt = false
 
 [functions.transcribe-speech]
 verify_jwt = false
+
+[functions.validate-quest-assignment]
+verify_jwt = false
+
+[functions.therapist-ai-chat]
+verify_jwt = false
+
+[functions.free-talk-chat]
+verify_jwt = false
+
+[functions.generate-story]
+verify_jwt = false
