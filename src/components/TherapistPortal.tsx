@@ -9,6 +9,7 @@ import { QuestAssigner } from "./QuestAssigner";
 import { WeeklyProgressReport } from "./WeeklyProgressReport";
 import { RecommendationTrendCharts } from "./RecommendationTrendCharts";
 import { MonthlyReport } from "./MonthlyReport";
+import { AILearningHistory } from "./AILearningHistory";
 
 const spmData = [
   { label: "Mon", home: 145, clinic: 160 },
@@ -348,6 +349,11 @@ export const TherapistPortal = () => {
           {/* AI vs Therapist Trend Charts */}
           <div className="lg:col-span-2">
             <RecommendationTrendCharts />
+          </div>
+          
+          {/* AI Learning History */}
+          <div className="lg:col-span-3">
+            <AILearningHistory />
           </div>
           
           {/* Weekly Progress Report */}
