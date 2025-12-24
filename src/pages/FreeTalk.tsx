@@ -6,6 +6,7 @@ import { ArrowLeft, Mic, MicOff, Loader2, Send, Sparkles, MessageCircle, X } fro
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
+import PageBackground from "@/components/PageBackground";
 
 interface Message {
   role: "user" | "assistant";
@@ -228,7 +229,8 @@ const FreeTalk = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen relative flex flex-col">
+      <PageBackground />
       {/* Header */}
       <header className="bg-accent-orange/20 backdrop-blur-sm border-b border-accent-orange/20">
         <div className="container mx-auto px-4 py-4">

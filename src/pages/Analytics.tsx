@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Star, Trophy, TrendingUp, Calendar, Zap, Users, BarChart3, Activity, Brain, Target, Clock, Mic, FileText } from "lucide-react";
 import { RecommendationOutcomes } from "@/components/RecommendationOutcomes";
 import { HubNavigation } from "@/components/HubNavigation";
+import PageBackground from "@/components/PageBackground";
 
 const students = [
   { id: "alex", name: "Alex M.", age: 8, sessions: 23, progress: "+15%" },
@@ -16,7 +17,8 @@ const students = [
 const KidAnalytics = () => {
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen bg-white p-6">
+    <div className="min-h-screen relative p-6">
+      <PageBackground />
       <HubNavigation />
       <div className="container mx-auto pt-4">
         <button onClick={() => navigate(-1)} className="flex items-center gap-2 mb-6 text-foreground/70 hover:text-foreground">
@@ -47,7 +49,8 @@ const KidAnalytics = () => {
 const ParentAnalytics = () => {
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen bg-white p-6">
+    <div className="min-h-screen relative p-6">
+      <PageBackground />
       <HubNavigation />
       <div className="container mx-auto pt-4">
         <button onClick={() => navigate(-1)} className="flex items-center gap-2 mb-6 text-muted-foreground hover:text-foreground">
@@ -77,7 +80,8 @@ const TeacherAnalytics = () => {
   const [selectedStudent, setSelectedStudent] = useState<string>("");
   
   return (
-    <div className="min-h-screen bg-white p-6">
+    <div className="min-h-screen relative p-6">
+      <PageBackground />
       <HubNavigation />
       <div className="container mx-auto pt-4">
         <button onClick={() => navigate(-1)} className="flex items-center gap-2 mb-6 text-muted-foreground hover:text-foreground">
@@ -155,7 +159,8 @@ const TherapistAnalytics = () => {
     : { spm: 156, ss: 4.2, blocks: 5, reps: 12, prolongs: 8, confidence: 92 };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen relative">
+      <PageBackground />
       <HubNavigation />
       <div className="container mx-auto px-4 py-6">
         <button onClick={() => navigate(-1)} className="flex items-center gap-2 mb-6 text-muted-foreground hover:text-foreground">

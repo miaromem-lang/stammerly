@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useActiveQuest } from "@/hooks/useActiveQuest";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useAchievements } from "@/hooks/useAchievements";
+import PageBackground from "@/components/PageBackground";
 
 interface SpeechAnalysis {
   fluencyScore: number;
@@ -443,7 +444,8 @@ const Practice = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen relative">
+      <PageBackground />
       <header className="bg-accent-orange/20 backdrop-blur-sm border-b border-accent-orange/20">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">

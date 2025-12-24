@@ -12,6 +12,7 @@ import { useUserProgress } from "@/hooks/useUserProgress";
 import { useVictoryLogs } from "@/hooks/useVictoryLogs";
 import { useContextNotes } from "@/hooks/useContextNotes";
 import { useFluencyRatings } from "@/hooks/useFluencyRatings";
+import PageBackground from "@/components/PageBackground";
 
 const ParentHub = () => {
   const navigate = useNavigate();
@@ -49,7 +50,8 @@ const ParentHub = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen relative">
+      <PageBackground />
       {/* Top Navigation */}
       <HubNavigation />
       

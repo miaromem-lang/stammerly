@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sparkles, ArrowLeft, BarChart3, MessageSquare, Users, Clock, Send, FileText, Smartphone, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { HubNavigation } from "@/components/HubNavigation";
+import PageBackground from "@/components/PageBackground";
 
 const students = [
   { id: 1, name: "Alex M.", status: "good", lastActivity: "2 hours ago" },
@@ -50,7 +51,8 @@ const TeacherHub = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen relative">
+      <PageBackground />
       {/* Top Navigation */}
       <HubNavigation />
       

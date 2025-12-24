@@ -19,6 +19,7 @@ import {
   type Exercise,
   type ExerciseCategory
 } from "@/data/exerciseData";
+import PageBackground from "@/components/PageBackground";
 
 const characters = [
   { id: "otter", name: "Echo the Otter", emoji: "🦦", color: "from-cyan-400 to-blue-500", personality: "playful and encouraging" },
@@ -97,7 +98,8 @@ const KidHub = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen relative">
+      <PageBackground />
       {/* Top Navigation */}
       <HubNavigation />
       

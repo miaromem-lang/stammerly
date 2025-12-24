@@ -11,6 +11,7 @@ import { Sparkles, ArrowLeft, BarChart3, Users, Calendar, FileText, Smartphone, 
 import { toast } from "sonner";
 import { HubNavigation } from "@/components/HubNavigation";
 import { SessionReviews } from "@/components/SessionReviews";
+import PageBackground from "@/components/PageBackground";
 
 const patients = [
   { id: 1, name: "Alex M.", age: 8, nextSession: "Today, 2:00 PM", progress: "+15%", risk: "low" },
@@ -99,7 +100,8 @@ const TherapistHub = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen relative">
+      <PageBackground />
       {/* Top Navigation */}
       <HubNavigation />
       
