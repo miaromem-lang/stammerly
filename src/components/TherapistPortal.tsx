@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Activity, Brain, Calendar, TrendingUp, Settings, FileBarChart } from "lucide-react";
+import { Activity, Brain, Calendar, TrendingUp, Settings, FileBarChart, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const spmData = [
   { label: "Mon", home: 145, clinic: 160 },
@@ -19,9 +20,132 @@ const exercises = [
   { id: 4, name: "Story Retell", duration: "10 min", type: "Carryover" },
 ];
 
+interface AnalyticsStats {
+  aiConfidence: number;
+  sessionsThisWeek: number;
+  homePracticePercent: number;
+  avgFluencyScore: number;
+  goalProgress: number;
+}
+
 export const TherapistPortal = () => {
   const [showOverlay, setShowOverlay] = useState(false);
+  const [stats, setStats] = useState<AnalyticsStats | null>(null);
+  const [loading, setLoading] = useState(true);
   const maxSPM = 180;
+
+  useEffect(() => {
+    fetchAnalyticsStats();
+  }, []);
+
+  const fetchAnalyticsStats = async () => {
+    try {
+      // Fetch recent practice sessions for analysis
+      const { data: sessions, error } = await supabase
+        .from("practice_sessions")
+        .select("*")
+        .order("session_date", { ascending: false })
+        .limit(50);
+
+      if (error) {
+        console.error("Error fetching sessions:", error);
+        setStats({
+          aiConfidence: 85,
+          sessionsThisWeek: 0,
+          homePracticePercent: 0,
+          avgFluencyScore: 0,
+          goalProgress: 0,
+        });
+        return;
+      }
+
+      if (!sessions || sessions.length === 0) {
+        setStats({
+          aiConfidence: 0,
+          sessionsThisWeek: 0,
+          homePracticePercent: 0,
+          avgFluencyScore: 0,
+          goalProgress: 0,
+        });
+        return;
+      }
+
+      // Calculate AI Confidence based on:
+      // 1. Average accuracy scores (how well AI understood speech)
+      // 2. Consistency of scores (low variance = higher confidence)
+      // 3. Number of successful analyses
+      const accuracyScores = sessions
+        .filter(s => s.accuracy_score !== null)
+        .map(s => s.accuracy_score as number);
+      
+      const fluencyScores = sessions
+        .filter(s => s.fluency_score !== null)
+        .map(s => s.fluency_score as number);
+
+      let aiConfidence = 85; // Base confidence
+
+      if (accuracyScores.length > 0) {
+        // Factor 1: Average accuracy (40% weight)
+        const avgAccuracy = accuracyScores.reduce((a, b) => a + b, 0) / accuracyScores.length;
+        
+        // Factor 2: Score consistency - lower std dev = higher confidence (30% weight)
+        const variance = accuracyScores.reduce((sum, score) => {
+          return sum + Math.pow(score - avgAccuracy, 2);
+        }, 0) / accuracyScores.length;
+        const stdDev = Math.sqrt(variance);
+        const consistencyScore = Math.max(0, 100 - stdDev * 2);
+
+        // Factor 3: Sample size confidence (30% weight)
+        // More sessions = more confident in the analysis
+        const sampleConfidence = Math.min(100, (sessions.length / 20) * 100);
+
+        aiConfidence = Math.round(
+          avgAccuracy * 0.4 + 
+          consistencyScore * 0.3 + 
+          sampleConfidence * 0.3
+        );
+
+        // Clamp between 0 and 100
+        aiConfidence = Math.max(0, Math.min(100, aiConfidence));
+      }
+
+      // Calculate sessions this week
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      const sessionsThisWeek = sessions.filter(
+        s => new Date(s.session_date) >= oneWeekAgo
+      ).length;
+
+      // Calculate home practice percentage (sessions with duration > 0)
+      const practiceSessionsCount = sessions.filter(s => (s.duration_seconds || 0) > 30).length;
+      const homePracticePercent = sessions.length > 0 
+        ? Math.round((practiceSessionsCount / sessions.length) * 100) 
+        : 0;
+
+      // Average fluency score (scaled to 10)
+      const avgFluencyScore = fluencyScores.length > 0
+        ? (fluencyScores.reduce((a, b) => a + b, 0) / fluencyScores.length / 10).toFixed(1)
+        : 0;
+
+      // Goal progress: based on sessions achieving 70%+ fluency
+      const successfulSessions = fluencyScores.filter(s => s >= 70).length;
+      const goalProgress = fluencyScores.length > 0
+        ? Math.round((successfulSessions / fluencyScores.length) * 100)
+        : 0;
+
+      setStats({
+        aiConfidence,
+        sessionsThisWeek,
+        homePracticePercent,
+        avgFluencyScore: Number(avgFluencyScore),
+        goalProgress,
+      });
+    } catch (err) {
+      console.error("Failed to fetch analytics:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <section className="py-24 bg-foreground text-background">
@@ -106,40 +230,52 @@ export const TherapistPortal = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center mb-6">
-                <div className="relative w-32 h-32 mx-auto">
-                  <svg className="w-full h-full transform -rotate-90">
-                    <circle
-                      cx="64"
-                      cy="64"
-                      r="56"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="8"
-                      className="text-background/20"
-                    />
-                    <circle
-                      cx="64"
-                      cy="64"
-                      r="56"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="8"
-                      strokeDasharray={`${0.92 * 352} 352`}
-                      className="text-success"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-3xl font-display font-bold text-background">92%</span>
-                  </div>
+              {loading ? (
+                <div className="flex items-center justify-center h-32">
+                  <Loader2 className="w-6 h-6 animate-spin text-background/50" />
                 </div>
-              </div>
-              <p className="text-sm text-background/70 text-center">
-                AI is <span className="text-success font-medium">92% confident</span> in this block detection
-              </p>
-              <p className="text-xs text-background/50 text-center mt-2">
-                Always verify with clinical judgement
-              </p>
+              ) : (
+                <>
+                  <div className="text-center mb-6">
+                    <div className="relative w-32 h-32 mx-auto">
+                      <svg className="w-full h-full transform -rotate-90">
+                        <circle
+                          cx="64"
+                          cy="64"
+                          r="56"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="8"
+                          className="text-background/20"
+                        />
+                        <circle
+                          cx="64"
+                          cy="64"
+                          r="56"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="8"
+                          strokeDasharray={`${((stats?.aiConfidence || 0) / 100) * 352} 352`}
+                          className={stats?.aiConfidence && stats.aiConfidence >= 80 ? "text-success" : stats?.aiConfidence && stats.aiConfidence >= 60 ? "text-gold" : "text-accent-orange"}
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-3xl font-display font-bold text-background">
+                          {stats?.aiConfidence || 0}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-background/70 text-center">
+                    AI is <span className={`font-medium ${stats?.aiConfidence && stats.aiConfidence >= 80 ? "text-success" : stats?.aiConfidence && stats.aiConfidence >= 60 ? "text-gold" : "text-accent-orange"}`}>
+                      {stats?.aiConfidence || 0}% confident
+                    </span> in analysis accuracy
+                  </p>
+                  <p className="text-xs text-background/50 text-center mt-2">
+                    Based on {stats?.sessionsThisWeek || 0} sessions this week
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
           
@@ -183,22 +319,30 @@ export const TherapistPortal = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-background/70">Sessions this week</span>
-                <span className="font-semibold text-background">4</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-background/70">Home practice %</span>
-                <span className="font-semibold text-success">87%</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-background/70">Avg. fluency score</span>
-                <span className="font-semibold text-accent-sky">7.2</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-background/70">Goal progress</span>
-                <span className="font-semibold text-gold">65%</span>
-              </div>
+              {loading ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="w-5 h-5 animate-spin text-background/50" />
+                </div>
+              ) : (
+                <>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-background/70">Sessions this week</span>
+                    <span className="font-semibold text-background">{stats?.sessionsThisWeek || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-background/70">Home practice %</span>
+                    <span className="font-semibold text-success">{stats?.homePracticePercent || 0}%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-background/70">Avg. fluency score</span>
+                    <span className="font-semibold text-accent-sky">{stats?.avgFluencyScore || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-background/70">Goal progress</span>
+                    <span className="font-semibold text-gold">{stats?.goalProgress || 0}%</span>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
