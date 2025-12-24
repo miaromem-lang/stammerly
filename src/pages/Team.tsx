@@ -4,6 +4,7 @@ import { ArrowLeft, Linkedin, Mail, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
+import PageBackground from "@/components/PageBackground";
 
 const cofounders = [
   {
@@ -24,7 +25,8 @@ const cofounders = [
 
 const Team = () => {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen relative">
+      <PageBackground />
       <Helmet>
         <title>Meet the Team | Stammerly</title>
         <meta name="description" content="Meet the co-founders of Stammerly - Mia Romem and Jose Vidal - who are transforming support for children who stammer." />

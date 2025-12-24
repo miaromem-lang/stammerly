@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Trophy, GraduationCap, Globe, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import PageBackground from "@/components/PageBackground";
 
 const OurStory = () => {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen relative">
+      <PageBackground />
       <Helmet>
         <title>Our Story | Stammerly - From UCL to Global Impact</title>
         <meta name="description" content="Discover how Stammerly began at UCL's SENDTech Challenge and won first place, aiming to transform support for children who stammer." />
