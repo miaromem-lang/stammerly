@@ -249,6 +249,38 @@ export type Database = {
           },
         ]
       }
+      therapist_ai_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          quest_id: string | null
+          role: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          quest_id?: string | null
+          role: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          quest_id?: string | null
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "therapist_ai_conversations_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "therapist_assigned_quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       therapist_assigned_quests: {
         Row: {
           ai_agrees: boolean | null

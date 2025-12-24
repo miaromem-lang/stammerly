@@ -5,6 +5,7 @@ import { Slider } from "@/components/ui/slider";
 import { Play, Bell, ChevronRight, Heart, Loader2 } from "lucide-react";
 import { useVictoryLogs } from "@/hooks/useVictoryLogs";
 import { useFluencyRatings } from "@/hooks/useFluencyRatings";
+import { RecommendationTrendCharts } from "./RecommendationTrendCharts";
 
 const ratingDescriptions: Record<number, string> = {
   1: "Completely fluent speech",
@@ -164,6 +165,11 @@ export const ParentDashboard = () => {
               )}
             </CardContent>
           </Card>
+        </div>
+
+        {/* AI vs Therapist Insights */}
+        <div className="max-w-6xl mx-auto mt-8">
+          <RecommendationTrendCharts />
         </div>
       </div>
     </section>

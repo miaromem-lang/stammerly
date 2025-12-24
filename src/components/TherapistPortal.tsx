@@ -7,6 +7,7 @@ import { Activity, Brain, Calendar, TrendingUp, Settings, FileBarChart, Loader2,
 import { supabase } from "@/integrations/supabase/client";
 import { QuestAssigner } from "./QuestAssigner";
 import { WeeklyProgressReport } from "./WeeklyProgressReport";
+import { RecommendationTrendCharts } from "./RecommendationTrendCharts";
 
 const spmData = [
   { label: "Mon", home: 145, clinic: 160 },
@@ -339,6 +340,11 @@ export const TherapistPortal = () => {
           
           {/* Quest Assigner */}
           <QuestAssigner />
+          
+          {/* AI vs Therapist Trend Charts */}
+          <div className="lg:col-span-2">
+            <RecommendationTrendCharts />
+          </div>
           
           {/* Weekly Progress Report */}
           <div className="lg:col-span-2">
