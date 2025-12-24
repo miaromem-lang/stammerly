@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Activity, Brain, Calendar, TrendingUp, Settings, FileBarChart, Loader2 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Activity, Brain, Calendar, TrendingUp, Settings, FileBarChart, Loader2, HelpCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const spmData = [
@@ -236,36 +237,60 @@ export const TherapistPortal = () => {
                 </div>
               ) : (
                 <>
-                  <div className="text-center mb-6">
-                    <div className="relative w-32 h-32 mx-auto">
-                      <svg className="w-full h-full transform -rotate-90">
-                        <circle
-                          cx="64"
-                          cy="64"
-                          r="56"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="8"
-                          className="text-background/20"
-                        />
-                        <circle
-                          cx="64"
-                          cy="64"
-                          r="56"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="8"
-                          strokeDasharray={`${((stats?.aiConfidence || 0) / 100) * 352} 352`}
-                          className={stats?.aiConfidence && stats.aiConfidence >= 80 ? "text-success" : stats?.aiConfidence && stats.aiConfidence >= 60 ? "text-gold" : "text-accent-orange"}
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-3xl font-display font-bold text-background">
-                          {stats?.aiConfidence || 0}%
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="text-center mb-6 cursor-help">
+                          <div className="relative w-32 h-32 mx-auto">
+                            <svg className="w-full h-full transform -rotate-90">
+                              <circle
+                                cx="64"
+                                cy="64"
+                                r="56"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="8"
+                                className="text-background/20"
+                              />
+                              <circle
+                                cx="64"
+                                cy="64"
+                                r="56"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="8"
+                                strokeDasharray={`${((stats?.aiConfidence || 0) / 100) * 352} 352`}
+                                className={stats?.aiConfidence && stats.aiConfidence >= 80 ? "text-success" : stats?.aiConfidence && stats.aiConfidence >= 60 ? "text-gold" : "text-accent-orange"}
+                              />
+                            </svg>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span className="text-3xl font-display font-bold text-background">
+                                {stats?.aiConfidence || 0}%
+                              </span>
+                            </div>
+                            <div className="absolute -top-1 -right-1">
+                              <HelpCircle className="w-4 h-4 text-background/40" />
+                            </div>
+                          </div>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="left" className="max-w-xs p-4 bg-card text-foreground border-border">
+                        <div className="space-y-2">
+                          <p className="font-semibold text-sm">How AI Confidence is calculated:</p>
+                          <ul className="text-xs space-y-1 text-muted-foreground">
+                            <li><span className="text-foreground font-medium">• Accuracy (40%):</span> How well AI understood the speech</li>
+                            <li><span className="text-foreground font-medium">• Consistency (30%):</span> Lower score variance = higher confidence</li>
+                            <li><span className="text-foreground font-medium">• Sample size (30%):</span> More sessions = more reliable data</li>
+                          </ul>
+                          <p className="text-xs text-muted-foreground pt-1 border-t border-border mt-2">
+                            <span className="text-success">80%+</span> = Highly reliable • 
+                            <span className="text-gold"> 60-79%</span> = Moderate • 
+                            <span className="text-accent-orange"> &lt;60%</span> = Needs more data
+                          </p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <p className="text-sm text-background/70 text-center">
                     AI is <span className={`font-medium ${stats?.aiConfidence && stats.aiConfidence >= 80 ? "text-success" : stats?.aiConfidence && stats.aiConfidence >= 60 ? "text-gold" : "text-accent-orange"}`}>
                       {stats?.aiConfidence || 0}% confident
