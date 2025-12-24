@@ -1,6 +1,18 @@
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Smile, Users, GraduationCap, Stethoscope, Star } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { ArrowRight, Sparkles, Smile, Users, GraduationCap, Stethoscope, Star, Menu } from "lucide-react";
+
+const navLinks = [
+  { to: "/about", label: "About" },
+  { to: "/our-story", label: "Our Story" },
+  { to: "/mission", label: "Mission" },
+  { to: "/research", label: "Research" },
+  { to: "/privacy-policy", label: "Privacy" },
+  { to: "/reviews", label: "Reviews" },
+  { to: "/contact", label: "Contact" },
+];
 
 const hubs = [
   {
@@ -39,6 +51,7 @@ const hubs = [
 
 export const HeroSection = () => {
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleHubClick = (hubId: string) => {
     navigate("/signin");
@@ -69,21 +82,63 @@ export const HeroSection = () => {
               <span className="font-display font-bold text-2xl text-foreground">Stammerly</span>
             </div>
             <nav className="hidden md:flex items-center gap-6">
-              <Link to="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">About</Link>
-              <Link to="/our-story" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Our Story</Link>
-              <Link to="/mission" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Mission</Link>
-              <Link to="/research" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Research</Link>
-              <Link to="/privacy-policy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy</Link>
-              <Link to="/reviews" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Reviews</Link>
-              <Link to="/contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Contact</Link>
+              {navLinks.map((link) => (
+                <Link 
+                  key={link.to}
+                  to={link.to} 
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ))}
             </nav>
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="sm" onClick={() => navigate("/signin")}>
+              <Button variant="ghost" size="sm" className="hidden md:inline-flex" onClick={() => navigate("/signin")}>
                 Sign In
               </Button>
-              <Button variant="navy" size="sm" onClick={() => navigate("/signin")}>
+              <Button variant="navy" size="sm" className="hidden md:inline-flex" onClick={() => navigate("/signin")}>
                 Get Started
               </Button>
+              
+              {/* Mobile Hamburger Menu */}
+              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                <SheetTrigger asChild className="md:hidden">
+                  <Button variant="ghost" size="icon">
+                    <Menu className="h-5 w-5" />
+                    <span className="sr-only">Toggle menu</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[280px] bg-background">
+                  <div className="flex flex-col gap-6 mt-8">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-accent-orange flex items-center justify-center">
+                        <Sparkles className="w-4 h-4 text-primary-foreground" />
+                      </div>
+                      <span className="font-display font-bold text-lg text-foreground">Stammerly</span>
+                    </div>
+                    <nav className="flex flex-col gap-4">
+                      {navLinks.map((link) => (
+                        <Link 
+                          key={link.to}
+                          to={link.to} 
+                          className="text-base text-muted-foreground hover:text-foreground transition-colors py-2 border-b border-border"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          {link.label}
+                        </Link>
+                      ))}
+                    </nav>
+                    <div className="flex flex-col gap-3 mt-4">
+                      <Button variant="outline" onClick={() => { navigate("/signin"); setMobileMenuOpen(false); }}>
+                        Sign In
+                      </Button>
+                      <Button variant="navy" onClick={() => { navigate("/signin"); setMobileMenuOpen(false); }}>
+                        Get Started
+                      </Button>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
           </div>
         </div>
