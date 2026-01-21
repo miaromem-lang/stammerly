@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -102,6 +103,33 @@ serve(async (req) => {
   }
 
   try {
+    // Validate Authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabase.auth.getUser(token);
+    if (claimsError || !claimsData?.user) {
+      return new Response(JSON.stringify({ error: 'Invalid token' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const userId = claimsData.user.id;
+    console.log('Authenticated user:', userId);
+
     const { transcript, targetPhrase, words } = await req.json();
     
     if (!transcript) {
@@ -113,7 +141,7 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    console.log('Analyzing speech:', { transcript, targetPhrase, wordCount: words?.length });
+    console.log('Analyzing speech for user:', userId, { transcript, targetPhrase, wordCount: words?.length });
 
     // Pre-analyze acoustic patterns from word timings
     const acousticPatterns = analyzeAcousticPatterns(words || []);
@@ -306,7 +334,7 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
         }
       };
       
-      console.log('Final analysis:', JSON.stringify(finalAnalysis, null, 2));
+      console.log('Final analysis for user:', userId);
       
       return new Response(JSON.stringify(finalAnalysis), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
