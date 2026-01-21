@@ -4,8 +4,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
-import SignIn from "./pages/SignIn";
+import Auth from "./pages/Auth";
 import KidHub from "./pages/KidHub";
 import ParentHub from "./pages/ParentHub";
 import TeacherHub from "./pages/TeacherHub";
@@ -36,17 +37,9 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Public routes */}
             <Route path="/" element={<Index />} />
-            <Route path="/signin" element={<SignIn />} />
-            <Route path="/hub/kid" element={<KidHub />} />
-            <Route path="/hub/parent" element={<ParentHub />} />
-            <Route path="/hub/teacher" element={<TeacherHub />} />
-            <Route path="/hub/therapist" element={<TherapistHub />} />
-            <Route path="/hub/kid-overview" element={<KidHubOverview />} />
-            <Route path="/story-exercise" element={<StoryExercise />} />
-            <Route path="/free-talk" element={<FreeTalk />} />
-            <Route path="/practice" element={<Practice />} />
-            <Route path="/analytics/:role" element={<Analytics />} />
+            <Route path="/signin" element={<Auth />} />
             <Route path="/about" element={<About />} />
             <Route path="/our-story" element={<OurStory />} />
             <Route path="/mission" element={<Mission />} />
@@ -55,6 +48,17 @@ const App = () => (
             <Route path="/contact" element={<Contact />} />
             <Route path="/team" element={<Team />} />
             <Route path="/reviews" element={<Reviews />} />
+            
+            {/* Protected routes - require authentication */}
+            <Route path="/hub/kid" element={<ProtectedRoute allowedRoles={['kid']}><KidHub /></ProtectedRoute>} />
+            <Route path="/hub/parent" element={<ProtectedRoute allowedRoles={['parent']}><ParentHub /></ProtectedRoute>} />
+            <Route path="/hub/teacher" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherHub /></ProtectedRoute>} />
+            <Route path="/hub/therapist" element={<ProtectedRoute allowedRoles={['therapist', 'admin']}><TherapistHub /></ProtectedRoute>} />
+            <Route path="/hub/kid-overview" element={<ProtectedRoute allowedRoles={['kid']}><KidHubOverview /></ProtectedRoute>} />
+            <Route path="/story-exercise" element={<ProtectedRoute><StoryExercise /></ProtectedRoute>} />
+            <Route path="/free-talk" element={<ProtectedRoute><FreeTalk /></ProtectedRoute>} />
+            <Route path="/practice" element={<ProtectedRoute><Practice /></ProtectedRoute>} />
+            <Route path="/analytics/:role" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
