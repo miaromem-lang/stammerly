@@ -1,12 +1,55 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+// Allowed origins for CORS
+const allowedOrigins = [
+  'https://id-preview--d0edb71f-4882-40ab-b574-d207ca05f86d.lovable.app',
+  'https://hiigdwgdfuabgjiiapid.supabase.co',
+  'http://localhost:5173',
+  'http://localhost:8080'
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('origin') || '';
+  const allowedOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Credentials': 'true'
+  };
+}
+
+// Input validation helpers
+function validateString(value: unknown, maxLength: number, fieldName: string): string {
+  if (typeof value !== 'string') {
+    throw new Error(`Invalid ${fieldName}`);
+  }
+  if (value.length > maxLength) {
+    throw new Error(`Invalid ${fieldName}: exceeds maximum length`);
+  }
+  return value.trim();
+}
+
+function validateArray(value: unknown, maxItems: number, fieldName: string): unknown[] {
+  if (!Array.isArray(value)) {
+    throw new Error(`Invalid ${fieldName}: must be an array`);
+  }
+  if (value.length > maxItems) {
+    throw new Error(`Invalid ${fieldName}: exceeds maximum items`);
+  }
+  return value;
+}
+
+function validateObject(value: unknown, fieldName: string): Record<string, unknown> {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw new Error(`Invalid ${fieldName}: must be an object`);
+  }
+  return value as Record<string, unknown>;
+}
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+  
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -39,12 +82,51 @@ serve(async (req) => {
     const userId = claimsData.user.id;
     console.log('Authenticated user:', userId);
 
-    const { questId, message, conversationHistory, questContext } = await req.json();
+    // Parse and validate input
+    let rawBody;
+    try {
+      rawBody = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid request format' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const questId = validateString(rawBody.questId || '', 100, 'questId');
+    const message = validateString(rawBody.message, 5000, 'message');
+    const conversationHistory = validateArray(rawBody.conversationHistory || [], 100, 'conversationHistory');
+    const questContext = rawBody.questContext ? validateObject(rawBody.questContext, 'questContext') : {};
+
+    // Validate conversation history items
+    const validatedHistory = conversationHistory.map((msg: unknown, index: number) => {
+      if (typeof msg !== 'object' || msg === null) {
+        throw new Error(`Invalid conversation history item at index ${index}`);
+      }
+      const msgObj = msg as Record<string, unknown>;
+      return {
+        role: validateString(msgObj.role, 20, 'role'),
+        message: validateString(msgObj.message as string, 5000, 'message')
+      };
+    });
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+      console.error('LOVABLE_API_KEY is not configured');
+      return new Response(JSON.stringify({ error: 'Service temporarily unavailable' }), {
+        status: 503,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
+
+    // Safely extract quest context values
+    const questTitle = typeof questContext.questTitle === 'string' ? questContext.questTitle : 'Unknown';
+    const exerciseCategory = typeof questContext.exerciseCategory === 'string' ? questContext.exerciseCategory : 'Unknown';
+    const therapistReason = typeof questContext.therapistReason === 'string' ? questContext.therapistReason : 'Not provided';
+    const aiFeedback = typeof questContext.aiFeedback === 'string' ? questContext.aiFeedback : 'Not provided';
+    const aiAgrees = questContext.aiAgrees;
+    const aiAlternativeSuggestion = typeof questContext.aiAlternativeSuggestion === 'string' ? questContext.aiAlternativeSuggestion : null;
+    const childAnalytics = questContext.childAnalytics || null;
 
     const systemPrompt = `You are a collaborative AI speech therapy assistant having a conversation with a licensed speech-language pathologist (SLP). 
 
@@ -57,15 +139,15 @@ Your role is to:
 6. Ask clarifying questions when helpful
 
 Context about this quest:
-- Quest Title: ${questContext?.questTitle || "Unknown"}
-- Exercise Category: ${questContext?.exerciseCategory || "Unknown"}
-- Therapist's Original Reasoning: ${questContext?.therapistReason || "Not provided"}
-- AI's Original Feedback: ${questContext?.aiFeedback || "Not provided"}
-- AI Originally Agreed: ${questContext?.aiAgrees ?? "Unknown"}
-${questContext?.aiAlternativeSuggestion ? `- AI's Alternative Suggestion: ${questContext.aiAlternativeSuggestion}` : ""}
+- Quest Title: ${questTitle}
+- Exercise Category: ${exerciseCategory}
+- Therapist's Original Reasoning: ${therapistReason}
+- AI's Original Feedback: ${aiFeedback}
+- AI Originally Agreed: ${aiAgrees ?? "Unknown"}
+${aiAlternativeSuggestion ? `- AI's Alternative Suggestion: ${aiAlternativeSuggestion}` : ""}
 
 Child's Analytics Summary:
-${questContext?.childAnalytics ? JSON.stringify(questContext.childAnalytics, null, 2) : "No analytics available"}
+${childAnalytics ? JSON.stringify(childAnalytics, null, 2) : "No analytics available"}
 
 Be conversational, professional, and collaborative. Keep responses concise (2-4 sentences typically). 
 Remember: The therapist has clinical expertise you don't have - respect their judgment while sharing data-driven insights.`;
@@ -73,7 +155,7 @@ Remember: The therapist has clinical expertise you don't have - respect their ju
     // Build messages array from conversation history
     const messages = [
       { role: "system", content: systemPrompt },
-      ...conversationHistory.map((msg: { role: string; message: string }) => ({
+      ...validatedHistory.map((msg: { role: string; message: string }) => ({
         role: msg.role === "therapist" ? "user" : "assistant",
         content: msg.message,
       })),
@@ -105,9 +187,11 @@ Remember: The therapist has clinical expertise you don't have - respect their ju
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      throw new Error("AI gateway error");
+      console.error("AI gateway error:", response.status);
+      return new Response(JSON.stringify({ error: "Unable to process request" }), {
+        status: 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const aiResult = await response.json();
@@ -120,10 +204,9 @@ Remember: The therapist has clinical expertise you don't have - respect their ju
     });
   } catch (error) {
     console.error("Error in therapist-ai-chat:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    return new Response(JSON.stringify({ error: "Unable to process request" }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }
 });

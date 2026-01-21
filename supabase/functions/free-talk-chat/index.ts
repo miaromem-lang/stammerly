@@ -1,12 +1,48 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// Allowed origins for CORS
+const allowedOrigins = [
+  'https://id-preview--d0edb71f-4882-40ab-b574-d207ca05f86d.lovable.app',
+  'https://hiigdwgdfuabgjiiapid.supabase.co',
+  'http://localhost:5173',
+  'http://localhost:8080'
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('origin') || '';
+  const allowedOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Credentials': 'true'
+  };
+}
+
+// Input validation helpers
+function validateString(value: unknown, maxLength: number, fieldName: string): string {
+  if (typeof value !== 'string') {
+    throw new Error(`Invalid ${fieldName}: must be a string`);
+  }
+  if (value.length > maxLength) {
+    throw new Error(`Invalid ${fieldName}: exceeds maximum length`);
+  }
+  return value.trim();
+}
+
+function validateArray(value: unknown, maxItems: number, fieldName: string): unknown[] {
+  if (!Array.isArray(value)) {
+    throw new Error(`Invalid ${fieldName}: must be an array`);
+  }
+  if (value.length > maxItems) {
+    throw new Error(`Invalid ${fieldName}: exceeds maximum items`);
+  }
+  return value;
+}
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -39,11 +75,42 @@ serve(async (req) => {
     const userId = claimsData.user.id;
     console.log('Authenticated user:', userId);
 
-    const { message, characterName, characterPersonality, conversationHistory } = await req.json();
+    // Parse and validate input
+    let rawBody;
+    try {
+      rawBody = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid request format' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const message = validateString(rawBody.message, 2000, 'message');
+    const characterName = validateString(rawBody.characterName || 'Ollie', 100, 'characterName');
+    const characterPersonality = validateString(rawBody.characterPersonality || 'friendly', 500, 'characterPersonality');
+    const conversationHistory = validateArray(rawBody.conversationHistory || [], 50, 'conversationHistory');
+
+    // Validate each message in conversation history
+    const validatedHistory = conversationHistory.map((msg: unknown, index: number) => {
+      if (typeof msg !== 'object' || msg === null) {
+        throw new Error(`Invalid conversation history item at index ${index}`);
+      }
+      const msgObj = msg as Record<string, unknown>;
+      return {
+        role: validateString(msgObj.role, 20, 'role'),
+        content: validateString(msgObj.content as string, 5000, 'content')
+      };
+    });
+
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+      console.error('LOVABLE_API_KEY is not configured');
+      return new Response(JSON.stringify({ error: 'Service temporarily unavailable' }), {
+        status: 503,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const systemPrompt = `You are ${characterName}, a friendly animal character who helps children practice speaking fluently. Your personality is ${characterPersonality}.
@@ -95,10 +162,7 @@ Speak like a friendly animal buddy using simple, warm language. Be genuinely int
 
     const messages = [
       { role: "system", content: systemPrompt },
-      ...conversationHistory.map((msg: any) => ({
-        role: msg.role,
-        content: msg.content
-      })),
+      ...validatedHistory,
       { role: "user", content: message }
     ];
 
@@ -167,7 +231,11 @@ Speak like a friendly animal buddy using simple, warm language. Be genuinely int
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      throw new Error(`AI gateway error: ${response.status}`);
+      console.error('AI gateway error:', response.status);
+      return new Response(JSON.stringify({ error: "Unable to process request" }), {
+        status: 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const data = await response.json();
@@ -190,12 +258,13 @@ Speak like a friendly animal buddy using simple, warm language. Be genuinely int
 
   } catch (error) {
     console.error("Error in free-talk-chat function:", error);
+    // Return sanitized error message
     return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: "Unable to process request",
       response: "Oops, I got a little confused! Can you tell me that again? 🦦"
     }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }
 });
