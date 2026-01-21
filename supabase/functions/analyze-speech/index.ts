@@ -111,6 +111,8 @@ function detectTextDisfluencies(text: string) {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -143,15 +145,33 @@ serve(async (req) => {
     const userId = claimsData.user.id;
     console.log('Authenticated user:', userId);
 
-    const { transcript, targetPhrase, words } = await req.json();
+    // Parse and validate input
+    let rawBody;
+    try {
+      rawBody = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid request format' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { transcript, targetPhrase, words } = rawBody;
     
-    if (!transcript) {
-      throw new Error('No transcript provided');
+    if (!transcript || typeof transcript !== 'string') {
+      return new Response(JSON.stringify({ error: 'Invalid request' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+      console.error('LOVABLE_API_KEY is not configured');
+      return new Response(JSON.stringify({ error: 'Service temporarily unavailable' }), {
+        status: 503,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     console.log('Analyzing speech for user:', userId, { transcript, targetPhrase, wordCount: words?.length });
@@ -358,9 +378,8 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
 
   } catch (error: unknown) {
     console.error('Speech analysis error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to analyze speech';
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: 'Unable to process request' }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
