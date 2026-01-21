@@ -1,12 +1,38 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+// Allowed origins for CORS
+const allowedOrigins = [
+  'https://id-preview--d0edb71f-4882-40ab-b574-d207ca05f86d.lovable.app',
+  'https://hiigdwgdfuabgjiiapid.supabase.co',
+  'http://localhost:5173',
+  'http://localhost:8080'
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('origin') || '';
+  const allowedOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Credentials': 'true'
+  };
+}
+
+// Input validation helpers
+function validateString(value: unknown, maxLength: number, fieldName: string): string {
+  if (typeof value !== 'string') {
+    throw new Error(`Invalid ${fieldName}`);
+  }
+  if (value.length > maxLength) {
+    throw new Error(`Invalid ${fieldName}: exceeds maximum length`);
+  }
+  return value.trim();
+}
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+  
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -39,11 +65,38 @@ serve(async (req) => {
     const userId = claimsData.user.id;
     console.log('Authenticated user:', userId);
 
-    const { exerciseCategory, exerciseId, questTitle, therapistReason, childAnalytics } = await req.json();
+    // Parse and validate input
+    let rawBody;
+    try {
+      rawBody = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid request format' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const exerciseCategory = validateString(rawBody.exerciseCategory, 100, 'exerciseCategory');
+    const exerciseId = validateString(rawBody.exerciseId, 100, 'exerciseId');
+    const questTitle = validateString(rawBody.questTitle, 200, 'questTitle');
+    const therapistReason = validateString(rawBody.therapistReason, 2000, 'therapistReason');
+    
+    // Validate childAnalytics is an object (optional)
+    const childAnalytics = rawBody.childAnalytics || {};
+    if (typeof childAnalytics !== 'object' || Array.isArray(childAnalytics)) {
+      return new Response(JSON.stringify({ error: 'Invalid childAnalytics format' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+      console.error('LOVABLE_API_KEY is not configured');
+      return new Response(JSON.stringify({ error: 'Service temporarily unavailable' }), {
+        status: 503,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const systemPrompt = `You are a speech therapy AI assistant that collaborates with human therapists. Your role is to:
@@ -107,9 +160,11 @@ Respond in JSON format:
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      throw new Error("AI gateway error");
+      console.error("AI gateway error:", response.status);
+      return new Response(JSON.stringify({ error: "Unable to process request" }), {
+        status: 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const aiResult = await response.json();
@@ -126,7 +181,7 @@ Respond in JSON format:
         throw new Error("No JSON found in response");
       }
     } catch (parseError) {
-      console.error("Failed to parse AI response:", content);
+      console.error("Failed to parse AI response");
       parsedFeedback = {
         agrees: true,
         feedback: "AI analysis unavailable. The therapist's recommendation stands.",
@@ -141,10 +196,9 @@ Respond in JSON format:
     });
   } catch (error) {
     console.error("Error in validate-quest-assignment:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    return new Response(JSON.stringify({ error: "Unable to process request" }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }
 });

@@ -1,12 +1,46 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// Allowed origins for CORS
+const allowedOrigins = [
+  'https://id-preview--d0edb71f-4882-40ab-b574-d207ca05f86d.lovable.app',
+  'https://hiigdwgdfuabgjiiapid.supabase.co',
+  'http://localhost:5173',
+  'http://localhost:8080'
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('origin') || '';
+  const allowedOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Credentials': 'true'
+  };
+}
+
+// Input validation helpers
+function validateString(value: unknown, maxLength: number, fieldName: string): string {
+  if (typeof value !== 'string') {
+    throw new Error(`Invalid ${fieldName}`);
+  }
+  if (value.length > maxLength) {
+    throw new Error(`Invalid ${fieldName}: exceeds maximum length`);
+  }
+  return value.trim();
+}
+
+function validateNumber(value: unknown, min: number, max: number, fieldName: string): number {
+  const num = typeof value === 'number' ? value : parseInt(String(value), 10);
+  if (isNaN(num) || num < min || num > max) {
+    throw new Error(`Invalid ${fieldName}: must be between ${min} and ${max}`);
+  }
+  return num;
+}
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -39,14 +73,41 @@ serve(async (req) => {
     const userId = claimsData.user.id;
     console.log('Authenticated user:', userId);
 
-    const { topic, difficulty, sentenceCount } = await req.json();
+    // Parse and validate input
+    let rawBody;
+    try {
+      rawBody = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid request format' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const topic = validateString(rawBody.topic, 200, 'topic');
+    const difficulty = validateString(rawBody.difficulty || 'beginner', 20, 'difficulty');
+    const sentenceCount = validateNumber(rawBody.sentenceCount || 5, 1, 20, 'sentenceCount');
+
+    // Validate difficulty is one of allowed values
+    const allowedDifficulties = ['beginner', 'intermediate', 'advanced'];
+    if (!allowedDifficulties.includes(difficulty)) {
+      return new Response(JSON.stringify({ error: 'Invalid difficulty level' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+      console.error('LOVABLE_API_KEY is not configured');
+      return new Response(JSON.stringify({ error: 'Service temporarily unavailable' }), {
+        status: 503,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    const difficultyPrompts = {
+    const difficultyPrompts: Record<string, string> = {
       beginner: "Use very simple words and short sentences (5-8 words each). Avoid complex vocabulary.",
       intermediate: "Use medium complexity with some descriptive words. Sentences can be 8-12 words.",
       advanced: "Use rich vocabulary and varied sentence structures. Sentences can be 12-20 words.",
@@ -55,7 +116,7 @@ serve(async (req) => {
     const systemPrompt = `You are a creative storyteller for children who stammer. Create engaging, fun stories that are perfect for speech practice.
 
 Guidelines:
-- ${difficultyPrompts[difficulty as keyof typeof difficultyPrompts] || difficultyPrompts.beginner}
+- ${difficultyPrompts[difficulty] || difficultyPrompts.beginner}
 - Make the story engaging and positive
 - Include the topic naturally throughout the story
 - Each sentence should be clear and easy to read aloud
@@ -92,7 +153,11 @@ Guidelines:
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      throw new Error(`AI gateway error: ${response.status}`);
+      console.error('AI gateway error:', response.status);
+      return new Response(JSON.stringify({ error: "Unable to generate story" }), {
+        status: 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const data = await response.json();
@@ -105,9 +170,9 @@ Guidelines:
     });
   } catch (error) {
     console.error("Error in generate-story function:", error);
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }), {
+    return new Response(JSON.stringify({ error: "Unable to process request" }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }
 });
