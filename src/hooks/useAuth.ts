@@ -11,6 +11,10 @@ interface AuthState {
   loading: boolean;
 }
 
+interface RoleData {
+  role: string;
+}
+
 export function useAuth() {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
@@ -19,28 +23,25 @@ export function useAuth() {
     loading: true,
   });
 
-  // Fetch user role from database using raw query to avoid type issues
+  // Fetch user role from database
   const fetchUserRole = useCallback(async (userId: string): Promise<AppRole | null> => {
     try {
-      const { data, error } = await supabase
-        .rpc('get_user_role', { _user_id: userId })
+      // Use type assertion to bypass generated types until they're regenerated
+      const { data, error } = await (supabase as any)
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
         .single();
       
-      // Fallback to direct query if RPC doesn't exist
-      if (error) {
-        const { data: roleData } = await supabase
-          .from('user_roles' as any)
-          .select('role')
-          .eq('user_id', userId)
-          .single();
-        
-        if (roleData && typeof roleData === 'object' && 'role' in roleData) {
-          return roleData.role as AppRole;
-        }
+      if (error || !data) {
+        console.log('No role found for user:', userId);
         return null;
       }
-      return data as AppRole;
-    } catch {
+      
+      const roleData = data as RoleData;
+      return roleData.role as AppRole;
+    } catch (err) {
+      console.error('Error fetching user role:', err);
       return null;
     }
   }, []);
@@ -103,9 +104,9 @@ export function useAuth() {
 
     // If signup successful and user exists, create role
     if (data.user) {
-      const { error: roleError } = await supabase
-        .from('user_roles' as any)
-        .insert({ user_id: data.user.id, role } as any);
+      const { error: roleError } = await (supabase as any)
+        .from('user_roles')
+        .insert({ user_id: data.user.id, role });
       
       if (roleError) {
         console.error('Failed to assign role:', roleError);
