@@ -199,6 +199,12 @@ const ParentHub = () => {
 
             {/* Recommendation Trend Charts - AI vs Therapist */}
             <RecommendationTrendCharts />
+          </div>
+
+          {/* Right Column */}
+          <div className="space-y-6">
+            {/* Therapist Reviews Summary */}
+            <TherapistReviewsSummary />
 
             {/* Fluency Journey */}
             <Card className="glass-card-strong">
@@ -231,12 +237,6 @@ const ParentHub = () => {
                 </Button>
               </CardContent>
             </Card>
-          </div>
-
-          {/* Right Column */}
-          <div className="space-y-6">
-            {/* Therapist Reviews Summary */}
-            <TherapistReviewsSummary />
 
             {/* Victory Bell - Dynamic from database */}
             <Card className="glass-card-strong">
