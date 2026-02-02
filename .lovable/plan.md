@@ -1,123 +1,65 @@
 
 
-## Security Remediation Plan
+# Plan: Fix Role Access & Add Logout Functionality
 
-### Overview
-
-The security scan identified 1 error-level issue and 2 warning-level issues. After investigation, **the error-level issue is a false positive** - `daily_analytics` is a secure view, not an unprotected table. However, I recommend fixing the warning-level issues for GDPR compliance (right to deletion).
+## Summary
+This plan addresses two issues: (1) updating your database role to `admin` so the Dev Role Switcher works, and (2) adding a visible logout button so you can sign out from any hub.
 
 ---
 
-### What Needs to Be Fixed
+## What Will Be Done
 
-#### 1. Missing DELETE Policy on `practice_sessions` (Warning)
+### 1. Update Your User Role to Admin
+Run a database update to change your role from `teacher` to `admin`.
 
-**Current State:** Users can INSERT, UPDATE, and SELECT their own practice sessions, but cannot DELETE them.
+**Result:** You'll see the floating purple Dev Role Switcher button in the bottom-right corner, allowing you to switch between any hub.
 
-**Problem:** Users cannot exercise their GDPR "right to erasure" for their own health records.
+### 2. Add Logout Button to All Hubs
+Add a visible "Sign Out" button in the header area of each hub page so you can easily log out.
 
-**Solution:** Add a DELETE policy allowing users to remove their own sessions.
+**Where it will appear:**
+- Kid Hub
+- Parent Hub  
+- Teacher Hub
+- Therapist Hub
+- Clinical Analytics Hub
 
+---
+
+## Technical Details
+
+### Database Change
 ```sql
-CREATE POLICY "Users can delete own sessions"
-ON public.practice_sessions
-FOR DELETE
-TO authenticated
-USING (user_id = auth.uid());
+UPDATE public.user_roles 
+SET role = 'admin' 
+WHERE user_id = '63d5c95a-fdb7-477c-a74f-f6dab3c6f086';
 ```
 
----
+### Files to Modify
 
-#### 2. Missing UPDATE/DELETE Policies on `user_achievements` (Warning)
+| File | Change |
+|------|--------|
+| `src/components/HubNavigation.tsx` | Add a logout button using `signOut` from `useAuth` hook |
+| `src/pages/TherapistHub.tsx` | Ensure logout is accessible from header |
+| `src/pages/TherapistAnalyticsHub.tsx` | Add logout button to header |
 
-**Current State:** Users can INSERT and SELECT their achievements, but cannot UPDATE or DELETE them.
-
-**Problem:** If an achievement is incorrectly awarded (e.g., system glitch), there's no way to correct it.
-
-**Solution:** Add UPDATE and DELETE policies.
-
-```sql
-CREATE POLICY "Users can update own achievements"
-ON public.user_achievements
-FOR UPDATE
-TO authenticated
-USING (user_id = auth.uid());
-
-CREATE POLICY "Users can delete own achievements"
-ON public.user_achievements
-FOR DELETE
-TO authenticated
-USING (user_id = auth.uid());
-```
-
----
-
-#### 3. Resolve False Positive: `daily_analytics` (Error)
-
-**Current State:** The scan flagged this as "no RLS policies" but investigation shows:
-- It's a VIEW, not a table
-- It has `security_invoker = true`
-- It queries `practice_sessions` which has RLS
-- The view itself filters by `WHERE user_id = auth.uid()`
-
-**Action:** Mark this finding as resolved with explanation.
-
----
-
-### Implementation Steps
-
-1. **Database Migration** - Create a single migration to add the missing policies:
-   - DELETE policy for `practice_sessions`
-   - UPDATE policy for `user_achievements`
-   - DELETE policy for `user_achievements`
-
-2. **Update Security Findings** - Mark the `daily_analytics` false positive as ignored with proper documentation.
-
----
-
-### Technical Details
-
+### Logout Implementation
 ```text
-+---------------------------+
-|   Security Changes        |
-+---------------------------+
-          |
-          v
-+---------------------------+
-| practice_sessions         |
-| + DELETE policy           |
-| (user_id = auth.uid())    |
-+---------------------------+
-          |
-          v
-+---------------------------+
-| user_achievements         |
-| + UPDATE policy           |
-| + DELETE policy           |
-| (user_id = auth.uid())    |
-+---------------------------+
-          |
-          v
-+---------------------------+
-| daily_analytics           |
-| Mark as FALSE POSITIVE    |
-| (secure view with RLS)    |
-+---------------------------+
++----------------------------------+
+|  [Logo] Clinical Portal    [👤 Sign Out] |
++----------------------------------+
 ```
+
+The button will:
+1. Call `signOut()` from the `useAuth` hook
+2. Clear the session
+3. Redirect to the sign-in page
 
 ---
 
-### Summary
+## After Implementation
 
-| Action | Type | Priority |
-|--------|------|----------|
-| Add DELETE policy to `practice_sessions` | Database Migration | Medium |
-| Add UPDATE/DELETE policies to `user_achievements` | Database Migration | Medium |
-| Mark `daily_analytics` finding as resolved | Security Manager | Low |
-
-**Estimated Changes:**
-- 1 database migration file
-- 1 security finding update
-
-**No code changes required** - this is purely database policy work.
+1. **Dev Role Switcher**: A floating purple button (⚙️) will appear in the bottom-right corner when you're logged in as admin
+2. **Sign Out**: Click "Sign Out" in the header to log out from any page
+3. **Hub Access**: Use the Dev Role Switcher to navigate between Kid, Parent, Teacher, and Therapist hubs without changing accounts
 
