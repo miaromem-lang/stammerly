@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Activity, Brain, Target, FileText, Grid3X3, Clock, Loader2, RefreshCw } from "lucide-react";
+import { ArrowLeft, Activity, Brain, Target, FileText, Grid3X3, Clock, Loader2, RefreshCw, Repeat } from "lucide-react";
 import { HubNavigation } from "@/components/HubNavigation";
 import PageBackground from "@/components/PageBackground";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +17,7 @@ import {
   TechniqueAccuracyTracker,
   IcebergCommandCentre,
   ActionCommandCentre,
+  AdaptationConsistencyTracker,
 } from "@/components/therapist";
 
 // Mock patients for demo
@@ -65,6 +66,18 @@ interface ClinicalMetrics {
   // Iceberg metrics
   objectiveSeverity: number;
   subjectiveRating: number | null;
+  
+  // Adaptation & Consistency metrics
+  adaptationScore: number | null;
+  consistencyWords: string[];
+  improvingWords: string[];
+  trials: Array<{
+    trialNumber: number;
+    stutterCount: number;
+    stutteredWords: string[];
+    timestamp: string;
+  }>;
+  targetPhrase: string | null;
   
   // Action metrics
   totalSessions: number;
@@ -170,6 +183,32 @@ const TherapistAnalyticsHub = () => {
       // Latest subjective rating
       const latestRating = ratings?.[0]?.rating || null;
 
+      // Build adaptation/consistency data from sessions with same target phrase
+      const targetPhrase = sessions?.[0]?.target_phrase || null;
+      const trialsForSamePhrase = targetPhrase 
+        ? sessions?.filter(s => s.target_phrase === targetPhrase)
+            .slice(0, 5) // Limit to 5 most recent trials
+            .reverse() // Show oldest first
+            .map((s, idx) => ({
+              trialNumber: idx + 1,
+              stutterCount: (s.blocks_count || 0) + (s.prolongations_count || 0) + (s.repetitions_count || 0),
+              stutteredWords: [], // Would come from actual word-level analysis
+              timestamp: s.session_date,
+            }))
+        : [];
+      
+      // Calculate adaptation score (% reduction from first to last trial)
+      const adaptationScore = trialsForSamePhrase.length >= 2
+        ? ((trialsForSamePhrase[0].stutterCount - trialsForSamePhrase[trialsForSamePhrase.length - 1].stutterCount) 
+           / Math.max(1, trialsForSamePhrase[0].stutterCount)) * 100
+        : null;
+      
+      // Extract consistency words from session data
+      const consistencyWords = sessions?.[0]?.consistency_words as string[] || [];
+      
+      // Identify improving words (placeholder - would need word-level tracking)
+      const improvingWords: string[] = [];
+
       setMetrics({
         // Surface
         weightedStutteringSeverity: 100 - avgFluency, // Approximate
@@ -203,6 +242,13 @@ const TherapistAnalyticsHub = () => {
         // Iceberg
         objectiveSeverity: 100 - avgFluency,
         subjectiveRating: latestRating,
+        
+        // Adaptation & Consistency
+        adaptationScore,
+        consistencyWords,
+        improvingWords,
+        trials: trialsForSamePhrase,
+        targetPhrase,
         
         // Action
         totalSessions,
@@ -279,7 +325,7 @@ const TherapistAnalyticsHub = () => {
       <main className="container mx-auto px-4 py-6">
         {metrics ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid grid-cols-6 w-full max-w-3xl mx-auto">
+            <TabsList className="grid grid-cols-7 w-full max-w-4xl mx-auto">
               <TabsTrigger value="overview" className="flex items-center gap-1">
                 <Activity className="w-4 h-4" />
                 <span className="hidden sm:inline">Overview</span>
@@ -295,6 +341,10 @@ const TherapistAnalyticsHub = () => {
               <TabsTrigger value="phoneme" className="flex items-center gap-1">
                 <Grid3X3 className="w-4 h-4" />
                 <span className="hidden sm:inline">Phonemes</span>
+              </TabsTrigger>
+              <TabsTrigger value="adaptation" className="flex items-center gap-1">
+                <Repeat className="w-4 h-4" />
+                <span className="hidden sm:inline">Adaptation</span>
               </TabsTrigger>
               <TabsTrigger value="technique" className="flex items-center gap-1">
                 <Target className="w-4 h-4" />
@@ -371,6 +421,17 @@ const TherapistAnalyticsHub = () => {
                   }}
                   compact
                 />
+                
+                <AdaptationConsistencyTracker 
+                  metrics={{
+                    trials: metrics.trials,
+                    adaptationScore: metrics.adaptationScore,
+                    consistencyWords: metrics.consistencyWords,
+                    improvingWords: metrics.improvingWords,
+                    targetPhrase: metrics.targetPhrase,
+                  }}
+                  compact
+                />
               </div>
             </TabsContent>
 
@@ -409,6 +470,19 @@ const TherapistAnalyticsHub = () => {
               <PhonemeTriggerHeatmap 
                 triggers={metrics.phonemeTriggers}
                 wordAvoidances={metrics.wordAvoidances}
+              />
+            </TabsContent>
+
+            {/* Adaptation Tab */}
+            <TabsContent value="adaptation">
+              <AdaptationConsistencyTracker 
+                metrics={{
+                  trials: metrics.trials,
+                  adaptationScore: metrics.adaptationScore,
+                  consistencyWords: metrics.consistencyWords,
+                  improvingWords: metrics.improvingWords,
+                  targetPhrase: metrics.targetPhrase,
+                }}
               />
             </TabsContent>
 
