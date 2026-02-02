@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Sparkles, Menu, X } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Sparkles, Menu, LogOut } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const navLinks = [
   { to: "/about", label: "About" },
@@ -16,6 +18,18 @@ const navLinks = [
 
 export const HubNavigation = () => {
   const [open, setOpen] = useState(false);
+  const { signOut, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast.error("Failed to sign out");
+    } else {
+      toast.success("Signed out successfully");
+      navigate("/signin");
+    }
+  };
 
   return (
     <div className="bg-card border-b border-border">
@@ -42,6 +56,17 @@ export const HubNavigation = () => {
                 {link.label}
               </Link>
             ))}
+            {isAuthenticated && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleSignOut}
+                className="text-muted-foreground hover:text-foreground gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Sign Out
+              </Button>
+            )}
           </nav>
 
           {/* Mobile Hamburger Menu */}
@@ -71,6 +96,19 @@ export const HubNavigation = () => {
                       {link.label}
                     </Link>
                   ))}
+                  {isAuthenticated && (
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => {
+                        setOpen(false);
+                        handleSignOut();
+                      }}
+                      className="justify-start text-muted-foreground hover:text-foreground gap-2 px-0"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sign Out
+                    </Button>
+                  )}
                 </nav>
               </div>
             </SheetContent>
