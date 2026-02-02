@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Activity, Brain, Target, FileText, Grid3X3, Clock, Loader2, RefreshCw, Repeat } from "lucide-react";
+import { ArrowLeft, Activity, Brain, Target, FileText, Grid3X3, Clock, Loader2, RefreshCw, Repeat, MapPin, Pause, Shield } from "lucide-react";
 import { HubNavigation } from "@/components/HubNavigation";
 import PageBackground from "@/components/PageBackground";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +18,11 @@ import {
   IcebergCommandCentre,
   ActionCommandCentre,
   AdaptationConsistencyTracker,
+  PauseArchitectureTracker,
+  WordAvoidanceTracker,
+  SituationalHeatmap,
+  SOAPNoteGenerator,
+  PredictiveRelapseRisk,
 } from "@/components/therapist";
 
 // Mock patients for demo
@@ -27,6 +32,14 @@ const patients = [
   { id: "2", name: "Jordan S." },
   { id: "3", name: "Sam T." },
 ];
+
+interface EnvironmentData {
+  environment: string;
+  sessionCount: number;
+  avgFluency: number;
+  avgAnxiety?: number | null;
+  trend?: 'improving' | 'stable' | 'declining';
+}
 
 interface ClinicalMetrics {
   // Surface metrics
@@ -46,6 +59,9 @@ interface ClinicalMetrics {
   linguisticPausesCount: number;
   stutterHesitationsCount: number;
   avgPauseDurationMs: number | null;
+  longestBlockMs: number | null;
+  secondLongestBlockMs: number | null;
+  thirdLongestBlockMs: number | null;
   
   // Phoneme triggers
   phonemeTriggers: Array<{
@@ -67,6 +83,9 @@ interface ClinicalMetrics {
   objectiveSeverity: number;
   subjectiveRating: number | null;
   
+  // Environment data
+  environmentData: EnvironmentData[];
+  
   // Adaptation & Consistency metrics
   adaptationScore: number | null;
   consistencyWords: string[];
@@ -86,6 +105,12 @@ interface ClinicalMetrics {
   adherenceRate: number;
   lastSessionDate: string | null;
   averageSessionsPerWeek: number;
+  
+  // Historical for relapse risk
+  previousAdherence: number;
+  previousFluency: number;
+  previousAvoidanceCount: number;
+  previousTechniqueSuccessRate: number;
 }
 
 const TherapistAnalyticsHub = () => {
@@ -209,39 +234,111 @@ const TherapistAnalyticsHub = () => {
       // Identify improving words (placeholder - would need word-level tracking)
       const improvingWords: string[] = [];
 
+      // Build environment data from sessions
+      const envMap = new Map<string, { count: number; totalFluency: number }>();
+      sessions?.forEach(s => {
+        const env = s.environment_type || 'app';
+        const existing = envMap.get(env) || { count: 0, totalFluency: 0 };
+        existing.count++;
+        existing.totalFluency += s.fluency_score || 0;
+        envMap.set(env, existing);
+      });
+      
+      const environmentData: EnvironmentData[] = Array.from(envMap.entries()).map(([env, data]) => ({
+        environment: env,
+        sessionCount: data.count,
+        avgFluency: data.count > 0 ? data.totalFluency / data.count : 0,
+      }));
+      
+      // Collect word avoidances from sessions
+      const allWordAvoidances: string[] = [];
+      sessions?.forEach(s => {
+        const avoidances = s.word_avoidances as string[] | null;
+        if (avoidances && Array.isArray(avoidances)) {
+          allWordAvoidances.push(...avoidances);
+        }
+      });
+      const uniqueWordAvoidances = [...new Set(allWordAvoidances)];
+      
+      // Get pause metrics from most recent session
+      const latestSession = sessions?.[0];
+      const linguisticPausesCount = latestSession?.linguistic_pauses_count || 0;
+      const stutterHesitationsCount = latestSession?.stutter_hesitations_count || 0;
+      const avgPauseDurationMs = latestSession?.avg_pause_duration_ms || null;
+      const longestBlockMs = latestSession?.longest_block_ms || null;
+      const secondLongestBlockMs = latestSession?.second_longest_block_ms || null;
+      const thirdLongestBlockMs = latestSession?.third_longest_block_ms || null;
+      
+      // Calculate previous period metrics for relapse risk (sessions 8-14 days ago)
+      const fourteenDaysAgo = new Date();
+      fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+      const previousPeriodSessions = sessions?.filter(s => {
+        const date = new Date(s.session_date);
+        return date >= fourteenDaysAgo && date < sevenDaysAgo;
+      }) || [];
+      
+      const previousAdherence = Math.min(100, (previousPeriodSessions.length / 7) * 100);
+      const previousFluency = previousPeriodSessions.length > 0
+        ? previousPeriodSessions.reduce((sum, s) => sum + (s.fluency_score || 0), 0) / previousPeriodSessions.length
+        : avgFluency;
+      
+      // Calculate technique success rates
+      const totalAttempts = sessions?.reduce((sum, s) => sum + (s.easy_onset_attempts || 0), 0) || 0;
+      const totalSuccesses = sessions?.reduce((sum, s) => sum + (s.easy_onset_successes || 0), 0) || 0;
+      const techniqueSuccessRate = totalAttempts > 0 ? (totalSuccesses / totalAttempts) * 100 : 50;
+      
+      const prevAttempts = previousPeriodSessions.reduce((sum, s) => sum + (s.easy_onset_attempts || 0), 0);
+      const prevSuccesses = previousPeriodSessions.reduce((sum, s) => sum + (s.easy_onset_successes || 0), 0);
+      const previousTechniqueSuccessRate = prevAttempts > 0 ? (prevSuccesses / prevAttempts) * 100 : techniqueSuccessRate;
+      
+      // Count avoidances in previous period
+      let previousAvoidanceCount = 0;
+      previousPeriodSessions.forEach(s => {
+        const avoidances = s.word_avoidances as string[] | null;
+        if (avoidances && Array.isArray(avoidances)) {
+          previousAvoidanceCount += avoidances.length;
+        }
+      });
+
       setMetrics({
         // Surface
         weightedStutteringSeverity: 100 - avgFluency, // Approximate
         percentSyllablesStuttered: sldCount > 0 ? (sldCount / (totalSessions * 50)) * 100 : 0,
         sldCount,
         odCount,
-        syllablesPerMinute: 120, // Would come from actual analysis
-        articulationRate: 140,
+        syllablesPerMinute: latestSession?.syllables_per_minute || 120,
+        articulationRate: latestSession?.articulation_rate || 140,
         blocksCount: blocksTotal,
         prolongationsCount: prolongationsTotal,
         repetitionsCount: repetitionsTotal,
         
         // Temporal
-        initiationLagMs: null,
-        naturalnessScore: 5,
-        linguisticPausesCount: 0,
-        stutterHesitationsCount: 0,
-        avgPauseDurationMs: null,
+        initiationLagMs: latestSession?.initiation_lag_ms || null,
+        naturalnessScore: latestSession?.naturalness_score || 5,
+        linguisticPausesCount,
+        stutterHesitationsCount,
+        avgPauseDurationMs,
+        longestBlockMs,
+        secondLongestBlockMs,
+        thirdLongestBlockMs,
         
         // Phoneme
         phonemeTriggers,
-        wordAvoidances: [],
+        wordAvoidances: uniqueWordAvoidances,
         
         // Technique
         easyOnsetScore: sessions?.[0]?.easy_onset_score || null,
-        easyOnsetAttempts: 0,
-        easyOnsetSuccesses: 0,
-        softContactScore: null,
+        easyOnsetAttempts: totalAttempts,
+        easyOnsetSuccesses: totalSuccesses,
+        softContactScore: latestSession?.soft_contact_score || null,
         techniquesObserved: [],
         
         // Iceberg
         objectiveSeverity: 100 - avgFluency,
         subjectiveRating: latestRating,
+        
+        // Environment
+        environmentData,
         
         // Adaptation & Consistency
         adaptationScore,
@@ -257,6 +354,12 @@ const TherapistAnalyticsHub = () => {
         adherenceRate,
         lastSessionDate: sessions?.[0]?.session_date || null,
         averageSessionsPerWeek: avgSessionsPerWeek,
+        
+        // Historical for relapse risk
+        previousAdherence,
+        previousFluency,
+        previousAvoidanceCount,
+        previousTechniqueSuccessRate,
       });
 
     } catch (error) {
@@ -325,34 +428,46 @@ const TherapistAnalyticsHub = () => {
       <main className="container mx-auto px-4 py-6">
         {metrics ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid grid-cols-7 w-full max-w-4xl mx-auto">
+            <TabsList className="grid grid-cols-5 lg:grid-cols-10 w-full max-w-6xl mx-auto">
               <TabsTrigger value="overview" className="flex items-center gap-1">
                 <Activity className="w-4 h-4" />
-                <span className="hidden sm:inline">Overview</span>
+                <span className="hidden lg:inline">Overview</span>
               </TabsTrigger>
               <TabsTrigger value="surface" className="flex items-center gap-1">
                 <Activity className="w-4 h-4" />
-                <span className="hidden sm:inline">Surface</span>
+                <span className="hidden lg:inline">Surface</span>
               </TabsTrigger>
               <TabsTrigger value="temporal" className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />
-                <span className="hidden sm:inline">Temporal</span>
+                <span className="hidden lg:inline">Temporal</span>
+              </TabsTrigger>
+              <TabsTrigger value="pause" className="flex items-center gap-1">
+                <Pause className="w-4 h-4" />
+                <span className="hidden lg:inline">Pause</span>
               </TabsTrigger>
               <TabsTrigger value="phoneme" className="flex items-center gap-1">
                 <Grid3X3 className="w-4 h-4" />
-                <span className="hidden sm:inline">Phonemes</span>
+                <span className="hidden lg:inline">Phonemes</span>
               </TabsTrigger>
               <TabsTrigger value="adaptation" className="flex items-center gap-1">
                 <Repeat className="w-4 h-4" />
-                <span className="hidden sm:inline">Adaptation</span>
+                <span className="hidden lg:inline">Adaptation</span>
               </TabsTrigger>
               <TabsTrigger value="technique" className="flex items-center gap-1">
                 <Target className="w-4 h-4" />
-                <span className="hidden sm:inline">Technique</span>
+                <span className="hidden lg:inline">Technique</span>
               </TabsTrigger>
               <TabsTrigger value="iceberg" className="flex items-center gap-1">
                 <Brain className="w-4 h-4" />
-                <span className="hidden sm:inline">Iceberg</span>
+                <span className="hidden lg:inline">Iceberg</span>
+              </TabsTrigger>
+              <TabsTrigger value="action" className="flex items-center gap-1">
+                <Shield className="w-4 h-4" />
+                <span className="hidden lg:inline">Action</span>
+              </TabsTrigger>
+              <TabsTrigger value="notes" className="flex items-center gap-1">
+                <FileText className="w-4 h-4" />
+                <span className="hidden lg:inline">S.O.A.P.</span>
               </TabsTrigger>
             </TabsList>
 
@@ -432,6 +547,44 @@ const TherapistAnalyticsHub = () => {
                   }}
                   compact
                 />
+                
+                <PauseArchitectureTracker 
+                  metrics={{
+                    linguisticPausesCount: metrics.linguisticPausesCount,
+                    stutterHesitationsCount: metrics.stutterHesitationsCount,
+                    avgPauseDurationMs: metrics.avgPauseDurationMs,
+                    longestBlockMs: metrics.longestBlockMs,
+                    secondLongestBlockMs: metrics.secondLongestBlockMs,
+                    thirdLongestBlockMs: metrics.thirdLongestBlockMs,
+                  }}
+                  compact
+                />
+                
+                <WordAvoidanceTracker 
+                  avoidances={metrics.wordAvoidances}
+                  compact
+                />
+                
+                <PredictiveRelapseRisk 
+                  data={{
+                    currentAdherence: metrics.adherenceRate,
+                    currentFluency: 100 - metrics.weightedStutteringSeverity,
+                    currentAvoidanceCount: metrics.wordAvoidances.length,
+                    previousAdherence: metrics.previousAdherence,
+                    previousFluency: metrics.previousFluency,
+                    previousAvoidanceCount: metrics.previousAvoidanceCount,
+                    daysSinceLastSession: metrics.lastSessionDate 
+                      ? Math.floor((Date.now() - new Date(metrics.lastSessionDate).getTime()) / (1000 * 60 * 60 * 24))
+                      : 0,
+                    sessionsThisWeek: Math.round(metrics.adherenceRate / 100 * 7),
+                    averageSessionsPerWeek: metrics.averageSessionsPerWeek,
+                    techniqueSuccessRate: metrics.easyOnsetAttempts > 0 
+                      ? (metrics.easyOnsetSuccesses / metrics.easyOnsetAttempts) * 100 
+                      : 50,
+                    previousTechniqueSuccessRate: metrics.previousTechniqueSuccessRate,
+                  }}
+                  compact
+                />
               </div>
             </TabsContent>
 
@@ -465,12 +618,33 @@ const TherapistAnalyticsHub = () => {
               />
             </TabsContent>
 
-            {/* Phoneme Tab */}
-            <TabsContent value="phoneme">
-              <PhonemeTriggerHeatmap 
-                triggers={metrics.phonemeTriggers}
-                wordAvoidances={metrics.wordAvoidances}
+            {/* Pause Tab */}
+            <TabsContent value="pause" className="space-y-6">
+              <PauseArchitectureTracker 
+                metrics={{
+                  linguisticPausesCount: metrics.linguisticPausesCount,
+                  stutterHesitationsCount: metrics.stutterHesitationsCount,
+                  avgPauseDurationMs: metrics.avgPauseDurationMs,
+                  longestBlockMs: metrics.longestBlockMs,
+                  secondLongestBlockMs: metrics.secondLongestBlockMs,
+                  thirdLongestBlockMs: metrics.thirdLongestBlockMs,
+                }}
               />
+            </TabsContent>
+
+            {/* Phoneme Tab */}
+            <TabsContent value="phoneme" className="space-y-6">
+              <div className="grid lg:grid-cols-2 gap-6">
+                <PhonemeTriggerHeatmap 
+                  triggers={metrics.phonemeTriggers}
+                  wordAvoidances={metrics.wordAvoidances}
+                />
+                
+                <WordAvoidanceTracker 
+                  avoidances={metrics.wordAvoidances}
+                  fearedPhonemes={metrics.phonemeTriggers.slice(0, 5).map(p => p.phoneme)}
+                />
+              </div>
             </TabsContent>
 
             {/* Adaptation Tab */}
@@ -507,8 +681,18 @@ const TherapistAnalyticsHub = () => {
                     objectiveSeverity: metrics.objectiveSeverity,
                     subjectiveRating: metrics.subjectiveRating,
                   }}
+                  environmentData={metrics.environmentData}
                 />
                 
+                <SituationalHeatmap 
+                  environmentData={metrics.environmentData}
+                />
+              </div>
+            </TabsContent>
+
+            {/* Action Tab */}
+            <TabsContent value="action" className="space-y-6">
+              <div className="grid lg:grid-cols-2 gap-6">
                 <ActionCommandCentre 
                   metrics={{
                     totalSessions: metrics.totalSessions,
@@ -518,15 +702,51 @@ const TherapistAnalyticsHub = () => {
                     lastSessionDate: metrics.lastSessionDate,
                     averageSessionsPerWeek: metrics.averageSessionsPerWeek,
                   }}
-                  relapseRisk={{
-                    avoidanceTrend: 'stable',
-                    fluencyTrend: metrics.weightedStutteringSeverity < 30 ? 'improving' : 'stable',
-                    engagementTrend: metrics.adherenceRate > 60 ? 'stable' : 'decreasing',
-                    overallRisk: metrics.adherenceRate < 40 ? 'high' : 
-                                 metrics.adherenceRate < 60 ? 'medium' : 'low',
+                />
+                
+                <PredictiveRelapseRisk 
+                  data={{
+                    currentAdherence: metrics.adherenceRate,
+                    currentFluency: 100 - metrics.weightedStutteringSeverity,
+                    currentAvoidanceCount: metrics.wordAvoidances.length,
+                    previousAdherence: metrics.previousAdherence,
+                    previousFluency: metrics.previousFluency,
+                    previousAvoidanceCount: metrics.previousAvoidanceCount,
+                    daysSinceLastSession: metrics.lastSessionDate 
+                      ? Math.floor((Date.now() - new Date(metrics.lastSessionDate).getTime()) / (1000 * 60 * 60 * 24))
+                      : 0,
+                    sessionsThisWeek: Math.round(metrics.adherenceRate / 100 * 7),
+                    averageSessionsPerWeek: metrics.averageSessionsPerWeek,
+                    techniqueSuccessRate: metrics.easyOnsetAttempts > 0 
+                      ? (metrics.easyOnsetSuccesses / metrics.easyOnsetAttempts) * 100 
+                      : 50,
+                    previousTechniqueSuccessRate: metrics.previousTechniqueSuccessRate,
                   }}
                 />
               </div>
+            </TabsContent>
+
+            {/* S.O.A.P. Notes Tab */}
+            <TabsContent value="notes">
+              <SOAPNoteGenerator 
+                clinicalData={{
+                  weightedStutteringSeverity: metrics.weightedStutteringSeverity,
+                  percentSyllablesStuttered: metrics.percentSyllablesStuttered,
+                  sldCount: metrics.sldCount,
+                  odCount: metrics.odCount,
+                  initiationLagMs: metrics.initiationLagMs,
+                  naturalnessScore: metrics.naturalnessScore,
+                  blocksCount: metrics.blocksCount,
+                  prolongationsCount: metrics.prolongationsCount,
+                  repetitionsCount: metrics.repetitionsCount,
+                  easyOnsetScore: metrics.easyOnsetScore,
+                  easyOnsetAttempts: metrics.easyOnsetAttempts,
+                  easyOnsetSuccesses: metrics.easyOnsetSuccesses,
+                  totalSessions: metrics.totalSessions,
+                  adherenceRate: metrics.adherenceRate,
+                  streakDays: metrics.streakDays,
+                }}
+              />
             </TabsContent>
           </Tabs>
         ) : (

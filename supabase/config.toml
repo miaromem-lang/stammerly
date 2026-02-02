@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.generate-story]
 verify_jwt = false
+
+[functions.generate-soap-note]
+verify_jwt = false
