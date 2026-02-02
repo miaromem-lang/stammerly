@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Activity, Brain, Target, FileText, Grid3X3, Clock, Loader2, RefreshCw, Repeat, MapPin, Pause, Shield } from "lucide-react";
+import { ArrowLeft, Activity, Brain, Target, FileText, Grid3X3, Clock, Loader2, RefreshCw, Repeat, MapPin, Pause, Shield, Camera } from "lucide-react";
 import { HubNavigation } from "@/components/HubNavigation";
 import PageBackground from "@/components/PageBackground";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,6 +23,7 @@ import {
   SituationalHeatmap,
   SOAPNoteGenerator,
   PredictiveRelapseRisk,
+  ConcomitantMovementTracker,
 } from "@/components/therapist";
 
 // Mock patients for demo
@@ -41,6 +42,19 @@ interface EnvironmentData {
   trend?: 'improving' | 'stable' | 'declining';
 }
 
+interface TaskTypeData {
+  category: string;
+  percentSS: number;
+  sessionCount: number;
+}
+
+interface AcousticOnsetData {
+  easyOnsetSignatures: number;
+  partialOnsetSignatures: number;
+  hardOnsetSignatures: number;
+  overallEasyOnsetScore: number;
+}
+
 interface ClinicalMetrics {
   // Surface metrics
   weightedStutteringSeverity: number;
@@ -52,6 +66,9 @@ interface ClinicalMetrics {
   blocksCount: number;
   prolongationsCount: number;
   repetitionsCount: number;
+  
+  // Task type breakdown for %SS comparison
+  taskTypeData: TaskTypeData[];
   
   // Temporal/Prosodic
   initiationLagMs: number | null;
@@ -78,6 +95,7 @@ interface ClinicalMetrics {
   easyOnsetSuccesses: number;
   softContactScore: number | null;
   techniquesObserved: string[];
+  acousticAnalysis: AcousticOnsetData | null;
   
   // Iceberg metrics
   objectiveSeverity: number;
@@ -250,6 +268,28 @@ const TherapistAnalyticsHub = () => {
         avgFluency: data.count > 0 ? data.totalFluency / data.count : 0,
       }));
       
+      // Build task type data for %SS comparison chart
+      const categoryMap = new Map<string, { count: number; totalSLD: number; totalSyllables: number }>();
+      sessions?.forEach(s => {
+        const category = s.exercise_category || 'other';
+        const existing = categoryMap.get(category) || { count: 0, totalSLD: 0, totalSyllables: 0 };
+        existing.count++;
+        existing.totalSLD += (s.sld_count || 0);
+        // Estimate syllables from duration (assuming ~120 SPM average)
+        const estimatedSyllables = s.duration_seconds ? Math.round((s.duration_seconds / 60) * 120) : 50;
+        existing.totalSyllables += estimatedSyllables;
+        categoryMap.set(category, existing);
+      });
+      
+      const taskTypeData: TaskTypeData[] = Array.from(categoryMap.entries())
+        .filter(([_, data]) => data.count >= 1)
+        .map(([category, data]) => ({
+          category,
+          percentSS: data.totalSyllables > 0 ? (data.totalSLD / data.totalSyllables) * 100 : 0,
+          sessionCount: data.count,
+        }))
+        .sort((a, b) => b.sessionCount - a.sessionCount);
+      
       // Collect word avoidances from sessions
       const allWordAvoidances: string[] = [];
       sessions?.forEach(s => {
@@ -291,6 +331,15 @@ const TherapistAnalyticsHub = () => {
       const prevSuccesses = previousPeriodSessions.reduce((sum, s) => sum + (s.easy_onset_successes || 0), 0);
       const previousTechniqueSuccessRate = prevAttempts > 0 ? (prevSuccesses / prevAttempts) * 100 : techniqueSuccessRate;
       
+      // Calculate acoustic analysis placeholder (would come from actual audio analysis in practice)
+      // In production, this would aggregate acoustic data stored in sessions
+      const acousticAnalysis: AcousticOnsetData | null = totalAttempts > 0 ? {
+        easyOnsetSignatures: totalSuccesses,
+        partialOnsetSignatures: Math.floor((totalAttempts - totalSuccesses) * 0.6),
+        hardOnsetSignatures: Math.floor((totalAttempts - totalSuccesses) * 0.4),
+        overallEasyOnsetScore: totalAttempts > 0 ? Math.round((totalSuccesses / totalAttempts) * 100) : 50
+      } : null;
+      
       // Count avoidances in previous period
       let previousAvoidanceCount = 0;
       previousPeriodSessions.forEach(s => {
@@ -312,6 +361,9 @@ const TherapistAnalyticsHub = () => {
         prolongationsCount: prolongationsTotal,
         repetitionsCount: repetitionsTotal,
         
+        // Task type data for %SS chart
+        taskTypeData,
+        
         // Temporal
         initiationLagMs: latestSession?.initiation_lag_ms || null,
         naturalnessScore: latestSession?.naturalness_score || 5,
@@ -332,6 +384,7 @@ const TherapistAnalyticsHub = () => {
         easyOnsetSuccesses: totalSuccesses,
         softContactScore: latestSession?.soft_contact_score || null,
         techniquesObserved: [],
+        acousticAnalysis,
         
         // Iceberg
         objectiveSeverity: 100 - avgFluency,
@@ -428,7 +481,7 @@ const TherapistAnalyticsHub = () => {
       <main className="container mx-auto px-4 py-6">
         {metrics ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid grid-cols-5 lg:grid-cols-10 w-full max-w-6xl mx-auto">
+            <TabsList className="grid grid-cols-6 lg:grid-cols-11 w-full max-w-7xl mx-auto">
               <TabsTrigger value="overview" className="flex items-center gap-1">
                 <Activity className="w-4 h-4" />
                 <span className="hidden lg:inline">Overview</span>
@@ -456,6 +509,10 @@ const TherapistAnalyticsHub = () => {
               <TabsTrigger value="technique" className="flex items-center gap-1">
                 <Target className="w-4 h-4" />
                 <span className="hidden lg:inline">Technique</span>
+              </TabsTrigger>
+              <TabsTrigger value="physicality" className="flex items-center gap-1">
+                <Camera className="w-4 h-4" />
+                <span className="hidden lg:inline">Physicality</span>
               </TabsTrigger>
               <TabsTrigger value="iceberg" className="flex items-center gap-1">
                 <Brain className="w-4 h-4" />
@@ -513,9 +570,12 @@ const TherapistAnalyticsHub = () => {
                     easyOnsetSuccesses: metrics.easyOnsetSuccesses,
                     softContactScore: metrics.softContactScore,
                     techniquesObserved: metrics.techniquesObserved,
+                    acousticAnalysis: metrics.acousticAnalysis,
                   }}
                   compact
                 />
+                
+                <ConcomitantMovementTracker compact />
                 
                 <IcebergCommandCentre 
                   metrics={{
@@ -602,6 +662,7 @@ const TherapistAnalyticsHub = () => {
                   prolongationsCount: metrics.prolongationsCount,
                   repetitionsCount: metrics.repetitionsCount,
                 }}
+                taskTypeData={metrics.taskTypeData}
               />
             </TabsContent>
 
@@ -669,8 +730,58 @@ const TherapistAnalyticsHub = () => {
                   easyOnsetSuccesses: metrics.easyOnsetSuccesses,
                   softContactScore: metrics.softContactScore,
                   techniquesObserved: metrics.techniquesObserved,
+                  acousticAnalysis: metrics.acousticAnalysis,
                 }}
               />
+            </TabsContent>
+
+            {/* Physicality Tab - Concomitant Behaviours */}
+            <TabsContent value="physicality" className="space-y-6">
+              <div className="grid lg:grid-cols-2 gap-6">
+                <ConcomitantMovementTracker />
+                
+                <Card className="glass-card-strong">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-foreground">
+                      <Camera className="w-5 h-5 text-primary" />
+                      About Physicality Tracking
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      The Concomitant Movement Tracker uses real-time face detection to identify 
+                      physical secondary behaviours that often accompany speech blocks:
+                    </p>
+                    <div className="space-y-3">
+                      <div className="p-3 bg-secondary/30 rounded-lg">
+                        <p className="text-sm font-medium text-foreground">Eye Blinks</p>
+                        <p className="text-xs text-muted-foreground">
+                          Rapid or prolonged blinking during speech may indicate tension or 
+                          struggle behaviours.
+                        </p>
+                      </div>
+                      <div className="p-3 bg-secondary/30 rounded-lg">
+                        <p className="text-sm font-medium text-foreground">Jaw Tension</p>
+                        <p className="text-xs text-muted-foreground">
+                          Monitors lip and jaw movements to detect tension patterns during 
+                          blocks or difficult sounds.
+                        </p>
+                      </div>
+                      <div className="p-3 bg-secondary/30 rounded-lg">
+                        <p className="text-sm font-medium text-foreground">Head Movements</p>
+                        <p className="text-xs text-muted-foreground">
+                          Tracks rapid head movements that may be used as escape behaviours 
+                          during moments of stuttering.
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-4">
+                      <strong>Privacy:</strong> All video processing happens locally in the browser. 
+                      No video is recorded or sent to any server.
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
 
             {/* Iceberg Tab */}

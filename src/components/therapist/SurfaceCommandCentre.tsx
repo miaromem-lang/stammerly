@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Activity, TrendingDown, TrendingUp, Minus, AlertTriangle, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 interface SurfaceMetrics {
   weightedStutteringSeverity: number | null;
@@ -15,15 +16,148 @@ interface SurfaceMetrics {
   repetitionsCount: number;
 }
 
+interface TaskTypeData {
+  category: string;
+  percentSS: number;
+  sessionCount: number;
+}
+
 interface SurfaceCommandCentreProps {
   metrics: SurfaceMetrics;
   previousMetrics?: SurfaceMetrics | null;
+  taskTypeData?: TaskTypeData[];
   compact?: boolean;
 }
+
+// Color scale for %SS values
+const getSSColor = (percentSS: number): string => {
+  if (percentSS <= 2) return 'hsl(var(--success))';
+  if (percentSS <= 5) return 'hsl(142, 76%, 46%)'; // lighter green
+  if (percentSS <= 10) return 'hsl(var(--gold))';
+  if (percentSS <= 15) return 'hsl(var(--accent-orange))';
+  return 'hsl(var(--destructive))';
+};
+
+// Task Type Comparison Chart Component
+const TaskTypeChart = ({ data }: { data: TaskTypeData[] }) => {
+  if (!data || data.length === 0) {
+    return (
+      <div className="p-4 bg-secondary/30 rounded-lg text-center">
+        <p className="text-sm text-muted-foreground">No task type data available yet</p>
+      </div>
+    );
+  }
+
+  // Format category names for display
+  const formattedData = data.map(d => ({
+    ...d,
+    displayName: d.category.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+  }));
+
+  // Find reading vs spontaneous for clinical insight
+  const readingData = data.find(d => d.category.toLowerCase().includes('reading'));
+  const spontaneousData = data.find(d => 
+    d.category.toLowerCase().includes('free') || 
+    d.category.toLowerCase().includes('spontaneous') ||
+    d.category.toLowerCase().includes('conversation')
+  );
+
+  const getClinicalInsight = () => {
+    if (!readingData || !spontaneousData) return null;
+    
+    const diff = spontaneousData.percentSS - readingData.percentSS;
+    if (Math.abs(diff) < 1) {
+      return "Similar %SS across task types suggests consistent fluency patterns.";
+    } else if (diff > 3) {
+      return `Spontaneous speech shows ${diff.toFixed(1)}% higher %SS than reading. Focus on transfer activities.`;
+    } else if (diff < -3) {
+      return `Reading shows ${Math.abs(diff).toFixed(1)}% higher %SS than spontaneous speech. Consider word-level interventions.`;
+    }
+    return "Slight variation between task types is typical.";
+  };
+
+  return (
+    <div className="space-y-4">
+      <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
+        %SS by Task Type
+        <span className="text-xs text-muted-foreground font-normal">
+          (Situational Comparison)
+        </span>
+      </h4>
+      
+      <div className="h-48">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart 
+            data={formattedData} 
+            layout="vertical"
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <XAxis 
+              type="number" 
+              domain={[0, 'auto']}
+              tickFormatter={(val) => `${val}%`}
+              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+            />
+            <YAxis 
+              type="category" 
+              dataKey="displayName" 
+              width={100}
+              tick={{ fontSize: 10, fill: 'hsl(var(--foreground))' }}
+            />
+            <Tooltip 
+              formatter={(value: number) => [`${value.toFixed(1)}%`, '%SS']}
+              labelFormatter={(label) => label}
+              contentStyle={{
+                backgroundColor: 'hsl(var(--background))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '8px',
+                fontSize: '12px'
+              }}
+            />
+            <Bar 
+              dataKey="percentSS" 
+              radius={[0, 4, 4, 0]}
+            >
+              {formattedData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={getSSColor(entry.percentSS)} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Clinical Insight */}
+      {getClinicalInsight() && (
+        <div className="p-2 bg-primary/10 rounded-lg">
+          <p className="text-xs text-primary">
+            <strong>Insight:</strong> {getClinicalInsight()}
+          </p>
+        </div>
+      )}
+
+      {/* Legend */}
+      <div className="flex flex-wrap gap-2 justify-center text-[10px]">
+        <span className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-success" /> ≤2%
+        </span>
+        <span className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-gold" /> 2-10%
+        </span>
+        <span className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-accent-orange" /> 10-15%
+        </span>
+        <span className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-destructive" /> &gt;15%
+        </span>
+      </div>
+    </div>
+  );
+};
 
 export const SurfaceCommandCentre = ({ 
   metrics, 
   previousMetrics,
+  taskTypeData,
   compact = false 
 }: SurfaceCommandCentreProps) => {
   const wss = metrics.weightedStutteringSeverity ?? 0;
@@ -166,6 +300,11 @@ export const SurfaceCommandCentre = ({
             )}
           </div>
         </div>
+        
+        {/* Task Type Comparison Chart */}
+        {taskTypeData && taskTypeData.length > 0 && (
+          <TaskTypeChart data={taskTypeData} />
+        )}
         
         {/* SLD vs OD Breakdown */}
         <div className="space-y-3">
