@@ -1,7 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Target, CheckCircle, XCircle, TrendingUp } from "lucide-react";
+import { Target, CheckCircle, XCircle, TrendingUp, AudioWaveform } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+interface AcousticOnsetData {
+  easyOnsetSignatures: number;
+  partialOnsetSignatures: number;
+  hardOnsetSignatures: number;
+  overallEasyOnsetScore: number;
+}
 
 interface TechniqueMetrics {
   easyOnsetScore: number | null;
@@ -9,12 +16,122 @@ interface TechniqueMetrics {
   easyOnsetSuccesses: number;
   softContactScore: number | null;
   techniquesObserved: string[];
+  acousticAnalysis?: AcousticOnsetData | null;
 }
 
 interface TechniqueAccuracyTrackerProps {
   metrics: TechniqueMetrics;
   compact?: boolean;
 }
+
+// Acoustic Signature Visualization Component
+const AcousticSignatureAnalysis = ({ data }: { data: AcousticOnsetData }) => {
+  const total = data.easyOnsetSignatures + data.partialOnsetSignatures + data.hardOnsetSignatures;
+  
+  if (total === 0) {
+    return (
+      <div className="p-3 bg-secondary/30 rounded-lg text-center">
+        <p className="text-sm text-muted-foreground">No onset patterns detected yet</p>
+      </div>
+    );
+  }
+
+  const easyPercent = (data.easyOnsetSignatures / total) * 100;
+  const partialPercent = (data.partialOnsetSignatures / total) * 100;
+  const hardPercent = (data.hardOnsetSignatures / total) * 100;
+
+  return (
+    <div className="space-y-4 p-4 bg-secondary/30 rounded-xl border border-border">
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
+          <AudioWaveform className="w-4 h-4 text-primary" />
+          Acoustic Signature Analysis
+        </h4>
+        <span className={cn(
+          "text-xs px-2 py-0.5 rounded-full",
+          data.overallEasyOnsetScore >= 70 ? "bg-success/20 text-success" :
+          data.overallEasyOnsetScore >= 50 ? "bg-gold/20 text-gold" : "bg-destructive/20 text-destructive"
+        )}>
+          {data.overallEasyOnsetScore}% Score
+        </span>
+      </div>
+
+      {/* Waveform Visual Representation */}
+      <div className="flex items-end justify-center gap-1 h-16 px-4">
+        {/* Easy Onset - Gradual Rise */}
+        <div className="flex flex-col items-center flex-1">
+          <div className="w-full flex items-end justify-center gap-0.5 h-12">
+            <div className="w-1 bg-success rounded-t" style={{ height: '20%' }} />
+            <div className="w-1 bg-success rounded-t" style={{ height: '35%' }} />
+            <div className="w-1 bg-success rounded-t" style={{ height: '50%' }} />
+            <div className="w-1 bg-success rounded-t" style={{ height: '70%' }} />
+            <div className="w-1 bg-success rounded-t" style={{ height: '85%' }} />
+            <div className="w-1 bg-success rounded-t" style={{ height: '100%' }} />
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-1">Easy Onset</p>
+          <p className="text-xs font-bold text-success">{data.easyOnsetSignatures}</p>
+        </div>
+
+        {/* Partial Onset - Moderate Rise */}
+        <div className="flex flex-col items-center flex-1">
+          <div className="w-full flex items-end justify-center gap-0.5 h-12">
+            <div className="w-1 bg-gold rounded-t" style={{ height: '30%' }} />
+            <div className="w-1 bg-gold rounded-t" style={{ height: '60%' }} />
+            <div className="w-1 bg-gold rounded-t" style={{ height: '90%' }} />
+            <div className="w-1 bg-gold rounded-t" style={{ height: '100%' }} />
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-1">Partial</p>
+          <p className="text-xs font-bold text-gold">{data.partialOnsetSignatures}</p>
+        </div>
+
+        {/* Hard Onset - Abrupt Rise */}
+        <div className="flex flex-col items-center flex-1">
+          <div className="w-full flex items-end justify-center gap-0.5 h-12">
+            <div className="w-1 bg-destructive rounded-t" style={{ height: '10%' }} />
+            <div className="w-1 bg-destructive rounded-t" style={{ height: '100%' }} />
+            <div className="w-1 bg-destructive rounded-t" style={{ height: '95%' }} />
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-1">Hard Onset</p>
+          <p className="text-xs font-bold text-destructive">{data.hardOnsetSignatures}</p>
+        </div>
+      </div>
+
+      {/* Distribution Bar */}
+      <div className="space-y-1">
+        <div className="flex justify-between text-[10px] text-muted-foreground">
+          <span>Onset Pattern Distribution</span>
+          <span>{total} total</span>
+        </div>
+        <div className="h-3 rounded-full overflow-hidden flex">
+          <div 
+            className="h-full bg-success transition-all"
+            style={{ width: `${easyPercent}%` }}
+            title={`Easy: ${data.easyOnsetSignatures}`}
+          />
+          <div 
+            className="h-full bg-gold transition-all"
+            style={{ width: `${partialPercent}%` }}
+            title={`Partial: ${data.partialOnsetSignatures}`}
+          />
+          <div 
+            className="h-full bg-destructive transition-all"
+            style={{ width: `${hardPercent}%` }}
+            title={`Hard: ${data.hardOnsetSignatures}`}
+          />
+        </div>
+      </div>
+
+      {/* Clinical Insight */}
+      <p className="text-xs text-muted-foreground">
+        {easyPercent >= 70 
+          ? "Excellent acoustic signature for Easy Onset technique. Gentle volume rise detected consistently."
+          : easyPercent >= 50
+            ? "Good progress with Easy Onset. Some utterances show abrupt starts - practice gradual volume increase."
+            : "Most utterances show abrupt onset patterns. Focus on starting sounds gently with a soft 'h' sound."}
+      </p>
+    </div>
+  );
+};
 
 export const TechniqueAccuracyTracker = ({ 
   metrics, 
@@ -66,6 +183,18 @@ export const TechniqueAccuracyTracker = ({
             <span className="text-xs text-muted-foreground">Techniques Used</span>
             <span className="font-medium text-sm">{metrics.techniquesObserved.length}</span>
           </div>
+          {metrics.acousticAnalysis && (
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">Acoustic Score</span>
+              <span className={cn(
+                "font-medium text-sm",
+                metrics.acousticAnalysis.overallEasyOnsetScore >= 70 ? "text-success" :
+                metrics.acousticAnalysis.overallEasyOnsetScore >= 50 ? "text-gold" : "text-destructive"
+              )}>
+                {metrics.acousticAnalysis.overallEasyOnsetScore}%
+              </span>
+            </div>
+          )}
         </CardContent>
       </Card>
     );
@@ -114,6 +243,11 @@ export const TechniqueAccuracyTracker = ({
                 : "Continue monitoring technique usage and provide feedback"}
           </p>
         </div>
+
+        {/* Acoustic Signature Analysis */}
+        {metrics.acousticAnalysis && (
+          <AcousticSignatureAnalysis data={metrics.acousticAnalysis} />
+        )}
         
         {/* Attempts Breakdown */}
         <div className="grid grid-cols-2 gap-4">
