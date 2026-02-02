@@ -71,6 +71,59 @@ export type Database = {
         }
         Relationships: []
       }
+      disfluency_logs: {
+        Row: {
+          created_at: string
+          disfluency_category: string
+          disfluency_type: string
+          duration_ms: number | null
+          id: string
+          phoneme: string | null
+          position_in_word: string | null
+          session_id: string | null
+          severity: string | null
+          timestamp_in_session: number | null
+          user_id: string | null
+          word: string
+        }
+        Insert: {
+          created_at?: string
+          disfluency_category?: string
+          disfluency_type: string
+          duration_ms?: number | null
+          id?: string
+          phoneme?: string | null
+          position_in_word?: string | null
+          session_id?: string | null
+          severity?: string | null
+          timestamp_in_session?: number | null
+          user_id?: string | null
+          word: string
+        }
+        Update: {
+          created_at?: string
+          disfluency_category?: string
+          disfluency_type?: string
+          duration_ms?: number | null
+          id?: string
+          phoneme?: string | null
+          position_in_word?: string | null
+          session_id?: string | null
+          severity?: string | null
+          timestamp_in_session?: number | null
+          user_id?: string | null
+          word?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disfluency_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "practice_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kid_messages: {
         Row: {
           child_user_id: string | null
@@ -101,75 +154,168 @@ export type Database = {
       practice_sessions: {
         Row: {
           accuracy_score: number | null
+          adaptation_score: number | null
+          articulation_rate: number | null
+          avg_pause_duration_ms: number | null
           blocks_count: number | null
+          consistency_words: Json | null
           created_at: string
           duration_seconds: number | null
+          easy_onset_attempts: number | null
           easy_onset_score: number | null
+          easy_onset_successes: number | null
+          environment_type: string | null
           exercise_category: string
           exercise_difficulty: string
           exercise_name: string
           fluency_score: number | null
           gems_earned: number | null
           id: string
+          initiation_lag_ms: number | null
           interjections_count: number | null
+          linguistic_pauses_count: number | null
+          longest_block_ms: number | null
           messages_count: number | null
+          naturalness_score: number | null
+          od_count: number | null
           pacing_score: number | null
+          percent_syllables_stuttered: number | null
+          phoneme_triggers: Json | null
+          phrase_repetitions_count: number | null
+          pitch_variance: number | null
           prolongations_count: number | null
           repetitions_count: number | null
+          revisions_count: number | null
+          second_longest_block_ms: number | null
+          session_context: string | null
           session_date: string
+          sld_count: number | null
+          soft_contact_score: number | null
+          sound_repetitions_count: number | null
           stars_earned: number | null
+          stutter_hesitations_count: number | null
+          syllable_repetitions_count: number | null
+          syllables_per_minute: number | null
           target_phrase: string | null
+          third_longest_block_ms: number | null
           topic_id: string | null
           transcript: string | null
+          trial_number: number | null
           user_id: string | null
+          volume_variance: number | null
+          weighted_stuttering_severity: number | null
+          word_avoidances: Json | null
+          word_repetitions_count: number | null
         }
         Insert: {
           accuracy_score?: number | null
+          adaptation_score?: number | null
+          articulation_rate?: number | null
+          avg_pause_duration_ms?: number | null
           blocks_count?: number | null
+          consistency_words?: Json | null
           created_at?: string
           duration_seconds?: number | null
+          easy_onset_attempts?: number | null
           easy_onset_score?: number | null
+          easy_onset_successes?: number | null
+          environment_type?: string | null
           exercise_category: string
           exercise_difficulty?: string
           exercise_name: string
           fluency_score?: number | null
           gems_earned?: number | null
           id?: string
+          initiation_lag_ms?: number | null
           interjections_count?: number | null
+          linguistic_pauses_count?: number | null
+          longest_block_ms?: number | null
           messages_count?: number | null
+          naturalness_score?: number | null
+          od_count?: number | null
           pacing_score?: number | null
+          percent_syllables_stuttered?: number | null
+          phoneme_triggers?: Json | null
+          phrase_repetitions_count?: number | null
+          pitch_variance?: number | null
           prolongations_count?: number | null
           repetitions_count?: number | null
+          revisions_count?: number | null
+          second_longest_block_ms?: number | null
+          session_context?: string | null
           session_date?: string
+          sld_count?: number | null
+          soft_contact_score?: number | null
+          sound_repetitions_count?: number | null
           stars_earned?: number | null
+          stutter_hesitations_count?: number | null
+          syllable_repetitions_count?: number | null
+          syllables_per_minute?: number | null
           target_phrase?: string | null
+          third_longest_block_ms?: number | null
           topic_id?: string | null
           transcript?: string | null
+          trial_number?: number | null
           user_id?: string | null
+          volume_variance?: number | null
+          weighted_stuttering_severity?: number | null
+          word_avoidances?: Json | null
+          word_repetitions_count?: number | null
         }
         Update: {
           accuracy_score?: number | null
+          adaptation_score?: number | null
+          articulation_rate?: number | null
+          avg_pause_duration_ms?: number | null
           blocks_count?: number | null
+          consistency_words?: Json | null
           created_at?: string
           duration_seconds?: number | null
+          easy_onset_attempts?: number | null
           easy_onset_score?: number | null
+          easy_onset_successes?: number | null
+          environment_type?: string | null
           exercise_category?: string
           exercise_difficulty?: string
           exercise_name?: string
           fluency_score?: number | null
           gems_earned?: number | null
           id?: string
+          initiation_lag_ms?: number | null
           interjections_count?: number | null
+          linguistic_pauses_count?: number | null
+          longest_block_ms?: number | null
           messages_count?: number | null
+          naturalness_score?: number | null
+          od_count?: number | null
           pacing_score?: number | null
+          percent_syllables_stuttered?: number | null
+          phoneme_triggers?: Json | null
+          phrase_repetitions_count?: number | null
+          pitch_variance?: number | null
           prolongations_count?: number | null
           repetitions_count?: number | null
+          revisions_count?: number | null
+          second_longest_block_ms?: number | null
+          session_context?: string | null
           session_date?: string
+          sld_count?: number | null
+          soft_contact_score?: number | null
+          sound_repetitions_count?: number | null
           stars_earned?: number | null
+          stutter_hesitations_count?: number | null
+          syllable_repetitions_count?: number | null
+          syllables_per_minute?: number | null
           target_phrase?: string | null
+          third_longest_block_ms?: number | null
           topic_id?: string | null
           transcript?: string | null
+          trial_number?: number | null
           user_id?: string | null
+          volume_variance?: number | null
+          weighted_stuttering_severity?: number | null
+          word_avoidances?: Json | null
+          word_repetitions_count?: number | null
         }
         Relationships: []
       }
@@ -269,6 +415,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "session_reviews_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "practice_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subjective_ratings: {
+        Row: {
+          anxiety_after: number | null
+          anxiety_before: number | null
+          created_at: string
+          id: string
+          notes: string | null
+          rating_date: string
+          session_id: string | null
+          situation_context: string | null
+          suds_rating: number
+          user_id: string | null
+        }
+        Insert: {
+          anxiety_after?: number | null
+          anxiety_before?: number | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          rating_date?: string
+          session_id?: string | null
+          situation_context?: string | null
+          suds_rating: number
+          user_id?: string | null
+        }
+        Update: {
+          anxiety_after?: number | null
+          anxiety_before?: number | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          rating_date?: string
+          session_id?: string | null
+          situation_context?: string | null
+          suds_rating?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subjective_ratings_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "practice_sessions"
@@ -540,6 +733,28 @@ export type Database = {
       }
     }
     Views: {
+      clinical_metrics_summary: {
+        Row: {
+          avg_articulation_rate: number | null
+          avg_easy_onset: number | null
+          avg_initiation_lag: number | null
+          avg_naturalness: number | null
+          avg_percent_ss: number | null
+          avg_spm: number | null
+          avg_wss: number | null
+          practice_date: string | null
+          technique_success_rate: number | null
+          total_blocks: number | null
+          total_od: number | null
+          total_prolongations: number | null
+          total_sessions: number | null
+          total_sld: number | null
+          total_sound_reps: number | null
+          total_word_reps: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       daily_analytics: {
         Row: {
           avg_accuracy: number | null
@@ -553,6 +768,17 @@ export type Database = {
           total_repetitions: number | null
           total_sessions: number | null
           total_stars: number | null
+        }
+        Relationships: []
+      }
+      phoneme_trigger_summary: {
+        Row: {
+          avg_duration_ms: number | null
+          disfluency_type: string | null
+          occurrence_count: number | null
+          phoneme: string | null
+          user_id: string | null
+          week_start: string | null
         }
         Relationships: []
       }

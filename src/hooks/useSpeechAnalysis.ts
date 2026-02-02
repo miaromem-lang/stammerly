@@ -16,6 +16,13 @@ interface Disfluency {
   suggestion: string;
 }
 
+interface PhonemeTrigger {
+  phoneme: string;
+  count: number;
+  avgDurationMs: number;
+  words: string[];
+}
+
 interface AnalysisResult {
   fluencyScore: number;
   accuracy: number;
@@ -29,10 +36,49 @@ interface AnalysisResult {
   techniquesObserved: string[];
   clinicalNote: string;
   encouragement: string;
-  acousticAnalysis?: {
-    blocksDetected: number;
-    prolongationsDetected: number;
-  };
+  
+  // Clinical metrics - Surface Command Centre
+  weightedStutteringSeverity?: number;
+  articulationRate?: number;
+  sldCount?: number;
+  odCount?: number;
+  
+  // Temporal & Prosodic
+  initiationLagMs?: number | null;
+  naturalnessScore?: number | null;
+  
+  // Disfluency breakdown
+  blocksCount?: number;
+  prolongationsCount?: number;
+  soundRepetitionsCount?: number;
+  syllableRepetitionsCount?: number;
+  wordRepetitionsCount?: number;
+  phraseRepetitionsCount?: number;
+  revisionsCount?: number;
+  interjectionsCount?: number;
+  
+  // Technique tracking
+  easyOnsetAttempts?: number;
+  easyOnsetSuccesses?: number;
+  softContactScore?: number | null;
+  
+  // Pause architecture
+  linguisticPausesCount?: number;
+  stutterHesitationsCount?: number;
+  avgPauseDurationMs?: number | null;
+  
+  // Phoneme triggers
+  phonemeTriggers?: PhonemeTrigger[];
+  wordAvoidances?: string[];
+  
+  // Longest blocks
+  longestBlockMs?: number | null;
+  secondLongestBlockMs?: number | null;
+  thirdLongestBlockMs?: number | null;
+  
+  // Context
+  sessionContext?: string;
+  environmentType?: string;
 }
 
 interface TranscriptionResult {
