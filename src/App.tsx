@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
+import DevHome from "./pages/DevHome";
 import Auth from "./pages/Auth";
 import KidHub from "./pages/KidHub";
 import ParentHub from "./pages/ParentHub";
@@ -39,6 +40,7 @@ const App = () => (
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
+            <Route path="/dev" element={<DevHome />} />
             <Route path="/signin" element={<Auth />} />
             <Route path="/about" element={<About />} />
             <Route path="/our-story" element={<OurStory />} />
