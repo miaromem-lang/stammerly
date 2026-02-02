@@ -481,42 +481,26 @@ const TherapistAnalyticsHub = () => {
       <main className="container mx-auto px-4 py-6">
         {metrics ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid grid-cols-5 lg:grid-cols-10 w-full max-w-7xl mx-auto">
+            <TabsList className="grid grid-cols-3 lg:grid-cols-6 w-full max-w-5xl mx-auto">
               <TabsTrigger value="overview" className="flex items-center gap-1">
                 <Activity className="w-4 h-4" />
                 <span className="hidden lg:inline">Overview</span>
               </TabsTrigger>
-              <TabsTrigger value="surface" className="flex items-center gap-1">
+              <TabsTrigger value="fluency" className="flex items-center gap-1">
                 <Activity className="w-4 h-4" />
-                <span className="hidden lg:inline">Surface</span>
+                <span className="hidden lg:inline">Fluency</span>
               </TabsTrigger>
               <TabsTrigger value="temporal" className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />
                 <span className="hidden lg:inline">Temporal</span>
               </TabsTrigger>
-              <TabsTrigger value="pause" className="flex items-center gap-1">
-                <Pause className="w-4 h-4" />
-                <span className="hidden lg:inline">Pause</span>
-              </TabsTrigger>
-              <TabsTrigger value="phoneme" className="flex items-center gap-1">
-                <Grid3X3 className="w-4 h-4" />
-                <span className="hidden lg:inline">Phonemes</span>
-              </TabsTrigger>
-              <TabsTrigger value="adaptation" className="flex items-center gap-1">
-                <Repeat className="w-4 h-4" />
-                <span className="hidden lg:inline">Adaptation</span>
-              </TabsTrigger>
-              <TabsTrigger value="technique" className="flex items-center gap-1">
+              <TabsTrigger value="clinical" className="flex items-center gap-1">
                 <Target className="w-4 h-4" />
-                <span className="hidden lg:inline">Technique</span>
+                <span className="hidden lg:inline">Clinical</span>
               </TabsTrigger>
               <TabsTrigger value="physicality" className="flex items-center gap-1">
                 <Camera className="w-4 h-4" />
                 <span className="hidden lg:inline">Physicality</span>
-              </TabsTrigger>
-              <TabsTrigger value="iceberg" className="flex items-center gap-1">
-                <Brain className="w-4 h-4" />
-                <span className="hidden lg:inline">Iceberg</span>
               </TabsTrigger>
               <TabsTrigger value="action" className="flex items-center gap-1">
                 <Shield className="w-4 h-4" />
@@ -644,8 +628,8 @@ const TherapistAnalyticsHub = () => {
               </div>
             </TabsContent>
 
-            {/* Surface Tab */}
-            <TabsContent value="surface">
+            {/* Fluency Tab - Surface + Adaptation + Phonemes */}
+            <TabsContent value="fluency" className="space-y-6">
               <SurfaceCommandCentre 
                 metrics={{
                   weightedStutteringSeverity: metrics.weightedStutteringSeverity,
@@ -660,74 +644,81 @@ const TherapistAnalyticsHub = () => {
                 }}
                 taskTypeData={metrics.taskTypeData}
               />
-            </TabsContent>
-
-            {/* Temporal Tab */}
-            <TabsContent value="temporal">
-              <TemporalProsodyCentre 
-                metrics={{
-                  initiationLagMs: metrics.initiationLagMs,
-                  naturalnessScore: metrics.naturalnessScore,
-                  linguisticPausesCount: metrics.linguisticPausesCount,
-                  stutterHesitationsCount: metrics.stutterHesitationsCount,
-                  avgPauseDurationMs: metrics.avgPauseDurationMs,
-                }}
-              />
-            </TabsContent>
-
-            {/* Pause Tab */}
-            <TabsContent value="pause" className="space-y-6">
-              <PauseArchitectureTracker 
-                metrics={{
-                  linguisticPausesCount: metrics.linguisticPausesCount,
-                  stutterHesitationsCount: metrics.stutterHesitationsCount,
-                  avgPauseDurationMs: metrics.avgPauseDurationMs,
-                  longestBlockMs: metrics.longestBlockMs,
-                  secondLongestBlockMs: metrics.secondLongestBlockMs,
-                  thirdLongestBlockMs: metrics.thirdLongestBlockMs,
-                }}
-              />
-            </TabsContent>
-
-            {/* Phoneme Tab */}
-            <TabsContent value="phoneme" className="space-y-6">
+              
               <div className="grid lg:grid-cols-2 gap-6">
+                <AdaptationConsistencyTracker 
+                  metrics={{
+                    trials: metrics.trials,
+                    adaptationScore: metrics.adaptationScore,
+                    consistencyWords: metrics.consistencyWords,
+                    improvingWords: metrics.improvingWords,
+                    targetPhrase: metrics.targetPhrase,
+                  }}
+                />
+                
                 <PhonemeTriggerHeatmap 
                   triggers={metrics.phonemeTriggers}
                   wordAvoidances={metrics.wordAvoidances}
                 />
+              </div>
+              
+              <WordAvoidanceTracker 
+                avoidances={metrics.wordAvoidances}
+                fearedPhonemes={metrics.phonemeTriggers.slice(0, 5).map(p => p.phoneme)}
+              />
+            </TabsContent>
+
+            {/* Temporal Tab - Temporal + Pause */}
+            <TabsContent value="temporal" className="space-y-6">
+              <div className="grid lg:grid-cols-2 gap-6">
+                <TemporalProsodyCentre 
+                  metrics={{
+                    initiationLagMs: metrics.initiationLagMs,
+                    naturalnessScore: metrics.naturalnessScore,
+                    linguisticPausesCount: metrics.linguisticPausesCount,
+                    stutterHesitationsCount: metrics.stutterHesitationsCount,
+                    avgPauseDurationMs: metrics.avgPauseDurationMs,
+                  }}
+                />
                 
-                <WordAvoidanceTracker 
-                  avoidances={metrics.wordAvoidances}
-                  fearedPhonemes={metrics.phonemeTriggers.slice(0, 5).map(p => p.phoneme)}
+                <PauseArchitectureTracker 
+                  metrics={{
+                    linguisticPausesCount: metrics.linguisticPausesCount,
+                    stutterHesitationsCount: metrics.stutterHesitationsCount,
+                    avgPauseDurationMs: metrics.avgPauseDurationMs,
+                    longestBlockMs: metrics.longestBlockMs,
+                    secondLongestBlockMs: metrics.secondLongestBlockMs,
+                    thirdLongestBlockMs: metrics.thirdLongestBlockMs,
+                  }}
                 />
               </div>
             </TabsContent>
 
-            {/* Adaptation Tab */}
-            <TabsContent value="adaptation">
-              <AdaptationConsistencyTracker 
-                metrics={{
-                  trials: metrics.trials,
-                  adaptationScore: metrics.adaptationScore,
-                  consistencyWords: metrics.consistencyWords,
-                  improvingWords: metrics.improvingWords,
-                  targetPhrase: metrics.targetPhrase,
-                }}
-              />
-            </TabsContent>
-
-            {/* Technique Tab */}
-            <TabsContent value="technique">
-              <TechniqueAccuracyTracker 
-                metrics={{
-                  easyOnsetScore: metrics.easyOnsetScore,
-                  easyOnsetAttempts: metrics.easyOnsetAttempts,
-                  easyOnsetSuccesses: metrics.easyOnsetSuccesses,
-                  softContactScore: metrics.softContactScore,
-                  techniquesObserved: metrics.techniquesObserved,
-                  acousticAnalysis: metrics.acousticAnalysis,
-                }}
+            {/* Clinical Tab - Technique + Iceberg */}
+            <TabsContent value="clinical" className="space-y-6">
+              <div className="grid lg:grid-cols-2 gap-6">
+                <TechniqueAccuracyTracker 
+                  metrics={{
+                    easyOnsetScore: metrics.easyOnsetScore,
+                    easyOnsetAttempts: metrics.easyOnsetAttempts,
+                    easyOnsetSuccesses: metrics.easyOnsetSuccesses,
+                    softContactScore: metrics.softContactScore,
+                    techniquesObserved: metrics.techniquesObserved,
+                    acousticAnalysis: metrics.acousticAnalysis,
+                  }}
+                />
+                
+                <IcebergCommandCentre 
+                  metrics={{
+                    objectiveSeverity: metrics.objectiveSeverity,
+                    subjectiveRating: metrics.subjectiveRating,
+                  }}
+                  environmentData={metrics.environmentData}
+                />
+              </div>
+              
+              <SituationalHeatmap 
+                environmentData={metrics.environmentData}
               />
             </TabsContent>
 
@@ -777,23 +768,6 @@ const TherapistAnalyticsHub = () => {
                     </p>
                   </CardContent>
                 </Card>
-              </div>
-            </TabsContent>
-
-            {/* Iceberg Tab */}
-            <TabsContent value="iceberg" className="space-y-6">
-              <div className="grid lg:grid-cols-2 gap-6">
-                <IcebergCommandCentre 
-                  metrics={{
-                    objectiveSeverity: metrics.objectiveSeverity,
-                    subjectiveRating: metrics.subjectiveRating,
-                  }}
-                  environmentData={metrics.environmentData}
-                />
-                
-                <SituationalHeatmap 
-                  environmentData={metrics.environmentData}
-                />
               </div>
             </TabsContent>
 
