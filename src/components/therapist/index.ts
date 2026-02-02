@@ -5,3 +5,8 @@ export { TechniqueAccuracyTracker } from './TechniqueAccuracyTracker';
 export { IcebergCommandCentre } from './IcebergCommandCentre';
 export { ActionCommandCentre } from './ActionCommandCentre';
 export { AdaptationConsistencyTracker } from './AdaptationConsistencyTracker';
+export { PauseArchitectureTracker } from './PauseArchitectureTracker';
+export { WordAvoidanceTracker } from './WordAvoidanceTracker';
+export { SituationalHeatmap } from './SituationalHeatmap';
+export { SOAPNoteGenerator } from './SOAPNoteGenerator';
+export { PredictiveRelapseRisk } from './PredictiveRelapseRisk';
