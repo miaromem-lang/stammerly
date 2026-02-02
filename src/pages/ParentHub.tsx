@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, ArrowLeft, MessageSquare, Upload, Bell, Calendar, Send, Smartphone, Loader2, Eye, ChevronRight, Brain } from "lucide-react";
+import { Sparkles, ArrowLeft, MessageSquare, Upload, Bell, Calendar, Send, Smartphone, Loader2, Eye, ChevronRight, Brain, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { HubNavigation } from "@/components/HubNavigation";
 import { TherapistReviewsSummary } from "@/components/TherapistReviewsSummary";
 import { PracticeAnalytics } from "@/components/PracticeAnalytics";
 import AIInsightsExplainer from "@/components/AIInsightsExplainer";
+import { RecommendationTrendCharts } from "@/components/RecommendationTrendCharts";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useVictoryLogs } from "@/hooks/useVictoryLogs";
 import { useContextNotes } from "@/hooks/useContextNotes";
@@ -195,6 +196,9 @@ const ParentHub = () => {
                 <AIInsightsExplainer />
               </CardContent>
             </Card>
+
+            {/* Recommendation Trend Charts - AI vs Therapist */}
+            <RecommendationTrendCharts />
 
             {/* Fluency Journey */}
             <Card className="glass-card-strong">
