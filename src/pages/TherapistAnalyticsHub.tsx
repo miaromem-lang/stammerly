@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Activity, Brain, Target, FileText, Grid3X3, Clock, Loader2, RefreshCw, Repeat, MapPin, Pause, Shield, Camera } from "lucide-react";
 import { HubNavigation } from "@/components/HubNavigation";
 import PageBackground from "@/components/PageBackground";
+import AIInsightsExplainer from "@/components/AIInsightsExplainer";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -626,6 +627,19 @@ const TherapistAnalyticsHub = () => {
                   compact
                 />
               </div>
+              
+              {/* AI Insights Explainer */}
+              <Card className="glass-card-strong">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-foreground flex items-center gap-2">
+                    <Brain className="w-5 h-5 text-primary" />
+                    AI Analysis Insights
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <AIInsightsExplainer />
+                </CardContent>
+              </Card>
             </TabsContent>
 
             {/* Fluency Tab - Surface + Adaptation + Phonemes */}
