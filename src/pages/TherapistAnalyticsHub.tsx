@@ -481,7 +481,7 @@ const TherapistAnalyticsHub = () => {
       <main className="container mx-auto px-4 py-6">
         {metrics ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid grid-cols-6 lg:grid-cols-11 w-full max-w-7xl mx-auto">
+            <TabsList className="grid grid-cols-5 lg:grid-cols-10 w-full max-w-7xl mx-auto">
               <TabsTrigger value="overview" className="flex items-center gap-1">
                 <Activity className="w-4 h-4" />
                 <span className="hidden lg:inline">Overview</span>
@@ -521,10 +521,6 @@ const TherapistAnalyticsHub = () => {
               <TabsTrigger value="action" className="flex items-center gap-1">
                 <Shield className="w-4 h-4" />
                 <span className="hidden lg:inline">Action</span>
-              </TabsTrigger>
-              <TabsTrigger value="notes" className="flex items-center gap-1">
-                <FileText className="w-4 h-4" />
-                <span className="hidden lg:inline">S.O.A.P.</span>
               </TabsTrigger>
             </TabsList>
 
@@ -835,10 +831,8 @@ const TherapistAnalyticsHub = () => {
                   }}
                 />
               </div>
-            </TabsContent>
-
-            {/* S.O.A.P. Notes Tab */}
-            <TabsContent value="notes">
+              
+              {/* S.O.A.P. Note Generator */}
               <SOAPNoteGenerator 
                 clinicalData={{
                   weightedStutteringSeverity: metrics.weightedStutteringSeverity,
