@@ -242,7 +242,7 @@ const TherapistHub = () => {
                   <div 
                     key={patient.id}
                     className="p-2.5 bg-secondary/50 rounded-lg cursor-pointer hover:bg-secondary transition-colors"
-                    onClick={() => navigate("/analytics/therapist")}
+                    onClick={() => navigate("/therapist-analytics")}
                   >
                     <div className="flex items-center justify-between mb-0.5">
                       <span className="font-medium text-sm text-foreground">{patient.name}</span>
@@ -255,6 +255,15 @@ const TherapistHub = () => {
                     <p className="text-xs text-muted-foreground">Age {patient.age} • {patient.nextSession}</p>
                   </div>
                 ))}
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full mt-2 text-xs"
+                  onClick={() => navigate("/therapist-analytics")}
+                >
+                  <BarChart3 className="w-3 h-3 mr-1" />
+                  Open Clinical Analytics Hub
+                </Button>
               </CardContent>
             </Card>
 

@@ -12,6 +12,7 @@ import KidHub from "./pages/KidHub";
 import ParentHub from "./pages/ParentHub";
 import TeacherHub from "./pages/TeacherHub";
 import TherapistHub from "./pages/TherapistHub";
+import TherapistAnalyticsHub from "./pages/TherapistAnalyticsHub";
 import Practice from "./pages/Practice";
 import Analytics from "./pages/Analytics";
 import About from "./pages/About";
@@ -61,6 +62,7 @@ const App = () => (
             <Route path="/free-talk" element={<ProtectedRoute><FreeTalk /></ProtectedRoute>} />
             <Route path="/practice" element={<ProtectedRoute><Practice /></ProtectedRoute>} />
             <Route path="/analytics/:role" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+            <Route path="/therapist-analytics" element={<ProtectedRoute allowedRoles={['therapist', 'admin']}><TherapistAnalyticsHub /></ProtectedRoute>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>

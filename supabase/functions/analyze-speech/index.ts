@@ -27,87 +27,390 @@ interface WordTiming {
   duration: number;
 }
 
-// Analyze word timings for acoustic disfluency patterns
-function analyzeAcousticPatterns(words: WordTiming[]) {
-  const patterns: any[] = [];
+interface DisfluencyLog {
+  type: string;
+  category: 'SLD' | 'OD';
+  word: string;
+  phoneme?: string;
+  severity: string;
+  durationMs?: number;
+  positionInWord?: string;
+  timestampInSession?: number;
+  suggestion?: string;
+}
+
+interface PhonemeTrigger {
+  phoneme: string;
+  count: number;
+  avgDurationMs: number;
+  words: string[];
+}
+
+// Extract initial phoneme from a word
+function getInitialPhoneme(word: string): string {
+  const lower = word.toLowerCase().replace(/[^a-z]/g, '');
+  if (!lower) return '';
   
-  if (!words || words.length === 0) return patterns;
+  // Common digraphs
+  const digraphs = ['th', 'sh', 'ch', 'wh', 'ph', 'ck', 'ng', 'qu'];
+  for (const digraph of digraphs) {
+    if (lower.startsWith(digraph)) return digraph;
+  }
+  return lower[0] || '';
+}
+
+// Calculate Weighted Stuttering Severity (WSS) based on SSI-4 standards
+function calculateWSS(
+  blocksCount: number,
+  prolongationsCount: number,
+  repetitionsCount: number,
+  longestBlocks: number[],
+  totalSyllables: number
+): number {
+  if (totalSyllables === 0) return 0;
+  
+  // SSI-4 inspired calculation
+  // Frequency score: percentage of stuttered syllables
+  const stutteredSyllables = blocksCount + prolongationsCount + repetitionsCount;
+  const percentStuttered = (stutteredSyllables / totalSyllables) * 100;
+  
+  // Duration score: average of three longest blocks
+  const avgLongestBlocks = longestBlocks.length > 0 
+    ? longestBlocks.reduce((a, b) => a + b, 0) / longestBlocks.length 
+    : 0;
+  
+  // Duration scoring (SSI-4 inspired):
+  // < 0.5s = mild, 0.5-1s = moderate, > 1s = severe
+  let durationScore = 0;
+  if (avgLongestBlocks > 1000) durationScore = 3;
+  else if (avgLongestBlocks > 500) durationScore = 2;
+  else if (avgLongestBlocks > 250) durationScore = 1;
+  
+  // Frequency scoring
+  let frequencyScore = 0;
+  if (percentStuttered > 18) frequencyScore = 4;
+  else if (percentStuttered > 12) frequencyScore = 3;
+  else if (percentStuttered > 6) frequencyScore = 2;
+  else if (percentStuttered > 2) frequencyScore = 1;
+  
+  // Combined score (0-100 scale, lower is better)
+  const rawScore = frequencyScore * 10 + durationScore * 15;
+  return Math.min(100, rawScore);
+}
+
+// Calculate initiation lag (time from prompt end to first vocalization)
+function calculateInitiationLag(words: WordTiming[]): number | null {
+  if (!words || words.length === 0) return null;
+  // First word's start time represents initiation lag
+  return words[0].start * 1000; // Convert to ms
+}
+
+// Calculate naturalness score (1-9 scale, 1 = most natural)
+function calculateNaturalnessScore(
+  words: WordTiming[],
+  syllablesPerMinute: number,
+  pauseVariance: number
+): number {
+  if (!words || words.length === 0) return 5;
+  
+  // Factors affecting naturalness:
+  // 1. Speech rate (too slow = robotic, too fast = cluttering)
+  // 2. Pause variance (too uniform = robotic)
+  // 3. Word duration variance (natural speech has variation)
+  
+  let score = 5; // Start neutral
+  
+  // SPM check (natural range: 100-180 SPM)
+  if (syllablesPerMinute < 80) score += 2; // Too slow
+  else if (syllablesPerMinute > 200) score += 1; // Too fast
+  else if (syllablesPerMinute >= 100 && syllablesPerMinute <= 160) score -= 1; // Good range
+  
+  // Pause variance check (low variance = robotic)
+  if (pauseVariance < 50) score += 2; // Very uniform pauses
+  else if (pauseVariance < 100) score += 1;
+  else if (pauseVariance > 200) score -= 1; // Natural variation
+  
+  return Math.max(1, Math.min(9, score));
+}
+
+// Analyze word timings for comprehensive acoustic patterns
+function analyzeAcousticPatterns(words: WordTiming[]): {
+  patterns: DisfluencyLog[];
+  longestBlocks: number[];
+  pauseArchitecture: { linguistic: number; stutter: number; avgDuration: number };
+  phonemeTriggers: PhonemeTrigger[];
+} {
+  const patterns: DisfluencyLog[] = [];
+  const blockDurations: number[] = [];
+  let linguisticPauses = 0;
+  let stutterHesitations = 0;
+  const pauseDurations: number[] = [];
+  const phonemeMap: Map<string, { count: number; durations: number[]; words: string[] }> = new Map();
+  
+  if (!words || words.length === 0) {
+    return {
+      patterns,
+      longestBlocks: [],
+      pauseArchitecture: { linguistic: 0, stutter: 0, avgDuration: 0 },
+      phonemeTriggers: []
+    };
+  }
+  
+  const avgDuration = words.reduce((sum, w) => sum + w.duration, 0) / words.length;
   
   for (let i = 0; i < words.length; i++) {
     const word = words[i];
     const prevWord = words[i - 1];
+    const phoneme = getInitialPhoneme(word.word);
     
     // Detect prolongations (unusually long words)
-    const avgDuration = words.reduce((sum, w) => sum + w.duration, 0) / words.length;
     if (word.duration > avgDuration * 2) {
+      const durationMs = word.duration * 1000;
       patterns.push({
         type: 'Prolongation',
+        category: 'SLD',
         word: word.word,
+        phoneme,
         severity: word.duration > avgDuration * 3 ? 'severe' : 'moderate',
-        details: `Word "${word.word}" was ${(word.duration * 1000).toFixed(0)}ms (avg: ${(avgDuration * 1000).toFixed(0)}ms)`
+        durationMs,
+        timestampInSession: word.start,
+        suggestion: 'Let the sound flow smoothly without stretching'
       });
+      
+      // Track phoneme triggers
+      if (phoneme) {
+        const existing = phonemeMap.get(phoneme) || { count: 0, durations: [], words: [] };
+        existing.count++;
+        existing.durations.push(durationMs);
+        existing.words.push(word.word);
+        phonemeMap.set(phoneme, existing);
+      }
     }
     
     // Detect blocks (long pauses before words)
     if (prevWord) {
       const gap = word.start - prevWord.end;
+      const gapMs = gap * 1000;
+      pauseDurations.push(gapMs);
+      
       if (gap > 0.5) { // > 500ms pause
-        patterns.push({
-          type: 'Block',
-          word: word.word,
-          severity: gap > 1.0 ? 'severe' : gap > 0.7 ? 'moderate' : 'mild',
-          details: `${(gap * 1000).toFixed(0)}ms pause before "${word.word}"`
-        });
+        blockDurations.push(gapMs);
+        
+        // Classify as stutter hesitation vs linguistic pause
+        // Linguistic pauses typically occur at sentence/clause boundaries
+        const prevWordLower = prevWord.word.toLowerCase();
+        const isLinguisticBoundary = /[.!?,;:]$/.test(prevWord.word) || 
+          ['and', 'but', 'or', 'so', 'because', 'when', 'if', 'then'].includes(prevWordLower);
+        
+        if (isLinguisticBoundary && gap < 1.0) {
+          linguisticPauses++;
+        } else {
+          stutterHesitations++;
+          patterns.push({
+            type: 'Block',
+            category: 'SLD',
+            word: word.word,
+            phoneme,
+            severity: gap > 1.0 ? 'severe' : gap > 0.7 ? 'moderate' : 'mild',
+            durationMs: gapMs,
+            timestampInSession: prevWord.end,
+            suggestion: 'Try taking a gentle breath before speaking'
+          });
+          
+          // Track phoneme triggers for blocks
+          if (phoneme) {
+            const existing = phonemeMap.get(phoneme) || { count: 0, durations: [], words: [] };
+            existing.count++;
+            existing.durations.push(gapMs);
+            existing.words.push(word.word);
+            phonemeMap.set(phoneme, existing);
+          }
+        }
+      } else if (gap > 0.15 && gap <= 0.5) {
+        // Short pause - check if linguistic
+        const prevWordLower = prevWord.word.toLowerCase();
+        if (/[.!?,;:]$/.test(prevWord.word)) {
+          linguisticPauses++;
+        }
       }
     }
   }
   
-  return patterns;
+  // Sort block durations to get longest three
+  blockDurations.sort((a, b) => b - a);
+  const longestBlocks = blockDurations.slice(0, 3);
+  
+  // Calculate average pause duration
+  const avgPauseDuration = pauseDurations.length > 0 
+    ? pauseDurations.reduce((a, b) => a + b, 0) / pauseDurations.length 
+    : 0;
+  
+  // Convert phoneme map to sorted array (most problematic first)
+  const phonemeTriggers: PhonemeTrigger[] = Array.from(phonemeMap.entries())
+    .map(([phoneme, data]) => ({
+      phoneme,
+      count: data.count,
+      avgDurationMs: data.durations.reduce((a, b) => a + b, 0) / data.durations.length,
+      words: [...new Set(data.words)]
+    }))
+    .filter(p => p.count >= 2) // Only include phonemes with multiple occurrences
+    .sort((a, b) => b.count - a.count);
+  
+  return {
+    patterns,
+    longestBlocks,
+    pauseArchitecture: {
+      linguistic: linguisticPauses,
+      stutter: stutterHesitations,
+      avgDuration: avgPauseDuration
+    },
+    phonemeTriggers
+  };
 }
 
-// Detect text-based disfluencies
-function detectTextDisfluencies(text: string) {
-  const disfluencies: any[] = [];
+// Detect text-based disfluencies with SLD/OD classification
+function detectTextDisfluencies(text: string): DisfluencyLog[] {
+  const disfluencies: DisfluencyLog[] = [];
   const lowerText = text.toLowerCase();
   
-  // Sound/syllable repetitions: "b-b-ball", "ba-ba-baby"
-  const repetitionPattern = /\b(\w{1,3})-\1+(-\w+)?\b/gi;
+  // Sound/syllable repetitions (SLD): "b-b-ball", "ba-ba-baby"
+  const soundRepPattern = /\b(\w{1,2})-\1+(-\w+)?\b/gi;
   let match;
-  while ((match = repetitionPattern.exec(text)) !== null) {
+  while ((match = soundRepPattern.exec(text)) !== null) {
+    const phoneme = getInitialPhoneme(match[0]);
     disfluencies.push({
       type: 'SoundRepetition',
+      category: 'SLD',
       word: match[0],
+      phoneme,
       severity: 'moderate',
+      positionInWord: 'initial',
       suggestion: 'Try starting the word more gently with easy onset'
     });
   }
   
-  // Word repetitions: "the the", "I I I"
-  const wordRepPattern = /\b(\w+)\s+\1\b/gi;
+  // Syllable repetitions (SLD): "ba-ba-baby"
+  const syllableRepPattern = /\b(\w{2,3})-\1+(-?\w*)\b/gi;
+  while ((match = syllableRepPattern.exec(text)) !== null) {
+    if (!soundRepPattern.test(match[0])) { // Avoid double-counting
+      disfluencies.push({
+        type: 'SyllableRepetition',
+        category: 'SLD',
+        word: match[0],
+        phoneme: getInitialPhoneme(match[0]),
+        severity: 'moderate',
+        positionInWord: 'initial',
+        suggestion: 'Slow down and let the syllable flow out once'
+      });
+    }
+  }
+  
+  // Part-word repetitions (SLD): "w-w-want"
+  const partWordRepPattern = /\b(\w)-\1+-?\w*\b/gi;
+  while ((match = partWordRepPattern.exec(text)) !== null) {
+    disfluencies.push({
+      type: 'PartWordRepetition',
+      category: 'SLD',
+      word: match[0],
+      phoneme: match[1].toLowerCase(),
+      severity: 'moderate',
+      positionInWord: 'initial',
+      suggestion: 'Use easy onset to start the sound gently'
+    });
+  }
+  
+  // Word repetitions (OD for single, SLD for multiple): "the the", "I I I"
+  const wordRepPattern = /\b(\w+)(\s+\1){1,}\b/gi;
   while ((match = wordRepPattern.exec(text)) !== null) {
+    const repetitionCount = (match[0].match(new RegExp(`\\b${match[1]}\\b`, 'gi')) || []).length;
     disfluencies.push({
       type: 'WordRepetition',
+      category: repetitionCount > 2 ? 'SLD' : 'OD',
       word: match[0],
-      severity: 'mild',
+      severity: repetitionCount > 2 ? 'moderate' : 'mild',
       suggestion: 'Pause, take a breath, then continue smoothly'
     });
   }
   
-  // Interjections
-  const interjections = ['um', 'uh', 'er', 'ah', 'like', 'you know', 'well'];
+  // Phrase repetitions (OD): "I want, I want a drink"
+  const phraseRepPattern = /\b(\w+\s+\w+),?\s*\1\b/gi;
+  while ((match = phraseRepPattern.exec(text)) !== null) {
+    disfluencies.push({
+      type: 'PhraseRepetition',
+      category: 'OD',
+      word: match[0],
+      severity: 'mild',
+      suggestion: 'This is normal! Just continue with your thought'
+    });
+  }
+  
+  // Interjections (OD)
+  const interjections = ['um', 'uh', 'er', 'ah', 'like', 'you know', 'well', 'so', 'basically'];
   for (const filler of interjections) {
     const regex = new RegExp(`\\b${filler}\\b`, 'gi');
     while ((match = regex.exec(lowerText)) !== null) {
       disfluencies.push({
         type: 'Interjection',
+        category: 'OD',
         word: filler,
         severity: 'mild',
-        suggestion: 'It\'s okay to pause silently instead of using filler words'
+        suggestion: "It's okay to pause silently instead of using filler words"
       });
     }
   }
   
+  // Revisions (OD): "I went - I mean I walked"
+  const revisionPattern = /\b(\w+)\s*[-–—]\s*(I mean|no|wait|actually|I meant)\s*/gi;
+  while ((match = revisionPattern.exec(text)) !== null) {
+    disfluencies.push({
+      type: 'Revision',
+      category: 'OD',
+      word: match[0],
+      severity: 'mild',
+      suggestion: 'Revisions show you are thinking carefully about what you want to say'
+    });
+  }
+  
   return disfluencies;
+}
+
+// Detect word avoidances (synonym swapping patterns)
+function detectWordAvoidances(transcript: string, targetPhrase: string): string[] {
+  const avoidances: string[] = [];
+  
+  // Simple check: words in target but not in transcript might indicate avoidance
+  const targetWords = targetPhrase.toLowerCase().split(/\s+/);
+  const transcriptWords = transcript.toLowerCase().split(/\s+/);
+  
+  for (const targetWord of targetWords) {
+    if (targetWord.length > 3 && !transcriptWords.includes(targetWord)) {
+      // Word was in target but not spoken - possible avoidance
+      avoidances.push(targetWord);
+    }
+  }
+  
+  return avoidances;
+}
+
+// Calculate syllable count from text
+function estimateSyllables(text: string): number {
+  const words = text.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/).filter(w => w);
+  let count = 0;
+  
+  for (const word of words) {
+    // Simple syllable estimation
+    const vowels = word.match(/[aeiouy]+/g);
+    let syllables = vowels ? vowels.length : 1;
+    
+    // Adjustments
+    if (word.endsWith('e') && syllables > 1) syllables--;
+    if (word.endsWith('le') && word.length > 2) syllables++;
+    if (syllables === 0) syllables = 1;
+    
+    count += syllables;
+  }
+  
+  return count;
 }
 
 serve(async (req) => {
@@ -156,7 +459,7 @@ serve(async (req) => {
       });
     }
 
-    const { transcript, targetPhrase, words } = rawBody;
+    const { transcript, targetPhrase, words, sessionContext, environmentType } = rawBody;
     
     if (!transcript || typeof transcript !== 'string') {
       return new Response(JSON.stringify({ error: 'Invalid request' }), {
@@ -176,42 +479,112 @@ serve(async (req) => {
 
     console.log('Analyzing speech for user:', userId, { transcript, targetPhrase, wordCount: words?.length });
 
-    // Pre-analyze acoustic patterns from word timings
-    const acousticPatterns = analyzeAcousticPatterns(words || []);
-    const textDisfluencies = detectTextDisfluencies(transcript);
+    // Calculate duration and speech rate metrics
+    const totalDuration = words && words.length > 0 ? words[words.length - 1].end : 0;
+    const totalSyllables = estimateSyllables(transcript);
+    const syllablesPerMinute = totalDuration > 0 ? (totalSyllables / totalDuration) * 60 : 0;
     
-    console.log('Pre-analysis:', { 
-      acousticPatterns: acousticPatterns.length, 
-      textDisfluencies: textDisfluencies.length 
+    // Calculate articulation rate (excluding pauses)
+    const totalWordDuration = words ? words.reduce((sum: number, w: WordTiming) => sum + w.duration, 0) : 0;
+    const articulationRate = totalWordDuration > 0 ? (totalSyllables / totalWordDuration) * 60 : 0;
+
+    // Pre-analyze acoustic patterns from word timings
+    const acousticAnalysis = analyzeAcousticPatterns(words || []);
+    const textDisfluencies = detectTextDisfluencies(transcript);
+    const wordAvoidances = detectWordAvoidances(transcript, targetPhrase || '');
+    
+    // Calculate initiation lag
+    const initiationLagMs = calculateInitiationLag(words || []);
+    
+    // Calculate pause variance for naturalness
+    const pauseVariance = words && words.length > 1 
+      ? Math.sqrt(words.reduce((sum: number, w: WordTiming, i: number) => {
+          if (i === 0) return 0;
+          const gap = (w.start - words[i-1].end) * 1000;
+          return sum + Math.pow(gap - acousticAnalysis.pauseArchitecture.avgDuration, 2);
+        }, 0) / (words.length - 1))
+      : 100;
+    
+    // Count SLD vs OD
+    const allDisfluencies = [...acousticAnalysis.patterns, ...textDisfluencies];
+    const sldCount = allDisfluencies.filter(d => d.category === 'SLD').length;
+    const odCount = allDisfluencies.filter(d => d.category === 'OD').length;
+    
+    // Count specific disfluency types
+    const soundRepsCount = allDisfluencies.filter(d => d.type === 'SoundRepetition' || d.type === 'PartWordRepetition').length;
+    const syllableRepsCount = allDisfluencies.filter(d => d.type === 'SyllableRepetition').length;
+    const wordRepsCount = allDisfluencies.filter(d => d.type === 'WordRepetition').length;
+    const phraseRepsCount = allDisfluencies.filter(d => d.type === 'PhraseRepetition').length;
+    const revisionsCount = allDisfluencies.filter(d => d.type === 'Revision').length;
+    const blocksCount = acousticAnalysis.patterns.filter(p => p.type === 'Block').length;
+    const prolongationsCount = acousticAnalysis.patterns.filter(p => p.type === 'Prolongation').length;
+    const interjectionsCount = allDisfluencies.filter(d => d.type === 'Interjection').length;
+    
+    // Calculate WSS
+    const wss = calculateWSS(
+      blocksCount,
+      prolongationsCount,
+      soundRepsCount + syllableRepsCount,
+      acousticAnalysis.longestBlocks,
+      totalSyllables
+    );
+    
+    // Calculate percent syllables stuttered
+    const percentSS = totalSyllables > 0 
+      ? (sldCount / totalSyllables) * 100 
+      : 0;
+    
+    // Calculate naturalness score
+    const naturalnessScore = calculateNaturalnessScore(words || [], syllablesPerMinute, pauseVariance);
+    
+    console.log('Pre-analysis complete:', { 
+      sldCount, odCount, blocksCount, prolongationsCount,
+      wss, percentSS, naturalnessScore,
+      phonemeTriggers: acousticAnalysis.phonemeTriggers.length
     });
 
-    // Enhanced system prompt with pre-analyzed data
-    const systemPrompt = `You are an expert speech-language pathologist specializing in fluency disorders in children ages 4-12. You use evidence-based assessment methods.
+    // Enhanced system prompt with comprehensive clinical analysis
+    const systemPrompt = `You are an expert speech-language pathologist specializing in fluency disorders in children ages 4-12. You use evidence-based assessment methods including SSI-4 standards.
 
-ACOUSTIC ANALYSIS ALREADY DETECTED:
-${acousticPatterns.length > 0 ? acousticPatterns.map(p => `- ${p.type}: "${p.word}" (${p.severity}) - ${p.details}`).join('\n') : 'No acoustic anomalies detected'}
+ACOUSTIC ANALYSIS DETECTED:
+${acousticAnalysis.patterns.length > 0 ? acousticAnalysis.patterns.map(p => `- ${p.type} (${p.category}): "${p.word}" (${p.severity}${p.durationMs ? `, ${p.durationMs.toFixed(0)}ms` : ''})`).join('\n') : 'No acoustic anomalies detected'}
 
 TEXT PATTERN ANALYSIS DETECTED:
-${textDisfluencies.length > 0 ? textDisfluencies.map(d => `- ${d.type}: "${d.word}"`).join('\n') : 'No text-based disfluencies detected'}
+${textDisfluencies.length > 0 ? textDisfluencies.map(d => `- ${d.type} (${d.category}): "${d.word}"`).join('\n') : 'No text-based disfluencies detected'}
+
+PHONEME TRIGGERS IDENTIFIED:
+${acousticAnalysis.phonemeTriggers.length > 0 ? acousticAnalysis.phonemeTriggers.map(p => `- /${p.phoneme}/: ${p.count} occurrences (avg ${p.avgDurationMs.toFixed(0)}ms) - words: ${p.words.join(', ')}`).join('\n') : 'No significant phoneme triggers'}
+
+CLINICAL METRICS CALCULATED:
+- Weighted Stuttering Severity (WSS): ${wss.toFixed(1)}/100
+- Percent Syllables Stuttered (%SS): ${percentSS.toFixed(1)}%
+- SLD Count: ${sldCount}, OD Count: ${odCount}
+- Syllables Per Minute: ${syllablesPerMinute.toFixed(0)}
+- Articulation Rate: ${articulationRate.toFixed(0)} SPM
+- Initiation Lag: ${initiationLagMs ? initiationLagMs.toFixed(0) + 'ms' : 'N/A'}
+- Naturalness Score: ${naturalnessScore}/9 (1=most natural)
+- Longest Blocks: ${acousticAnalysis.longestBlocks.map(b => b.toFixed(0) + 'ms').join(', ') || 'None'}
 
 SCORING FRAMEWORK:
-- Base score: 100
+- Base fluency score: 100
 - Per Block: -10 (severe), -7 (moderate), -5 (mild)
-- Per Repetition: -8 (sound), -6 (syllable), -4 (word)
+- Per Sound/Part-word Repetition: -8
+- Per Syllable/Word Repetition: -5
 - Per Prolongation: -6
 - Per Interjection: -2
 - Bonus for detected techniques: +5 each
 
-Be precise: incorporate the pre-analyzed patterns into your assessment. Don't ignore them.`;
+Be precise and clinically accurate. Incorporate all pre-analyzed patterns.`;
 
     const userPrompt = `## SPEECH SAMPLE
 
 **Target Phrase:** "${targetPhrase}"
 **Spoken Transcript:** "${transcript}"
 **Word Count:** ${(words || []).length}
-**Total Duration:** ${words && words.length > 0 ? (words[words.length - 1].end).toFixed(2) : 0}s
+**Total Duration:** ${totalDuration.toFixed(2)}s
+**Context:** ${sessionContext || 'app'} / ${environmentType || 'home'}
 
-Analyze this sample incorporating the pre-detected patterns. Provide accurate clinical assessment.`;
+Analyze this sample incorporating the pre-detected patterns. Provide accurate clinical assessment with specific technique feedback.`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -230,13 +603,13 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
             type: 'function',
             function: {
               name: 'analyze_speech',
-              description: 'Provide detailed clinical analysis of speech sample',
+              description: 'Provide detailed clinical analysis of speech sample with all metrics',
               parameters: {
                 type: 'object',
                 properties: {
                   fluencyScore: {
                     type: 'number',
-                    description: 'Overall fluency score 0-100. Use the scoring framework accurately.'
+                    description: 'Overall fluency score 0-100 using the scoring framework'
                   },
                   accuracy: {
                     type: 'number',
@@ -246,17 +619,21 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
                     type: 'number',
                     description: 'Easy onset technique usage score (0-100)'
                   },
+                  easyOnsetAttempts: {
+                    type: 'number',
+                    description: 'Number of times easy onset was attempted'
+                  },
+                  easyOnsetSuccesses: {
+                    type: 'number',
+                    description: 'Number of successful easy onset uses'
+                  },
+                  softContactScore: {
+                    type: 'number',
+                    description: 'Soft contact technique score (0-100)'
+                  },
                   pacingScore: {
                     type: 'number',
                     description: 'Pacing appropriateness score (0-100)'
-                  },
-                  syllablesPerMinute: {
-                    type: 'number',
-                    description: 'Estimated syllables per minute'
-                  },
-                  percentSyllablesStuttered: {
-                    type: 'number',
-                    description: 'Percentage of syllables with disfluencies'
                   },
                   disfluencies: {
                     type: 'array',
@@ -264,12 +641,13 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
                       type: 'object',
                       properties: {
                         type: { type: 'string' },
+                        category: { type: 'string', enum: ['SLD', 'OD'] },
                         word: { type: 'string' },
                         severity: { type: 'string' },
                         suggestion: { type: 'string' }
                       }
                     },
-                    description: 'All disfluencies including pre-detected ones'
+                    description: 'All disfluencies with SLD/OD classification'
                   },
                   strengths: {
                     type: 'array',
@@ -279,16 +657,16 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
                   areasToImprove: {
                     type: 'array',
                     items: { type: 'string' },
-                    description: 'Areas needing practice'
+                    description: 'Clinical areas needing practice'
                   },
                   techniquesObserved: {
                     type: 'array',
                     items: { type: 'string' },
-                    description: 'Fluency techniques detected'
+                    description: 'Fluency techniques detected (easy onset, light contact, etc.)'
                   },
                   clinicalNote: {
                     type: 'string',
-                    description: 'Brief clinical observation'
+                    description: 'Brief clinical observation for therapist'
                   },
                   encouragement: {
                     type: 'string',
@@ -333,41 +711,90 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
       const analysis = JSON.parse(toolCall.function.arguments);
       
       // Merge pre-detected disfluencies with AI analysis
-      const allDisfluencies = [
-        ...acousticPatterns.map(p => ({
-          type: p.type,
-          word: p.word,
-          severity: p.severity,
-          suggestion: p.type === 'Block' ? 'Try taking a gentle breath before speaking' : 'Let the sound flow smoothly'
-        })),
+      const mergedDisfluencies = [
+        ...acousticAnalysis.patterns,
+        ...textDisfluencies,
         ...(analysis.disfluencies || [])
       ];
       
-      // Remove duplicates based on word
-      const uniqueDisfluencies = allDisfluencies.filter((d, i, arr) => 
+      // Remove duplicates based on word and type
+      const uniqueDisfluencies = mergedDisfluencies.filter((d, i, arr) => 
         arr.findIndex(x => x.word === d.word && x.type === d.type) === i
       );
       
       const finalAnalysis = {
+        // Basic scores
         fluencyScore: Math.max(0, Math.min(100, analysis.fluencyScore ?? 75)),
         accuracy: analysis.accuracy ?? 80,
         easyOnsetScore: analysis.easyOnsetScore ?? 70,
         pacingScore: analysis.pacingScore ?? 75,
-        syllablesPerMinute: analysis.syllablesPerMinute ?? 120,
-        percentSyllablesStuttered: analysis.percentSyllablesStuttered ?? 5,
+        
+        // Clinical metrics (Surface Command Centre)
+        weightedStutteringSeverity: wss,
+        percentSyllablesStuttered: percentSS,
+        syllablesPerMinute: syllablesPerMinute,
+        articulationRate: articulationRate,
+        sldCount,
+        odCount,
+        
+        // Temporal & Prosodic (Hidden Block detection)
+        initiationLagMs: initiationLagMs,
+        naturalnessScore: naturalnessScore,
+        
+        // Disfluency breakdown
+        blocksCount,
+        prolongationsCount,
+        soundRepetitionsCount: soundRepsCount,
+        syllableRepetitionsCount: syllableRepsCount,
+        wordRepetitionsCount: wordRepsCount,
+        phraseRepetitionsCount: phraseRepsCount,
+        revisionsCount,
+        interjectionsCount,
+        
+        // Technique tracking
+        easyOnsetAttempts: analysis.easyOnsetAttempts ?? 0,
+        easyOnsetSuccesses: analysis.easyOnsetSuccesses ?? 0,
+        softContactScore: analysis.softContactScore ?? null,
+        
+        // Pause architecture
+        linguisticPausesCount: acousticAnalysis.pauseArchitecture.linguistic,
+        stutterHesitationsCount: acousticAnalysis.pauseArchitecture.stutter,
+        avgPauseDurationMs: acousticAnalysis.pauseArchitecture.avgDuration,
+        
+        // Phoneme triggers (for heatmap)
+        phonemeTriggers: acousticAnalysis.phonemeTriggers,
+        
+        // Word avoidances
+        wordAvoidances,
+        
+        // Longest blocks (for WSS)
+        longestBlockMs: acousticAnalysis.longestBlocks[0] ?? null,
+        secondLongestBlockMs: acousticAnalysis.longestBlocks[1] ?? null,
+        thirdLongestBlockMs: acousticAnalysis.longestBlocks[2] ?? null,
+        
+        // All disfluencies with full detail
         disfluencies: uniqueDisfluencies,
+        
+        // Qualitative analysis
         strengths: analysis.strengths ?? ["Good effort!"],
         areasToImprove: analysis.areasToImprove ?? [],
         techniquesObserved: analysis.techniquesObserved ?? [],
         clinicalNote: analysis.clinicalNote ?? "",
         encouragement: analysis.encouragement ?? "Great job practicing! Keep it up!",
-        acousticAnalysis: {
-          blocksDetected: acousticPatterns.filter(p => p.type === 'Block').length,
-          prolongationsDetected: acousticPatterns.filter(p => p.type === 'Prolongation').length
-        }
+        
+        // Context
+        sessionContext: sessionContext || 'app',
+        environmentType: environmentType || 'home'
       };
       
-      console.log('Final analysis for user:', userId);
+      console.log('Final comprehensive analysis for user:', userId, {
+        wss: finalAnalysis.weightedStutteringSeverity,
+        percentSS: finalAnalysis.percentSyllablesStuttered,
+        sld: finalAnalysis.sldCount,
+        od: finalAnalysis.odCount,
+        naturalness: finalAnalysis.naturalnessScore,
+        phonemeTriggers: finalAnalysis.phonemeTriggers.length
+      });
       
       return new Response(JSON.stringify(finalAnalysis), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
