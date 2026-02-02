@@ -24,6 +24,11 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     return <Navigate to="/signin" state={{ from: location }} replace />;
   }
 
+  // Admins can access any hub - skip role check
+  if (role === 'admin') {
+    return <>{children}</>;
+  }
+
   // If specific roles are required, check if user has one of them
   if (allowedRoles && role && !allowedRoles.includes(role)) {
     // Redirect to appropriate hub based on user's actual role
@@ -32,7 +37,7 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
       parent: '/hub/parent',
       teacher: '/hub/teacher',
       therapist: '/hub/therapist',
-      admin: '/hub/therapist', // Admin can access therapist hub
+      admin: '/hub/therapist',
     };
     return <Navigate to={roleToHub[role]} replace />;
   }
