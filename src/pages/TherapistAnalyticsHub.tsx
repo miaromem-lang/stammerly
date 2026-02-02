@@ -662,10 +662,6 @@ const TherapistAnalyticsHub = () => {
                 />
               </div>
               
-              <WordAvoidanceTracker 
-                avoidances={metrics.wordAvoidances}
-                fearedPhonemes={metrics.phonemeTriggers.slice(0, 5).map(p => p.phoneme)}
-              />
             </TabsContent>
 
             {/* Temporal Tab - Temporal + Pause */}
@@ -688,10 +684,15 @@ const TherapistAnalyticsHub = () => {
                     avgPauseDurationMs: metrics.avgPauseDurationMs,
                     longestBlockMs: metrics.longestBlockMs,
                     secondLongestBlockMs: metrics.secondLongestBlockMs,
-                    thirdLongestBlockMs: metrics.thirdLongestBlockMs,
-                  }}
-                />
+                  thirdLongestBlockMs: metrics.thirdLongestBlockMs,
+                }}
+              />
               </div>
+              
+              <WordAvoidanceTracker 
+                avoidances={metrics.wordAvoidances}
+                fearedPhonemes={metrics.phonemeTriggers.slice(0, 5).map(p => p.phoneme)}
+              />
             </TabsContent>
 
             {/* Clinical Tab - Technique + Iceberg */}
