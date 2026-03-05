@@ -11,8 +11,6 @@ import PageBackground from "@/components/PageBackground";
 const hubs = [
   { id: "kid" as AppRole, label: "Kid Hub", icon: Smile, emoji: "🎮", description: "Fun games & activities to practice speech" },
   { id: "parent" as AppRole, label: "Parent Hub", icon: Users, emoji: "👨‍👩‍👧", description: "Track your child's progress at home" },
-  { id: "teacher" as AppRole, label: "Teacher Hub", icon: GraduationCap, emoji: "📚", description: "Classroom support & IEP tools" },
-  { id: "therapist" as AppRole, label: "Therapist Hub", icon: Stethoscope, emoji: "🩺", description: "Clinical analytics & session planning" },
 ];
 
 const roleToHub: Record<AppRole, string> = {
