@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Target, Shield, Lightbulb, BookOpen, Heart } from 'lucide-react';
+import { ArrowLeft, Target, Shield, Lightbulb, BookOpen, Heart, Brain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PageBackground from "@/components/PageBackground";
@@ -98,6 +98,23 @@ const Mission = () => {
             </div>
           </div>
 
+          {/* Hybrid Intelligence Cross-Reference */}
+          <Card className="mb-12 border-none shadow-xl bg-gradient-to-r from-primary/10 to-accent-sky/10">
+            <CardContent className="p-8 flex flex-col md:flex-row items-center gap-6">
+              <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
+                <Brain className="w-8 h-8 text-primary" />
+              </div>
+              <div className="flex-1 text-center md:text-left">
+                <h3 className="text-xl font-bold text-foreground mb-2">Powered by Hybrid Intelligence</h3>
+                <p className="text-muted-foreground">
+                  These values are operationalised through our <strong className="text-foreground">Hybrid Intelligence Framework</strong> — a model where AI insight and human clinical expertise work together, with families retaining the final choice. Explore the full framework and its academic foundations.
+                </p>
+              </div>
+              <Button asChild size="lg" className="rounded-full flex-shrink-0">
+                <Link to="/research">Read the Framework →</Link>
+              </Button>
+            </CardContent>
+          </Card>
 
           <div className="flex flex-wrap gap-4 justify-center">
             <Button asChild size="lg" className="rounded-full">
