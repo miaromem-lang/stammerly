@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { HubNavigation } from "@/components/HubNavigation";
 import PageBackground from "@/components/PageBackground";
 import { ClassroomAccommodations } from "@/components/ClassroomAccommodations";
+import { TrafficLightReadiness } from "@/components/teacher/TrafficLightReadiness";
+import { IepGoalsSync } from "@/components/teacher/IepGoalsSync";
 
 const students = [
   { id: 1, name: "Alex M.", status: "good", lastActivity: "2 hours ago" },
