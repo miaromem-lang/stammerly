@@ -96,6 +96,9 @@ const TeacherHub = () => {
               </CardContent>
             </Card>
 
+            {/* Classroom Accommodations */}
+            <ClassroomAccommodations />
+
             {/* Quick Action Widget */}
             <Card className="glass-card-strong">
               <CardHeader>
