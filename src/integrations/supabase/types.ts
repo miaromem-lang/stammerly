@@ -571,6 +571,30 @@ export type Database = {
           },
         ]
       }
+      teacher_student_assignments: {
+        Row: {
+          assigned_at: string
+          id: string
+          notes: string | null
+          student_user_id: string
+          teacher_user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          id?: string
+          notes?: string | null
+          student_user_id: string
+          teacher_user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          id?: string
+          notes?: string | null
+          student_user_id?: string
+          teacher_user_id?: string
+        }
+        Relationships: []
+      }
       therapist_ai_conversations: {
         Row: {
           created_at: string
