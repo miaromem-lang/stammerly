@@ -18,6 +18,7 @@ import PageBackground from "@/components/PageBackground";
 import { PendantStatusCard } from "@/components/PendantStatusCard";
 import { SyncHistoryLog } from "@/components/SyncHistoryLog";
 import { ParentMoodTrends } from "@/components/ParentMoodTrends";
+import { PrivacyPortal } from "@/components/PrivacyPortal";
 
 const ParentHub = () => {
   const navigate = useNavigate();
@@ -304,9 +305,12 @@ const ParentHub = () => {
                   {savingComment && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   <Send className="w-4 h-4 mr-2" />
                   Share with Team
-                </Button>
+              </Button>
               </CardContent>
             </Card>
+
+            {/* Privacy & Data Control */}
+            <PrivacyPortal />
           </div>
         </div>
       </main>
