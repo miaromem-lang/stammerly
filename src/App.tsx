@@ -86,6 +86,10 @@ const App = () => (
             <Route path="/nhs-wait-times" element={<NhsWaitTimes />} />
             <Route path="/nhs-wait-times/:region" element={<NhsWaitTimes />} />
             <Route path="/find-a-therapist" element={<FindTherapist />} />
+            <Route path="/regulatory" element={<RegulatoryStatus />} />
+            <Route path="/sensory-fit-guide" element={<SensoryFitGuide />} />
+            <Route path="/funding-support" element={<FundingSupport />} />
+            <Route path="/technical-integration" element={<TechnicalIntegration />} />
             
             {/* Protected routes - require authentication */}
             <Route path="/hub/kid" element={<ProtectedRoute allowedRoles={['kid']}><KidHub /></ProtectedRoute>} />
