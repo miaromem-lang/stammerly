@@ -666,6 +666,9 @@ const TherapistHub = () => {
 
           {/* Main Dashboard */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Weekly Psychosocial Summary */}
+            <WeeklyPsychosocialSummary />
+
             {/* Clinical Analytics Preview */}
             <Card className="glass-card-strong border-accent-orange/30">
               <CardHeader>
