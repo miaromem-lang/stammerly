@@ -28,6 +28,7 @@ import Reviews from "./pages/Reviews";
 import KidHubOverview from "./pages/KidHubOverview";
 import StoryExercise from "./pages/StoryExercise";
 import FreeTalk from "./pages/FreeTalk";
+import SelectRole from "./pages/SelectRole";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/dev" element={<DevHome />} />
             <Route path="/signin" element={<Auth />} />
+            <Route path="/select-role" element={<SelectRole />} />
             <Route path="/about" element={<About />} />
             <Route path="/our-story" element={<OurStory />} />
             <Route path="/mission" element={<Mission />} />
