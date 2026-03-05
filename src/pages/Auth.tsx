@@ -18,8 +18,6 @@ const passwordSchema = z.string().min(8, "Password must be at least 8 characters
 const hubs = [
   { id: "kid" as AppRole, label: "Kid Hub", icon: Smile, emoji: "🎮" },
   { id: "parent" as AppRole, label: "Parent Hub", icon: Users, emoji: "👨‍👩‍👧" },
-  { id: "teacher" as AppRole, label: "Teacher Hub", icon: GraduationCap, emoji: "📚" },
-  { id: "therapist" as AppRole, label: "Therapist Hub", icon: Stethoscope, emoji: "🩺" },
 ];
 
 const Auth = () => {
