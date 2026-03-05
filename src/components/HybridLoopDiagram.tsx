@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mic, Brain, Stethoscope, Gamepad2, ChevronRight } from "lucide-react";
 
