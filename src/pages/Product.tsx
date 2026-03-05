@@ -303,6 +303,51 @@ const Product = () => {
           </div>
         </section>
 
+        {/* How It Works */}
+        <section className="py-16 md:py-20 bg-gradient-to-b from-secondary/20 to-background">
+          <div className="container mx-auto px-4">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={staggerContainer}>
+              <motion.div variants={fadeUp} className="text-center mb-10">
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">How It Works</h2>
+                <p className="text-muted-foreground max-w-2xl mx-auto">A day in the life with Stammerly — from speech capture to personalised practice.</p>
+              </motion.div>
+              <motion.div variants={fadeUp} className="max-w-3xl mx-auto mb-12">
+                <UserJourneyCarousel />
+              </motion.div>
+              <motion.div variants={fadeUp} className="max-w-4xl mx-auto">
+                <h3 className="font-display text-xl font-bold text-foreground text-center mb-6">Inside the Pendant</h3>
+                <HardwareAnatomyDiagram />
+              </motion.div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* ROI Calculator */}
+        <section className="py-16 md:py-20 bg-gradient-to-b from-background to-secondary/20">
+          <div className="container mx-auto px-4">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={fadeUp}>
+              <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground text-center mb-3">For Clinicians</h2>
+              <p className="text-muted-foreground text-center mb-8 max-w-2xl mx-auto">Calculate exactly how much billable time and revenue you'll recover.</p>
+              <div className="max-w-2xl mx-auto">
+                <TherapistROICalculator />
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="py-16 md:py-20 bg-gradient-to-b from-secondary/20 to-background">
+          <div className="container mx-auto px-4">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={fadeUp}>
+              <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground text-center mb-3">Frequently Asked Questions</h2>
+              <p className="text-muted-foreground text-center mb-8 max-w-2xl mx-auto">Everything parents, therapists, and schools need to know.</p>
+              <div className="max-w-3xl mx-auto">
+                <FAQSection />
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
         {/* Hybrid Intelligence Callout */}
         <section className="py-16 md:py-20 bg-gradient-to-b from-background to-secondary/30">
           <div className="container mx-auto px-4">
