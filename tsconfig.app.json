@@ -8,7 +8,6 @@
       "DOM",
       "DOM.Iterable"
     ],
-    "types": ["web-bluetooth"],
     "module": "ESNext",
     "moduleDetection": "force",
     "moduleResolution": "bundler",
