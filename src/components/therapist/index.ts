@@ -12,3 +12,4 @@ export { SOAPNoteGenerator } from './SOAPNoteGenerator';
 export { PredictiveRelapseRisk } from './PredictiveRelapseRisk';
 export { ConcomitantMovementTracker } from './ConcomitantMovementTracker';
 export { MoodFluencyCorrelation } from './MoodFluencyCorrelation';
+export { WeeklyPsychosocialSummary } from './WeeklyPsychosocialSummary';
