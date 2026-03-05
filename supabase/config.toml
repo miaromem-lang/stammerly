@@ -1,22 +1,19 @@
 project_id = "hiigdwgdfuabgjiiapid"
 
-[functions.analyze-speech]
-verify_jwt = false
-
-[functions.transcribe-speech]
-verify_jwt = false
-
-[functions.validate-quest-assignment]
-verify_jwt = false
-
-[functions.therapist-ai-chat]
-verify_jwt = false
-
-[functions.free-talk-chat]
-verify_jwt = false
-
-[functions.generate-story]
-verify_jwt = false
-
-[functions.generate-soap-note]
-verify_jwt = false
+[functions]
+  [functions.analyze-speech]
+    verify_jwt = false
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.free-talk-chat]
+    verify_jwt = false
+  [functions.generate-soap-note]
+    verify_jwt = false
+  [functions.generate-story]
+    verify_jwt = false
+  [functions.therapist-ai-chat]
+    verify_jwt = false
+  [functions.transcribe-speech]
+    verify_jwt = false
+  [functions.validate-quest-assignment]
+    verify_jwt = false
