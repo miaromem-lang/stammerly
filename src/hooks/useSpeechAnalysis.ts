@@ -249,6 +249,7 @@ export function useSpeechAnalysis() {
     isProcessing,
     transcript,
     analysis,
+    audioFilePath,
     recordingTime,
     startRecording,
     stopRecording,

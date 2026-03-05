@@ -724,6 +724,9 @@ const TherapistAnalyticsHub = () => {
                   wordAvoidances={metrics.wordAvoidances}
                 />
               </div>
+
+              {/* Disfluency Audit Log */}
+              <DisfluencyAuditLog patientId={selectedPatient} />
               
             </TabsContent>
 
