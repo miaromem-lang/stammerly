@@ -50,6 +50,7 @@ export const Footer = () => {
               <li><Link to="/childrens-privacy" className="hover:text-background transition-colors">Children's Privacy Notice</Link></li>
               <li><Link to="/nhs-compliance" className="hover:text-background transition-colors">NHS Compliance</Link></li>
               <li><Link to="/accessibility" className="hover:text-background transition-colors">Accessibility Statement</Link></li>
+              <li><Link to="/regulatory" className="hover:text-background transition-colors">Regulatory & MHRA Status</Link></li>
             </ul>
           </div>
           
