@@ -79,6 +79,101 @@ const Research = () => {
             <div className="w-24 h-1 bg-gradient-to-r from-primary to-secondary mx-auto rounded-full mt-6" />
           </div>
 
+          {/* Hybrid Intelligence Framework */}
+          <Card className="mb-10 border-2 border-primary/20 shadow-xl bg-gradient-to-br from-primary/5 to-transparent overflow-hidden">
+            <CardHeader>
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-primary/20 rounded-xl flex items-center justify-center">
+                  <Brain className="w-7 h-7 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl">The Hybrid Intelligence Framework</CardTitle>
+                  <p className="text-muted-foreground">Human expertise + AI insight = better outcomes</p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <p className="text-muted-foreground text-lg leading-relaxed">
+                Stammerly is built on a <strong className="text-foreground">Hybrid Intelligence</strong> model — the principle that the most effective outcomes in speech therapy arise not from AI alone, nor from human judgement alone, but from the deliberate combination of both. This framework is rooted in Mia Romem's active research at <strong className="text-foreground">University College London (UCL)</strong>, where she is completing an <strong className="text-foreground">MA in Education and Technology</strong> at the Institute of Education, investigating how AI can augment — rather than automate — pedagogical decision-making.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-5 bg-background/50 rounded-xl">
+                  <div className="w-10 h-10 bg-accent-sky/20 rounded-lg flex items-center justify-center mb-3">
+                    <Brain className="w-5 h-5 text-accent-sky" />
+                  </div>
+                  <h4 className="font-semibold text-foreground mb-2">AI Does</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1.5">
+                    <li>• Detects disfluency patterns at scale</li>
+                    <li>• Tracks longitudinal progress metrics</li>
+                    <li>• Identifies phoneme triggers and trends</li>
+                    <li>• Suggests evidence-based exercises</li>
+                  </ul>
+                </div>
+                <div className="p-5 bg-background/50 rounded-xl">
+                  <div className="w-10 h-10 bg-success/20 rounded-lg flex items-center justify-center mb-3">
+                    <Handshake className="w-5 h-5 text-success" />
+                  </div>
+                  <h4 className="font-semibold text-foreground mb-2">Together They</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1.5">
+                    <li>• Cross-validate recommendations</li>
+                    <li>• Present both perspectives transparently</li>
+                    <li>• Empower families to choose their path</li>
+                    <li>• Create a feedback loop that improves both</li>
+                  </ul>
+                </div>
+                <div className="p-5 bg-background/50 rounded-xl">
+                  <div className="w-10 h-10 bg-accent-orange/20 rounded-lg flex items-center justify-center mb-3">
+                    <ShieldCheck className="w-5 h-5 text-accent-orange" />
+                  </div>
+                  <h4 className="font-semibold text-foreground mb-2">Clinicians Do</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1.5">
+                    <li>• Make all clinical diagnoses</li>
+                    <li>• Interpret data in context</li>
+                    <li>• Apply empathy and professional judgement</li>
+                    <li>• Decide treatment direction</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="p-5 bg-primary/5 rounded-xl border border-primary/10">
+                <h4 className="font-semibold text-foreground mb-2">Collaborative Recommendations in Practice</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  When a therapist assigns a quest or exercise, Stammerly's AI independently validates the recommendation — it may agree, suggest an alternative, or flag a concern. Both perspectives are presented transparently to the family, who can weigh clinical expertise alongside data-driven insight and choose the path that feels right for their child. This is Hybrid Intelligence in action: neither AI nor clinician is overruled; both inform the decision, and the family retains agency.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Founder's Academic Background */}
+          <Card className="mb-10 border-none shadow-xl bg-card/80 backdrop-blur-sm">
+            <CardHeader>
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-accent-orange/20 rounded-xl flex items-center justify-center">
+                  <GraduationCap className="w-7 h-7 text-accent-orange" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl">Academic Foundation</CardTitle>
+                  <p className="text-muted-foreground">Rigorous research driving responsible innovation</p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground leading-relaxed">
+                Stammerly's pedagogical architecture is shaped by <strong className="text-foreground">Mia Romem's</strong> ongoing research at <strong className="text-foreground">UCL's Institute of Education</strong>, where her MA in Education and Technology investigates the responsible integration of AI into educational practice. Her work focuses on a central question: <em className="text-foreground">how can artificial intelligence amplify teacher and therapist effectiveness without undermining the human relationships that drive real learning?</em>
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                This academic grounding ensures that Stammerly is not simply a technology product — it is a pedagogical tool designed from first principles to respect clinical expertise, prioritise child wellbeing, and support the professional autonomy of speech and language therapists. Every feature is evaluated against the standard: <em className="text-foreground">does this empower the educator, or does it attempt to replace them?</em>
+              </p>
+              <div className="flex flex-wrap gap-3 mt-2">
+                <div className="px-4 py-2 bg-background/50 rounded-full text-sm font-medium text-foreground">UCL Institute of Education</div>
+                <div className="px-4 py-2 bg-background/50 rounded-full text-sm font-medium text-foreground">MA Education & Technology</div>
+                <div className="px-4 py-2 bg-background/50 rounded-full text-sm font-medium text-foreground">SENDTech Challenge Winner</div>
+                <div className="px-4 py-2 bg-background/50 rounded-full text-sm font-medium text-foreground">Human-Centred AI</div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Admin Add Button - Placeholder for future functionality */}
           <Card className="mb-8 border-dashed border-2 border-primary/30 bg-primary/5">
             <CardContent className="p-6 flex items-center justify-between">
