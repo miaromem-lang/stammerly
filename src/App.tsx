@@ -33,6 +33,8 @@ import StoryExercise from "./pages/StoryExercise";
 import FreeTalk from "./pages/FreeTalk";
 import SelectRole from "./pages/SelectRole";
 import Product from "./pages/Product";
+import HardwareSafety from "./pages/HardwareSafety";
+import Procurement from "./pages/Procurement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -64,6 +66,8 @@ const App = () => (
             <Route path="/nhs-compliance" element={<NhsCompliance />} />
             <Route path="/accessibility" element={<AccessibilityStatement />} />
             <Route path="/product" element={<Product />} />
+            <Route path="/hardware-safety" element={<HardwareSafety />} />
+            <Route path="/procurement" element={<Procurement />} />
             
             {/* Protected routes - require authentication */}
             <Route path="/hub/kid" element={<ProtectedRoute allowedRoles={['kid']}><KidHub /></ProtectedRoute>} />
