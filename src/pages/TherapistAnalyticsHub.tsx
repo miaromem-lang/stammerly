@@ -139,6 +139,7 @@ const TherapistAnalyticsHub = () => {
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState<ClinicalMetrics | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
+  const [moodData, setMoodData] = useState<{ recentMoodAvg: number | null; recentAnxietyAvg: number | null; moodTrend: "improving" | "declining" | "stable" | null; moodCheckinCount: number }>({ recentMoodAvg: null, recentAnxietyAvg: null, moodTrend: null, moodCheckinCount: 0 });
 
   useEffect(() => {
     fetchClinicalMetrics();
