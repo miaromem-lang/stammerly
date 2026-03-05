@@ -6,20 +6,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import PageBackground from "@/components/PageBackground";
 
-const cofounders = [
+const founders = [
   {
     name: "Mia Romem",
-    role: "Co-Founder",
+    role: "Founder",
     email: "mia@stammerly.com",
-    image: null, // Placeholder for future image
-    bio: "", // Empty for now
-  },
-  {
-    name: "Jose Vidal",
-    role: "Co-Founder",
-    email: "jose@stammerly.com",
-    image: null, // Placeholder for future image
-    bio: "", // Empty for now
+    image: null,
+    bio: "MA in Education and Technology. Passionate about aligning technology with human-centred teaching practices to transform speech therapy support for children.",
   },
 ];
 
@@ -29,7 +22,7 @@ const Team = () => {
       <PageBackground />
       <Helmet>
         <title>Meet the Team | Stammerly</title>
-        <meta name="description" content="Meet the co-founders of Stammerly - Mia Romem and Jose Vidal - who are transforming support for children who stammer." />
+        <meta name="description" content="Meet Mia Romem, founder of Stammerly, transforming support for children who stammer." />
       </Helmet>
 
       <header className="container mx-auto px-4 py-6">
@@ -48,13 +41,13 @@ const Team = () => {
               Meet the <span className="text-primary">Team</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              The passionate founders behind Stammerly, dedicated to transforming speech therapy support for children.
+              The passionate founder behind Stammerly, dedicated to transforming speech therapy support for children.
             </p>
             <div className="w-24 h-1 bg-gradient-to-r from-primary to-secondary mx-auto rounded-full mt-6" />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-            {cofounders.map((founder, index) => (
+          <div className="grid grid-cols-1 max-w-lg mx-auto gap-8 mb-12">
+            {founders.map((founder, index) => (
               <Card key={index} className="border-none shadow-xl bg-card/80 backdrop-blur-sm overflow-hidden">
                 {/* Profile Image Placeholder */}
                 <div className="h-64 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
