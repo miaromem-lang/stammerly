@@ -8,6 +8,7 @@ import { Sparkles, ArrowLeft, BarChart3, MessageSquare, Users, Clock, Send, File
 import { toast } from "sonner";
 import { HubNavigation } from "@/components/HubNavigation";
 import PageBackground from "@/components/PageBackground";
+import { ClassroomAccommodations } from "@/components/ClassroomAccommodations";
 
 const students = [
   { id: 1, name: "Alex M.", status: "good", lastActivity: "2 hours ago" },
@@ -94,6 +95,9 @@ const TeacherHub = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Classroom Accommodations */}
+            <ClassroomAccommodations />
 
             {/* Quick Action Widget */}
             <Card className="glass-card-strong">
