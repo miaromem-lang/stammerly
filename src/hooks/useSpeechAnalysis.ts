@@ -228,9 +228,10 @@ export function useSpeechAnalysis() {
   }, []);
 
   const reset = useCallback(() => {
-    setTranscript('');
-    setAnalysis(null);
-    setRecordingTime(0);
+      setTranscript('');
+      setAnalysis(null);
+      setAudioFilePath(null);
+      setRecordingTime(0);
     setIsProcessing(false);
     setIsRecording(false);
     
