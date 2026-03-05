@@ -57,6 +57,9 @@ const App = () => (
             <Route path="/contact" element={<Contact />} />
             <Route path="/team" element={<Team />} />
             <Route path="/reviews" element={<Reviews />} />
+            <Route path="/childrens-privacy" element={<ChildrensPrivacy />} />
+            <Route path="/nhs-compliance" element={<NhsCompliance />} />
+            <Route path="/accessibility" element={<AccessibilityStatement />} />
             
             {/* Protected routes - require authentication */}
             <Route path="/hub/kid" element={<ProtectedRoute allowedRoles={['kid']}><KidHub /></ProtectedRoute>} />
