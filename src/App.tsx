@@ -42,6 +42,10 @@ import Roadmap from "./pages/Roadmap";
 import AlgorithmChangelog from "./pages/AlgorithmChangelog";
 import NhsWaitTimes from "./pages/NhsWaitTimes";
 import FindTherapist from "./pages/FindTherapist";
+import RegulatoryStatus from "./pages/RegulatoryStatus";
+import SensoryFitGuide from "./pages/SensoryFitGuide";
+import FundingSupport from "./pages/FundingSupport";
+import TechnicalIntegration from "./pages/TechnicalIntegration";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
