@@ -27,7 +27,7 @@ export const ParentMoodTrends = () => {
       byDate.set(date, entry);
     });
 
-    (recentRatings ?? []).forEach((r: any) => {
+    (ratings ?? []).forEach((r: any) => {
       const date = r.rating_date;
       const entry = byDate.get(date) || { mood: null, anxiety: null, fluencyRating: null };
       entry.fluencyRating = r.rating;
