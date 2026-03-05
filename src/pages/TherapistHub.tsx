@@ -20,6 +20,7 @@ import { QuestAssigner } from "@/components/QuestAssigner";
 import { RecommendationTrendCharts } from "@/components/RecommendationTrendCharts";
 import { AILearningHistory } from "@/components/AILearningHistory";
 import { MonthlyReport } from "@/components/MonthlyReport";
+import { WeeklyPsychosocialSummary } from "@/components/therapist/WeeklyPsychosocialSummary";
 import { supabase } from "@/integrations/supabase/client";
 
 const patients = [
