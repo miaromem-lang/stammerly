@@ -21,6 +21,7 @@ import {
   type ExerciseCategory
 } from "@/data/exerciseData";
 import PageBackground from "@/components/PageBackground";
+import { PendantStatusCard } from "@/components/PendantStatusCard";
 
 const characters = [
   { id: "otter", name: "Echo the Otter", emoji: "🦦", color: "from-cyan-400 to-blue-500", personality: "playful and encouraging" },
