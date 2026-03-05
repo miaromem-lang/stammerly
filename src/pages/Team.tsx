@@ -22,7 +22,7 @@ const Team = () => {
       <PageBackground />
       <Helmet>
         <title>Meet the Team | Stammerly</title>
-        <meta name="description" content="Meet the co-founders of Stammerly - Mia Romem and Jose Vidal - who are transforming support for children who stammer." />
+        <meta name="description" content="Meet Mia Romem, founder of Stammerly, transforming support for children who stammer." />
       </Helmet>
 
       <header className="container mx-auto px-4 py-6">
