@@ -25,6 +25,7 @@ import {
   SOAPNoteGenerator,
   PredictiveRelapseRisk,
   ConcomitantMovementTracker,
+  MoodFluencyCorrelation,
 } from "@/components/therapist";
 
 // Mock patients for demo
