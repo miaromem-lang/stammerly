@@ -10,6 +10,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Sparkles, ArrowLeft, BarChart3, Users, Calendar, FileText, Smartphone, Upload, Plus, Save, X, CalendarIcon, Star } from "lucide-react";
+import { CaseloadTriage } from "@/components/CaseloadTriage";
+import { NhsDataExport } from "@/components/NhsDataExport";
+import { XaiAuditTrail } from "@/components/XaiAuditTrail";
+import { BulkAssignment } from "@/components/BulkAssignment";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
