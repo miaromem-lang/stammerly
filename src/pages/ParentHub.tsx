@@ -19,6 +19,10 @@ import { PendantStatusCard } from "@/components/PendantStatusCard";
 import { SyncHistoryLog } from "@/components/SyncHistoryLog";
 import { ParentMoodTrends } from "@/components/ParentMoodTrends";
 import { PrivacyPortal } from "@/components/PrivacyPortal";
+import { NotificationPreferences } from "@/components/NotificationPreferences";
+import { AccessRevocation } from "@/components/AccessRevocation";
+import { HardwareDiagnostics } from "@/components/HardwareDiagnostics";
+import { SubscriptionPortal } from "@/components/SubscriptionPortal";
 
 const ParentHub = () => {
   const navigate = useNavigate();
