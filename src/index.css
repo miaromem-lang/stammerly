@@ -289,3 +289,88 @@
 .animate-badge-bounce {
   animation: badge-bounce 2s ease-in-out infinite;
 }
+
+/* ═══════════════════════════════════════════════
+   ACCESSIBILITY OVERRIDES (WCAG 2.2 AA)
+   ═══════════════════════════════════════════════ */
+
+/* High Contrast Mode */
+.a11y-high-contrast {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 0%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 0%;
+  --muted: 0 0% 90%;
+  --muted-foreground: 0 0% 20%;
+  --border: 0 0% 30%;
+  --input: 0 0% 30%;
+  --primary: 232 100% 25%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 92%;
+  --secondary-foreground: 0 0% 0%;
+  --accent-orange: 30 100% 45%;
+  --accent-sky: 210 100% 35%;
+  --success: 140 100% 30%;
+  --gold: 45 100% 40%;
+  --destructive: 0 100% 40%;
+  --glass: 0 0% 100%;
+  --glass-border: 0 0% 30%;
+}
+
+.a11y-high-contrast.dark {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+  --card: 0 0% 5%;
+  --card-foreground: 0 0% 100%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 80%;
+  --border: 0 0% 60%;
+  --input: 0 0% 60%;
+  --primary: 200 100% 60%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 0 0% 12%;
+  --secondary-foreground: 0 0% 100%;
+  --glass: 0 0% 5%;
+  --glass-border: 0 0% 60%;
+}
+
+/* Dyslexia-Friendly Font */
+.a11y-dyslexia-font,
+.a11y-dyslexia-font body,
+.a11y-dyslexia-font h1,
+.a11y-dyslexia-font h2,
+.a11y-dyslexia-font h3,
+.a11y-dyslexia-font h4,
+.a11y-dyslexia-font h5,
+.a11y-dyslexia-font h6,
+.a11y-dyslexia-font p,
+.a11y-dyslexia-font span,
+.a11y-dyslexia-font button,
+.a11y-dyslexia-font input,
+.a11y-dyslexia-font textarea,
+.a11y-dyslexia-font select,
+.a11y-dyslexia-font label,
+.a11y-dyslexia-font a {
+  font-family: 'OpenDyslexic', sans-serif !important;
+  letter-spacing: 0.05em;
+  word-spacing: 0.15em;
+  line-height: 1.8;
+}
+
+/* Reduced Motion */
+.a11y-reduced-motion,
+.a11y-reduced-motion * {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Large Text */
+.a11y-large-text {
+  font-size: 118.75%;
+}
+
+.a11y-large-text body {
+  font-size: 1.1875rem;
+}

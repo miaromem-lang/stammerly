@@ -68,6 +68,7 @@ export const HubNavigation = () => {
                 Sign Out
               </Button>
             )}
+            <AccessibilityToggle />
           </nav>
 
           {/* Mobile Hamburger Menu */}
