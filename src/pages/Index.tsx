@@ -45,6 +45,8 @@ const Index = () => {
         navigate("/product");
       }
       setEmail("");
+      setUserType("");
+      setChildAge("");
     } catch {
       toast({
         title: "Something went wrong",
