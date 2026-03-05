@@ -59,7 +59,8 @@ Guidelines:
 - Focus on stuttering/fluency disorder treatment
 - Include specific metrics where available
 - Make actionable recommendations
-- Consider SSI-4 standards for severity ratings`;
+- Consider SSI-4 standards for severity ratings
+- When psychosocial data (mood/anxiety check-ins) is available, integrate it into the Subjective and Assessment sections, noting correlations with fluency patterns per Parsons et al. (2021)`;
 
     const userPrompt = `Generate a S.O.A.P. note for a pediatric stuttering patient with the following data:
 
