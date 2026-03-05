@@ -46,7 +46,6 @@ export const Footer = () => {
             <h4 className="font-semibold mb-4">Connect</h4>
             <ul className="space-y-3 text-background/70">
               <li><a href="mailto:mia@stammerly.com" className="hover:text-background transition-colors flex items-center gap-2"><Mail className="w-4 h-4" />mia@stammerly.com</a></li>
-              <li><a href="mailto:jose@stammerly.com" className="hover:text-background transition-colors flex items-center gap-2"><Mail className="w-4 h-4" />jose@stammerly.com</a></li>
             </ul>
           </div>
         </div>
