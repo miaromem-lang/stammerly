@@ -105,6 +105,15 @@ export const SOAPNoteGenerator = ({ clinicalData }: SOAPNoteGeneratorProps) => {
     }
     if (focusAreas.length === 0) focusAreas.push("maintenance and generalization");
     
+    // Psychosocial
+    const hasMoodData = data.recentMoodAvg !== null && data.recentMoodAvg !== undefined;
+    const moodDescription = hasMoodData
+      ? data.recentMoodAvg! >= 4 ? "positive" : data.recentMoodAvg! >= 3 ? "neutral" : "low"
+      : null;
+    const anxietyDescription = data.recentAnxietyAvg !== null && data.recentAnxietyAvg !== undefined
+      ? data.recentAnxietyAvg! >= 7 ? "elevated" : data.recentAnxietyAvg! >= 4 ? "moderate" : "low"
+      : null;
+
     return `S.O.A.P. NOTE
 Date: ${date}
 Patient: ${name}
@@ -112,7 +121,7 @@ Patient: ${name}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 SUBJECTIVE:
-${name} completed ${data.totalSessions} practice session(s) this period with ${adherenceDescription} adherence (${data.adherenceRate.toFixed(0)}%). Current practice streak: ${data.streakDays} day(s). ${data.streakDays > 7 ? "Patient demonstrates consistent engagement with home practice program." : data.streakDays > 3 ? "Practice frequency is developing." : "Encourage increased practice frequency."}
+${name} completed ${data.totalSessions} practice session(s) this period with ${adherenceDescription} adherence (${data.adherenceRate.toFixed(0)}%). Current practice streak: ${data.streakDays} day(s). ${data.streakDays > 7 ? "Patient demonstrates consistent engagement with home practice program." : data.streakDays > 3 ? "Practice frequency is developing." : "Encourage increased practice frequency."}${hasMoodData ? `\n\nPSYCHOSOCIAL: Self-reported mood over recent check-ins averaged ${data.recentMoodAvg!.toFixed(1)}/5 (${moodDescription}).${anxietyDescription ? ` Self-reported anxiety averaged ${data.recentAnxietyAvg!.toFixed(1)}/10 (${anxietyDescription}).` : ""}${data.moodTrend ? ` Mood trend: ${data.moodTrend}.` : ""} Based on ${data.moodCheckinCount ?? 0} check-in(s).` : ""}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -130,7 +139,7 @@ OBJECTIVE:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ASSESSMENT:
-${name} presents with ${severityLevel} developmental stuttering characterized primarily by ${data.blocksCount > data.prolongationsCount ? "blocks" : "prolongations"} and ${data.sldCount > data.odCount ? "stutter-like disfluencies" : "a mix of disfluency types"}. ${data.naturalnessScore && data.naturalnessScore <= 4 ? "Speech naturalness is within functional limits." : data.naturalnessScore && data.naturalnessScore >= 7 ? "Speech may sound overly controlled; monitor for 'robotic' quality." : "Speech naturalness is developing."} ${data.easyOnsetAttempts > 0 && (data.easyOnsetSuccesses / data.easyOnsetAttempts) >= 0.6 ? "Good progress with fluency shaping techniques noted." : "Continued practice with fluency techniques recommended."} ${data.adherenceRate >= 60 ? "Family engagement with home practice is positive prognostic indicator." : "Increased home practice would support treatment progress."}
+${name} presents with ${severityLevel} developmental stuttering characterized primarily by ${data.blocksCount > data.prolongationsCount ? "blocks" : "prolongations"} and ${data.sldCount > data.odCount ? "stutter-like disfluencies" : "a mix of disfluency types"}. ${data.naturalnessScore && data.naturalnessScore <= 4 ? "Speech naturalness is within functional limits." : data.naturalnessScore && data.naturalnessScore >= 7 ? "Speech may sound overly controlled; monitor for 'robotic' quality." : "Speech naturalness is developing."} ${data.easyOnsetAttempts > 0 && (data.easyOnsetSuccesses / data.easyOnsetAttempts) >= 0.6 ? "Good progress with fluency shaping techniques noted." : "Continued practice with fluency techniques recommended."} ${data.adherenceRate >= 60 ? "Family engagement with home practice is positive prognostic indicator." : "Increased home practice would support treatment progress."}${hasMoodData && moodDescription === "low" ? ` Psychosocial concern: Self-reported mood is low (${data.recentMoodAvg!.toFixed(1)}/5), which may be contributing to increased disfluency patterns (Parsons et al., 2021).` : ""}${anxietyDescription === "elevated" ? ` Elevated self-reported anxiety (${data.recentAnxietyAvg!.toFixed(1)}/10) warrants attention and may correlate with increased phoneme trigger sensitivity.` : ""}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -138,8 +147,8 @@ PLAN:
 1. Continue current treatment approach with focus on: ${focusAreas.join("; ")}.
 2. ${data.adherenceRate < 60 ? "Discuss strategies to increase home practice frequency with family." : "Maintain current practice schedule."}
 3. ${data.blocksCount > 3 ? "Introduce progressive desensitization for blocking moments." : "Continue reinforcing successful fluency strategies."}
-4. ${data.naturalnessScore && data.naturalnessScore >= 7 ? "Monitor for over-controlled speech; encourage natural intonation." : "No immediate concerns regarding speech naturalness."}
-5. Next session: Review progress and adjust targets as appropriate.
+4. ${data.naturalnessScore && data.naturalnessScore >= 7 ? "Monitor for over-controlled speech; encourage natural intonation." : "No immediate concerns regarding speech naturalness."}${anxietyDescription === "elevated" || moodDescription === "low" ? "\n5. Consider psychosocial support: brief CBT-based strategies for speech-related anxiety management." : ""}
+${!(anxietyDescription === "elevated" || moodDescription === "low") ? "5" : "6"}. Next session: Review progress and adjust targets as appropriate.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
