@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import { Sparkles, Mail } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
