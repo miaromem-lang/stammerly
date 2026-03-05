@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      algorithm_changelog: {
+        Row: {
+          created_at: string
+          details: string | null
+          id: string
+          impact_level: string
+          model_area: string
+          published_at: string
+          summary: string
+          title: string
+          version: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          impact_level?: string
+          model_area?: string
+          published_at?: string
+          summary: string
+          title: string
+          version: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          impact_level?: string
+          model_area?: string
+          published_at?: string
+          summary?: string
+          title?: string
+          version?: string
+        }
+        Relationships: []
+      }
       context_notes: {
         Row: {
           child_user_id: string | null
@@ -123,6 +159,71 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      feature_request_upvotes: {
+        Row: {
+          created_at: string
+          feature_request_id: string
+          id: string
+          session_fingerprint: string
+        }
+        Insert: {
+          created_at?: string
+          feature_request_id: string
+          id?: string
+          session_fingerprint: string
+        }
+        Update: {
+          created_at?: string
+          feature_request_id?: string
+          id?: string
+          session_fingerprint?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feature_request_upvotes_feature_request_id_fkey"
+            columns: ["feature_request_id"]
+            isOneToOne: false
+            referencedRelation: "feature_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feature_requests: {
+        Row: {
+          author_name: string
+          author_role: string
+          category: string
+          created_at: string
+          description: string
+          id: string
+          status: string
+          title: string
+          upvote_count: number
+        }
+        Insert: {
+          author_name?: string
+          author_role?: string
+          category?: string
+          created_at?: string
+          description: string
+          id?: string
+          status?: string
+          title: string
+          upvote_count?: number
+        }
+        Update: {
+          author_name?: string
+          author_role?: string
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          status?: string
+          title?: string
+          upvote_count?: number
+        }
+        Relationships: []
       }
       kid_messages: {
         Row: {

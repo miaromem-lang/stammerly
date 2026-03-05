@@ -38,6 +38,8 @@ import Procurement from "./pages/Procurement";
 import PendantSetup from "./pages/PendantSetup";
 import SystemStatus from "./pages/SystemStatus";
 import Blog from "./pages/Blog";
+import Roadmap from "./pages/Roadmap";
+import AlgorithmChangelog from "./pages/AlgorithmChangelog";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -73,6 +75,8 @@ const App = () => (
             <Route path="/procurement" element={<Procurement />} />
             <Route path="/system-status" element={<SystemStatus />} />
             <Route path="/blog" element={<Blog />} />
+            <Route path="/roadmap" element={<Roadmap />} />
+            <Route path="/algorithm-changelog" element={<AlgorithmChangelog />} />
             
             {/* Protected routes - require authentication */}
             <Route path="/hub/kid" element={<ProtectedRoute allowedRoles={['kid']}><KidHub /></ProtectedRoute>} />
