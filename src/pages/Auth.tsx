@@ -26,7 +26,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const { signIn, signUp, isAuthenticated, role } = useAuth();
+  const { signIn, signUp, isAuthenticated, role, loading: authLoading } = useAuth();
   
   const [selectedRole, setSelectedRole] = useState<AppRole | null>(null);
   const [email, setEmail] = useState("");
