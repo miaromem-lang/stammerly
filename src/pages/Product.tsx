@@ -68,6 +68,9 @@ const Product = () => {
           </motion.div>
         </section>
 
+        {/* Hybrid Intelligence Loop Diagram */}
+        <HybridLoopDiagram />
+
         {/* For Parents (D2C) */}
         <section className="py-16 md:py-20">
           <div className="container mx-auto px-4">
