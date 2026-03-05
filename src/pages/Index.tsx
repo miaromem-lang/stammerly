@@ -4,26 +4,48 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
     
     setIsSubmitting(true);
-    // Simulate submission
-    setTimeout(() => {
-      toast({
-        title: "You're on the list! 🎉",
-        description: "We'll notify you when Stammerly launches.",
-      });
+    try {
+      const { error } = await supabase
+        .from("waitlist_signups")
+        .insert({ email: email.toLowerCase().trim() });
+
+      if (error) {
+        if (error.code === "23505") {
+          toast({
+            title: "Already on the list! 😊",
+            description: "This email is already registered. We'll be in touch soon!",
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        toast({
+          title: "You're on the list! 🎉",
+          description: "We'll notify you when Stammerly launches.",
+        });
+      }
       setEmail("");
+    } catch {
+      toast({
+        title: "Something went wrong",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
 
   return (
