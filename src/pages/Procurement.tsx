@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Footer } from "@/components/Footer";
+import SendFundingCalculator from "@/components/SendFundingCalculator";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -283,6 +284,21 @@ const Procurement = () => {
                 </motion.form>
               </motion.div>
             </div>
+          </div>
+        </section>
+
+        {/* SEND Funding Calculator */}
+        <section className="py-16 md:py-20 bg-gradient-to-b from-background to-secondary/20">
+          <div className="container mx-auto px-4">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={fadeUp}>
+              <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground text-center mb-3">SEND Funding Calculator</h2>
+              <p className="text-muted-foreground text-center mb-8 max-w-2xl mx-auto">
+                For SENCOs and school administrators — calculate how to compliantly allocate High Needs Block or Pupil Premium funding for Stammerly licences.
+              </p>
+              <div className="max-w-3xl mx-auto">
+                <SendFundingCalculator />
+              </div>
+            </motion.div>
           </div>
         </section>
 
