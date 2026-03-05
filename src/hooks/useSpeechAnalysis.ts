@@ -93,6 +93,7 @@ export function useSpeechAnalysis() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState<string>('');
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+  const [audioFilePath, setAudioFilePath] = useState<string | null>(null);
   const [recordingTime, setRecordingTime] = useState(0);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
