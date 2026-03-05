@@ -39,22 +39,27 @@ const Auth = () => {
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (isAuthenticated && role) {
-      const from = (location.state as { from?: Location })?.from?.pathname;
-      if (from) {
-        navigate(from, { replace: true });
-      } else {
-        const roleToHub: Record<AppRole, string> = {
-          kid: '/hub/kid',
-          parent: '/hub/parent',
-          teacher: '/hub/teacher',
-          therapist: '/hub/therapist',
-          admin: '/hub/therapist',
-        };
-        navigate(roleToHub[role], { replace: true });
+    if (isAuthenticated) {
+      if (role) {
+        const from = (location.state as { from?: Location })?.from?.pathname;
+        if (from) {
+          navigate(from, { replace: true });
+        } else {
+          const roleToHub: Record<AppRole, string> = {
+            kid: '/hub/kid',
+            parent: '/hub/parent',
+            teacher: '/hub/teacher',
+            therapist: '/hub/therapist',
+            admin: '/hub/therapist',
+          };
+          navigate(roleToHub[role], { replace: true });
+        }
+      } else if (!loading) {
+        // Authenticated but no role — first-time OAuth user
+        navigate('/select-role', { replace: true });
       }
     }
-  }, [isAuthenticated, role, navigate, location.state]);
+  }, [isAuthenticated, role, loading, navigate, location.state]);
 
   const validateForm = (isSignUp: boolean): boolean => {
     const newErrors: typeof errors = {};
