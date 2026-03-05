@@ -299,7 +299,7 @@ export default function HybridLoopDiagram() {
 
             {/* Auto-advance hint */}
             <p className="text-xs text-muted-foreground mt-4">
-              Click each node to explore the full loop.
+              {paused ? "Paused — click a node or wait to resume." : "Auto-advancing every 4 seconds. Click to pause."}
             </p>
           </div>
         </div>
