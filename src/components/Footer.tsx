@@ -33,6 +33,16 @@ export const Footer = () => {
           </div>
           
           <div>
+            <h4 className="font-semibold mb-4">Legal & Compliance</h4>
+            <ul className="space-y-3 text-background/70">
+              <li><Link to="/privacy-policy" className="hover:text-background transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/childrens-privacy" className="hover:text-background transition-colors">Children's Privacy Notice</Link></li>
+              <li><Link to="/nhs-compliance" className="hover:text-background transition-colors">NHS Compliance</Link></li>
+              <li><Link to="/accessibility" className="hover:text-background transition-colors">Accessibility Statement</Link></li>
+            </ul>
+          </div>
+          
+          <div>
             <h4 className="font-semibold mb-4">Connect</h4>
             <ul className="space-y-3 text-background/70">
               <li><a href="mailto:mia@stammerly.com" className="hover:text-background transition-colors flex items-center gap-2"><Mail className="w-4 h-4" />mia@stammerly.com</a></li>

@@ -237,6 +237,15 @@ const PrivacyPolicy = () => {
 
           <div className="flex flex-wrap gap-4 justify-center">
             <Button asChild size="lg" className="rounded-full">
+              <Link to="/childrens-privacy">Children's Privacy Notice</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="rounded-full">
+              <Link to="/nhs-compliance">NHS Compliance & Clinical Safety</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="rounded-full">
+              <Link to="/accessibility">Accessibility Statement</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="rounded-full">
               <Link to="/contact">Contact Us</Link>
             </Button>
           </div>
