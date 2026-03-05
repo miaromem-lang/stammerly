@@ -259,8 +259,9 @@ const KidHub = () => {
         </Card>
 
         {/* Pendant Status */}
-        <div className="mb-8">
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
           <PendantStatusCard variant="kid" />
+          <MoodCheckIn />
         </div>
 
         {/* Daily Streak & Stats */}
