@@ -6,20 +6,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import PageBackground from "@/components/PageBackground";
 
-const cofounders = [
+const founders = [
   {
     name: "Mia Romem",
-    role: "Co-Founder",
+    role: "Founder",
     email: "mia@stammerly.com",
-    image: null, // Placeholder for future image
-    bio: "", // Empty for now
-  },
-  {
-    name: "Jose Vidal",
-    role: "Co-Founder",
-    email: "jose@stammerly.com",
-    image: null, // Placeholder for future image
-    bio: "", // Empty for now
+    image: null,
+    bio: "MA in Education and Technology. Passionate about aligning technology with human-centred teaching practices to transform speech therapy support for children.",
   },
 ];
 
