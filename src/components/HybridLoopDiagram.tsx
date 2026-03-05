@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mic, Brain, Stethoscope, Gamepad2, ChevronRight } from "lucide-react";
 
@@ -62,7 +62,31 @@ const steps: LoopStep[] = [
 
 export default function HybridLoopDiagram() {
   const [activeStep, setActiveStep] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const active = steps[activeStep];
+
+  const startTimer = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setActiveStep((prev) => (prev + 1) % steps.length);
+    }, 4000);
+  }, []);
+
+  useEffect(() => {
+    if (!paused) startTimer();
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [paused, startTimer]);
+
+  const handleNodeClick = (i: number) => {
+    setActiveStep(i);
+    setPaused(true);
+    // Resume after 12s of inactivity
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      setPaused(false);
+    }, 12000) as unknown as ReturnType<typeof setInterval>;
+  };
 
   return (
     <section className="py-16 md:py-24 relative overflow-hidden">
@@ -176,7 +200,7 @@ export default function HybridLoopDiagram() {
                     key={step.id}
                     className={`absolute flex flex-col items-center gap-1.5 -translate-x-1/2 -translate-y-1/2 cursor-pointer group focus:outline-none`}
                     style={{ left: `${x}%`, top: `${y}%` }}
-                    onClick={() => setActiveStep(i)}
+                    onClick={() => handleNodeClick(i)}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -258,7 +282,7 @@ export default function HybridLoopDiagram() {
               {steps.map((step, i) => (
                 <button
                   key={step.id}
-                  onClick={() => setActiveStep(i)}
+                  onClick={() => handleNodeClick(i)}
                   className="flex items-center gap-1.5 focus:outline-none"
                 >
                   <motion.div
@@ -275,7 +299,7 @@ export default function HybridLoopDiagram() {
 
             {/* Auto-advance hint */}
             <p className="text-xs text-muted-foreground mt-4">
-              Click each node to explore the full loop.
+              {paused ? "Paused — click a node or wait to resume." : "Auto-advancing every 4 seconds. Click to pause."}
             </p>
           </div>
         </div>

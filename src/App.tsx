@@ -35,6 +35,7 @@ import SelectRole from "./pages/SelectRole";
 import Product from "./pages/Product";
 import HardwareSafety from "./pages/HardwareSafety";
 import Procurement from "./pages/Procurement";
+import PendantSetup from "./pages/PendantSetup";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -72,6 +73,7 @@ const App = () => (
             {/* Protected routes - require authentication */}
             <Route path="/hub/kid" element={<ProtectedRoute allowedRoles={['kid']}><KidHub /></ProtectedRoute>} />
             <Route path="/hub/parent" element={<ProtectedRoute allowedRoles={['parent']}><ParentHub /></ProtectedRoute>} />
+            <Route path="/hub/parent/pendant-setup" element={<ProtectedRoute allowedRoles={['parent']}><PendantSetup /></ProtectedRoute>} />
             <Route path="/hub/teacher" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherHub /></ProtectedRoute>} />
             <Route path="/hub/therapist" element={<ProtectedRoute allowedRoles={['therapist', 'admin']}><TherapistHub /></ProtectedRoute>} />
             <Route path="/hub/kid-overview" element={<ProtectedRoute allowedRoles={['kid']}><KidHubOverview /></ProtectedRoute>} />
