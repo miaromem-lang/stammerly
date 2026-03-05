@@ -33,6 +33,8 @@ import StoryExercise from "./pages/StoryExercise";
 import FreeTalk from "./pages/FreeTalk";
 import SelectRole from "./pages/SelectRole";
 import Product from "./pages/Product";
+import HardwareSafety from "./pages/HardwareSafety";
+import Procurement from "./pages/Procurement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
