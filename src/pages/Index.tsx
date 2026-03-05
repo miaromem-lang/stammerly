@@ -22,9 +22,10 @@ const Index = () => {
     
     setIsSubmitting(true);
     try {
+      const typeLabel = userType === "kid" && childAge ? `kid_age_${childAge}` : userType || null;
       const { error } = await supabase
         .from("waitlist_signups")
-        .insert({ email: email.toLowerCase().trim() });
+        .insert({ email: email.toLowerCase().trim(), user_type: typeLabel });
 
       if (error) {
         if (error.code === "23505") {
