@@ -279,6 +279,24 @@ const Product = () => {
           </div>
         </section>
 
+        {/* Interactive Sandboxes */}
+        <section className="py-16 md:py-20 bg-gradient-to-b from-background to-secondary/20">
+          <div className="container mx-auto px-4">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={staggerContainer}>
+              <motion.div variants={fadeUp} className="text-center mb-10">
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">Try It Yourself</h2>
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                  Don't just take our word for it — interact with the technology directly.
+                </p>
+              </motion.div>
+              <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                <motion.div variants={fadeUp}><DisfluencyVisualiser /></motion.div>
+                <motion.div variants={fadeUp}><SamplePracticeGame /></motion.div>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
         {/* Hybrid Intelligence Callout */}
         <section className="py-16 md:py-20 bg-gradient-to-b from-background to-secondary/30">
           <div className="container mx-auto px-4">
