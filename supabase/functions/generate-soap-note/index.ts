@@ -23,6 +23,11 @@ interface ClinicalData {
   streakDays: number;
   patientName?: string;
   sessionDate?: string;
+  // Psychosocial
+  recentMoodAvg?: number | null;
+  recentAnxietyAvg?: number | null;
+  moodTrend?: string | null;
+  moodCheckinCount?: number;
 }
 
 serve(async (req) => {
