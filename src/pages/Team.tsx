@@ -46,8 +46,8 @@ const Team = () => {
             <div className="w-24 h-1 bg-gradient-to-r from-primary to-secondary mx-auto rounded-full mt-6" />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-            {cofounders.map((founder, index) => (
+          <div className="grid grid-cols-1 max-w-lg mx-auto gap-8 mb-12">
+            {founders.map((founder, index) => (
               <Card key={index} className="border-none shadow-xl bg-card/80 backdrop-blur-sm overflow-hidden">
                 {/* Profile Image Placeholder */}
                 <div className="h-64 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
