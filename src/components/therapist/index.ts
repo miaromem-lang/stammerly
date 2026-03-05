@@ -11,3 +11,4 @@ export { SituationalHeatmap } from './SituationalHeatmap';
 export { SOAPNoteGenerator } from './SOAPNoteGenerator';
 export { PredictiveRelapseRisk } from './PredictiveRelapseRisk';
 export { ConcomitantMovementTracker } from './ConcomitantMovementTracker';
+export { MoodFluencyCorrelation } from './MoodFluencyCorrelation';

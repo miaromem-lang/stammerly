@@ -25,6 +25,7 @@ import {
   SOAPNoteGenerator,
   PredictiveRelapseRisk,
   ConcomitantMovementTracker,
+  MoodFluencyCorrelation,
 } from "@/components/therapist";
 
 // Mock patients for demo
@@ -735,6 +736,9 @@ const TherapistAnalyticsHub = () => {
               <SituationalHeatmap 
                 environmentData={metrics.environmentData}
               />
+
+              {/* Mood-Fluency Correlation */}
+              <MoodFluencyCorrelation patientId={selectedPatient} />
             </TabsContent>
 
             {/* Physicality Tab - Concomitant Behaviours */}
