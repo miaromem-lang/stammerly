@@ -59,7 +59,7 @@ const Auth = () => {
         navigate('/select-role', { replace: true });
       }
     }
-  }, [isAuthenticated, role, loading, navigate, location.state]);
+  }, [isAuthenticated, role, authLoading, navigate, location.state]);
 
   const validateForm = (isSignUp: boolean): boolean => {
     const newErrors: typeof errors = {};
