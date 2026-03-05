@@ -24,7 +24,9 @@ import Research from "./pages/Research";
 import Contact from "./pages/Contact";
 import Team from "./pages/Team";
 import Reviews from "./pages/Reviews";
-
+import ChildrensPrivacy from "./pages/ChildrensPrivacy";
+import NhsCompliance from "./pages/NhsCompliance";
+import AccessibilityStatement from "./pages/AccessibilityStatement";
 import KidHubOverview from "./pages/KidHubOverview";
 import StoryExercise from "./pages/StoryExercise";
 import FreeTalk from "./pages/FreeTalk";
