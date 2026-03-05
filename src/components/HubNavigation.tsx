@@ -4,6 +4,7 @@ import { Sparkles, Menu, LogOut } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { AccessibilityToggle } from "@/components/AccessibilityToggle";
 import { toast } from "sonner";
 
 const navLinks = [
