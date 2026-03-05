@@ -28,6 +28,7 @@ import Reviews from "./pages/Reviews";
 import KidHubOverview from "./pages/KidHubOverview";
 import StoryExercise from "./pages/StoryExercise";
 import FreeTalk from "./pages/FreeTalk";
+import SelectRole from "./pages/SelectRole";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
