@@ -11,6 +11,10 @@ import { PersonalizedQuestMap } from "@/components/PersonalizedQuestMap";
 import { KidContact } from "@/components/KidContact";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useAchievements } from "@/hooks/useAchievements";
+import { SensoryFriendlyToggle } from "@/components/SensoryFriendlyToggle";
+import { AvatarStore } from "@/components/AvatarStore";
+import { SafeCommunity } from "@/components/SafeCommunity";
+import { NonPunitiveFeedback, getFeedbackType } from "@/components/NonPunitiveFeedback";
 import { 
   exerciseCategories as fullExerciseCategories, 
   questLevelMapping, 
@@ -131,6 +135,7 @@ const KidHub = () => {
               <Star className="w-5 h-5 text-gold fill-gold" />
               <span className="font-bold text-foreground">{progress.totalGems}</span>
             </div>
+            <SensoryFriendlyToggle />
             <KidContact 
               characterName={selectedCharacter.name}
               characterEmoji={selectedCharacter.emoji}
@@ -417,16 +422,25 @@ const KidHub = () => {
                 <p className="text-muted-foreground text-sm capitalize">
                   {selectedCharacter.personality}
                 </p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="mt-3 rounded-kids"
-                  onClick={() => setShowCharacterPicker(true)}
-                >
-                  Change Buddy
-                </Button>
+                <div className="flex gap-2 mt-3">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="rounded-kids flex-1"
+                    onClick={() => setShowCharacterPicker(true)}
+                  >
+                    Change Buddy
+                  </Button>
+                  <AvatarStore />
+                </div>
               </CardContent>
             </Card>
+
+            {/* Safe Community Interactions */}
+            <SafeCommunity 
+              characterName={selectedCharacter.name}
+              characterEmoji={selectedCharacter.emoji}
+            />
 
             {/* Practice Analytics */}
             <PracticeAnalytics variant="kid" showRecent={false} />
