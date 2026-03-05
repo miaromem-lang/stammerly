@@ -16,6 +16,7 @@ import { useContextNotes } from "@/hooks/useContextNotes";
 import { useFluencyRatings } from "@/hooks/useFluencyRatings";
 import PageBackground from "@/components/PageBackground";
 import { PendantStatusCard } from "@/components/PendantStatusCard";
+import { SyncHistoryLog } from "@/components/SyncHistoryLog";
 
 const ParentHub = () => {
   const navigate = useNavigate();
