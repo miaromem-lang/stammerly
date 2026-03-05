@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Target, Shield, Lightbulb, BookOpen, Heart } from 'lucide-react';
+import { ArrowLeft, Target, Shield, Lightbulb, BookOpen, Heart, Brain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PageBackground from "@/components/PageBackground";
