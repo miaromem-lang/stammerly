@@ -43,7 +43,7 @@ export const ParentMoodTrends = () => {
         anxiety: data.anxiety,
         fluencyRating: data.fluencyRating,
       }));
-  }, [recentCheckins, recentRatings]);
+  }, [recentCheckins, ratings]);
 
   // Trend summary
   const trendSummary = useMemo(() => {
