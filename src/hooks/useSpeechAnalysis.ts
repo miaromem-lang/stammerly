@@ -188,6 +188,9 @@ export function useSpeechAnalysis() {
               const transcription = transcriptionData as TranscriptionResult;
               console.log('Transcription result:', transcription);
               setTranscript(transcription.text);
+              if (transcription.audioFilePath) {
+                setAudioFilePath(transcription.audioFilePath);
+              }
 
               // Step 2: Analyze with word timings
               console.log('Analyzing speech...');
