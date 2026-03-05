@@ -339,6 +339,18 @@ const ParentHub = () => {
 
             {/* Privacy & Data Control */}
             <PrivacyPortal />
+
+            {/* Notification Preferences */}
+            <NotificationPreferences />
+
+            {/* Access Revocation */}
+            <AccessRevocation />
+
+            {/* Hardware Diagnostics */}
+            <HardwareDiagnostics />
+
+            {/* Subscription & Billing */}
+            <SubscriptionPortal />
           </div>
         </div>
       </main>
