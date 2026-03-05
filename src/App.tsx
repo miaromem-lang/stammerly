@@ -40,6 +40,8 @@ import SystemStatus from "./pages/SystemStatus";
 import Blog from "./pages/Blog";
 import Roadmap from "./pages/Roadmap";
 import AlgorithmChangelog from "./pages/AlgorithmChangelog";
+import NhsWaitTimes from "./pages/NhsWaitTimes";
+import FindTherapist from "./pages/FindTherapist";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
