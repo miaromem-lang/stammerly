@@ -135,6 +135,7 @@ const KidHub = () => {
               <Star className="w-5 h-5 text-gold fill-gold" />
               <span className="font-bold text-foreground">{progress.totalGems}</span>
             </div>
+            <SensoryFriendlyToggle />
             <KidContact 
               characterName={selectedCharacter.name}
               characterEmoji={selectedCharacter.emoji}
