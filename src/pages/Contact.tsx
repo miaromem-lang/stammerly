@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import PageBackground from "@/components/PageBackground";
+import LiveChatWidget from "@/components/LiveChatWidget";
 
 const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -249,6 +250,7 @@ const Contact = () => {
           </div>
         </div>
       </main>
+      <LiveChatWidget />
     </div>
   );
 };
