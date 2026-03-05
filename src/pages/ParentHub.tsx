@@ -305,9 +305,12 @@ const ParentHub = () => {
                   {savingComment && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   <Send className="w-4 h-4 mr-2" />
                   Share with Team
-                </Button>
+              </Button>
               </CardContent>
             </Card>
+
+            {/* Privacy & Data Control */}
+            <PrivacyPortal />
           </div>
         </div>
       </main>
