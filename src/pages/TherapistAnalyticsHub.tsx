@@ -139,10 +139,57 @@ const TherapistAnalyticsHub = () => {
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState<ClinicalMetrics | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
+  const [moodData, setMoodData] = useState<{ recentMoodAvg: number | null; recentAnxietyAvg: number | null; moodTrend: "improving" | "declining" | "stable" | null; moodCheckinCount: number }>({ recentMoodAvg: null, recentAnxietyAvg: null, moodTrend: null, moodCheckinCount: 0 });
 
   useEffect(() => {
     fetchClinicalMetrics();
+    fetchMoodData();
   }, [selectedPatient]);
+
+  const fetchMoodData = async () => {
+    if (selectedPatient === "all") {
+      setMoodData({ recentMoodAvg: null, recentAnxietyAvg: null, moodTrend: null, moodCheckinCount: 0 });
+      return;
+    }
+    try {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const { data } = await supabase
+        .from("mood_checkins")
+        .select("mood_score, anxiety_level, checkin_date")
+        .eq("user_id", selectedPatient)
+        .gte("checkin_date", thirtyDaysAgo.toISOString().split("T")[0])
+        .order("checkin_date", { ascending: true });
+
+      if (!data || data.length === 0) {
+        setMoodData({ recentMoodAvg: null, recentAnxietyAvg: null, moodTrend: null, moodCheckinCount: 0 });
+        return;
+      }
+
+      const moodAvg = data.reduce((s, d) => s + d.mood_score, 0) / data.length;
+      const anxietyEntries = data.filter(d => d.anxiety_level !== null);
+      const anxietyAvg = anxietyEntries.length > 0
+        ? anxietyEntries.reduce((s, d) => s + d.anxiety_level!, 0) / anxietyEntries.length
+        : null;
+
+      let trend: "improving" | "declining" | "stable" | null = null;
+      if (data.length >= 6) {
+        const half = Math.floor(data.length / 2);
+        const earlyAvg = data.slice(0, half).reduce((s, d) => s + d.mood_score, 0) / half;
+        const lateAvg = data.slice(half).reduce((s, d) => s + d.mood_score, 0) / (data.length - half);
+        trend = lateAvg - earlyAvg > 0.5 ? "improving" : lateAvg - earlyAvg < -0.5 ? "declining" : "stable";
+      }
+
+      setMoodData({
+        recentMoodAvg: Math.round(moodAvg * 10) / 10,
+        recentAnxietyAvg: anxietyAvg !== null ? Math.round(anxietyAvg * 10) / 10 : null,
+        moodTrend: trend,
+        moodCheckinCount: data.length,
+      });
+    } catch {
+      setMoodData({ recentMoodAvg: null, recentAnxietyAvg: null, moodTrend: null, moodCheckinCount: 0 });
+    }
+  };
 
   const fetchClinicalMetrics = async () => {
     setLoading(true);
@@ -843,6 +890,10 @@ const TherapistAnalyticsHub = () => {
                   totalSessions: metrics.totalSessions,
                   adherenceRate: metrics.adherenceRate,
                   streakDays: metrics.streakDays,
+                  recentMoodAvg: moodData.recentMoodAvg,
+                  recentAnxietyAvg: moodData.recentAnxietyAvg,
+                  moodTrend: moodData.moodTrend,
+                  moodCheckinCount: moodData.moodCheckinCount,
                 }}
               />
             </TabsContent>

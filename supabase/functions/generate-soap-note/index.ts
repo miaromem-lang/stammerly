@@ -23,6 +23,11 @@ interface ClinicalData {
   streakDays: number;
   patientName?: string;
   sessionDate?: string;
+  // Psychosocial
+  recentMoodAvg?: number | null;
+  recentAnxietyAvg?: number | null;
+  moodTrend?: string | null;
+  moodCheckinCount?: number;
 }
 
 serve(async (req) => {
@@ -54,7 +59,8 @@ Guidelines:
 - Focus on stuttering/fluency disorder treatment
 - Include specific metrics where available
 - Make actionable recommendations
-- Consider SSI-4 standards for severity ratings`;
+- Consider SSI-4 standards for severity ratings
+- When psychosocial data (mood/anxiety check-ins) is available, integrate it into the Subjective and Assessment sections, noting correlations with fluency patterns per Parsons et al. (2021)`;
 
     const userPrompt = `Generate a S.O.A.P. note for a pediatric stuttering patient with the following data:
 
@@ -82,8 +88,14 @@ ENGAGEMENT METRICS:
 - Total Sessions: ${clinicalData.totalSessions}
 - Adherence Rate: ${clinicalData.adherenceRate.toFixed(0)}%
 - Current Streak: ${clinicalData.streakDays} days
-
-Format the note with clear section headers (SUBJECTIVE, OBJECTIVE, ASSESSMENT, PLAN) and use bullet points where appropriate.`;
+${clinicalData.recentMoodAvg != null ? `
+PSYCHOSOCIAL DATA (self-reported by child):
+- Average Mood Score: ${clinicalData.recentMoodAvg.toFixed(1)}/5
+- Average Anxiety Level: ${clinicalData.recentAnxietyAvg != null ? clinicalData.recentAnxietyAvg.toFixed(1) + '/10' : 'Not reported'}
+- Mood Trend: ${clinicalData.moodTrend || 'Insufficient data'}
+- Check-ins Recorded: ${clinicalData.moodCheckinCount || 0}
+` : ''}
+Format the note with clear section headers (SUBJECTIVE, OBJECTIVE, ASSESSMENT, PLAN) and use bullet points where appropriate.${clinicalData.recentMoodAvg != null ? ' Include psychosocial observations in the SUBJECTIVE section and consider emotional factors in the ASSESSMENT.' : ''}`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
