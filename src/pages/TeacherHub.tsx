@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { HubNavigation } from "@/components/HubNavigation";
 import PageBackground from "@/components/PageBackground";
 import { ClassroomAccommodations } from "@/components/ClassroomAccommodations";
+import { TrafficLightReadiness } from "@/components/teacher/TrafficLightReadiness";
+import { IepGoalsSync } from "@/components/teacher/IepGoalsSync";
 
 const students = [
   { id: 1, name: "Alex M.", status: "good", lastActivity: "2 hours ago" },
@@ -95,6 +97,9 @@ const TeacherHub = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Traffic Light Readiness */}
+            <TrafficLightReadiness />
 
             {/* Classroom Accommodations */}
             <ClassroomAccommodations />
@@ -243,6 +248,9 @@ const TeacherHub = () => {
                 </p>
               </CardContent>
             </Card>
+
+            {/* IEP Goals Sync */}
+            <IepGoalsSync />
 
             {/* App Integration */}
             <Card className="glass-card-strong border-success/30">
