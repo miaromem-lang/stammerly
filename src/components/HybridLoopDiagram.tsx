@@ -200,7 +200,7 @@ export default function HybridLoopDiagram() {
                     key={step.id}
                     className={`absolute flex flex-col items-center gap-1.5 -translate-x-1/2 -translate-y-1/2 cursor-pointer group focus:outline-none`}
                     style={{ left: `${x}%`, top: `${y}%` }}
-                    onClick={() => setActiveStep(i)}
+                    onClick={() => handleNodeClick(i)}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
                   >
