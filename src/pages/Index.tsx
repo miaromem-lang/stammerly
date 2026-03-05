@@ -130,6 +130,36 @@ const Index = () => {
               </Button>
             </div>
           </form>
+
+          {/* Survey CTA */}
+          <div className="max-w-2xl mx-auto mb-12 bg-card/70 backdrop-blur-sm border border-border/30 rounded-2xl p-6 md:p-8 shadow-lg text-left">
+            <h2 className="font-display text-lg md:text-xl font-bold text-foreground mb-3 text-center">
+              Help us shape Stammerly 🗣️
+            </h2>
+            <p className="text-sm md:text-base text-muted-foreground mb-5 text-center">
+              Parents &amp; Speech-Language Therapists — we're developing a device designed to transform home practice for children and automate clinical report writing for professionals. Please take 60 seconds to share your experiences and ensure this technology genuinely serves the stammering community.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <a
+                href="https://forms.gle/b55nUZHSb6YQjLzq7"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button variant="hero" size="lg" className="rounded-xl w-full sm:w-auto">
+                  👨‍👩‍👧 Parent Survey
+                </Button>
+              </a>
+              <a
+                href="https://forms.gle/SCFfxH59Q4RiCRJz5"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button variant="heroSecondary" size="lg" className="rounded-xl w-full sm:w-auto">
+                  🩺 Therapist Survey
+                </Button>
+              </a>
+            </div>
+          </div>
           
           {/* Features Preview */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
