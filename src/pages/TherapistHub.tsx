@@ -701,6 +701,12 @@ const TherapistHub = () => {
             {/* Recommendation Trend Charts */}
             <RecommendationTrendCharts />
 
+            {/* NHS Data Export */}
+            <NhsDataExport />
+
+            {/* XAI Audit Trail */}
+            <XaiAuditTrail />
+
             {/* AI Learning History - Limited Height */}
             <AILearningHistory maxHeight="280px" />
           </div>
