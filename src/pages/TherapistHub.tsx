@@ -20,6 +20,7 @@ import { QuestAssigner } from "@/components/QuestAssigner";
 import { RecommendationTrendCharts } from "@/components/RecommendationTrendCharts";
 import { AILearningHistory } from "@/components/AILearningHistory";
 import { MonthlyReport } from "@/components/MonthlyReport";
+import { WeeklyPsychosocialSummary } from "@/components/therapist/WeeklyPsychosocialSummary";
 import { supabase } from "@/integrations/supabase/client";
 
 const patients = [
@@ -665,6 +666,9 @@ const TherapistHub = () => {
 
           {/* Main Dashboard */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Weekly Psychosocial Summary */}
+            <WeeklyPsychosocialSummary />
+
             {/* Clinical Analytics Preview */}
             <Card className="glass-card-strong border-accent-orange/30">
               <CardHeader>
