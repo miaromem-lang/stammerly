@@ -19,6 +19,10 @@ import { PendantStatusCard } from "@/components/PendantStatusCard";
 import { SyncHistoryLog } from "@/components/SyncHistoryLog";
 import { ParentMoodTrends } from "@/components/ParentMoodTrends";
 import { PrivacyPortal } from "@/components/PrivacyPortal";
+import { NotificationPreferences } from "@/components/NotificationPreferences";
+import { AccessRevocation } from "@/components/AccessRevocation";
+import { HardwareDiagnostics } from "@/components/HardwareDiagnostics";
+import { SubscriptionPortal } from "@/components/SubscriptionPortal";
 
 const ParentHub = () => {
   const navigate = useNavigate();
@@ -335,6 +339,18 @@ const ParentHub = () => {
 
             {/* Privacy & Data Control */}
             <PrivacyPortal />
+
+            {/* Notification Preferences */}
+            <NotificationPreferences />
+
+            {/* Access Revocation */}
+            <AccessRevocation />
+
+            {/* Hardware Diagnostics */}
+            <HardwareDiagnostics />
+
+            {/* Subscription & Billing */}
+            <SubscriptionPortal />
           </div>
         </div>
       </main>
