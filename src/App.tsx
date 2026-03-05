@@ -79,6 +79,9 @@ const App = () => (
             <Route path="/blog" element={<Blog />} />
             <Route path="/roadmap" element={<Roadmap />} />
             <Route path="/algorithm-changelog" element={<AlgorithmChangelog />} />
+            <Route path="/nhs-wait-times" element={<NhsWaitTimes />} />
+            <Route path="/nhs-wait-times/:region" element={<NhsWaitTimes />} />
+            <Route path="/find-a-therapist" element={<FindTherapist />} />
             
             {/* Protected routes - require authentication */}
             <Route path="/hub/kid" element={<ProtectedRoute allowedRoles={['kid']}><KidHub /></ProtectedRoute>} />
