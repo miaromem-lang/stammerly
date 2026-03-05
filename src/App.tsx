@@ -37,6 +37,7 @@ import HardwareSafety from "./pages/HardwareSafety";
 import Procurement from "./pages/Procurement";
 import PendantSetup from "./pages/PendantSetup";
 import SystemStatus from "./pages/SystemStatus";
+import Blog from "./pages/Blog";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
