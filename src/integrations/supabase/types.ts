@@ -151,6 +151,75 @@ export type Database = {
         }
         Relationships: []
       }
+      low_battery_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          battery_level: number
+          created_at: string
+          device_name: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          battery_level: number
+          created_at?: string
+          device_name?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          battery_level?: number
+          created_at?: string
+          device_name?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pendant_sync_history: {
+        Row: {
+          battery_level: number | null
+          created_at: string
+          device_name: string
+          files_transferred: number | null
+          id: string
+          storage_total_mb: number | null
+          storage_used_mb: number | null
+          sync_duration_seconds: number | null
+          sync_status: string
+          synced_at: string
+          user_id: string
+        }
+        Insert: {
+          battery_level?: number | null
+          created_at?: string
+          device_name?: string
+          files_transferred?: number | null
+          id?: string
+          storage_total_mb?: number | null
+          storage_used_mb?: number | null
+          sync_duration_seconds?: number | null
+          sync_status?: string
+          synced_at?: string
+          user_id: string
+        }
+        Update: {
+          battery_level?: number | null
+          created_at?: string
+          device_name?: string
+          files_transferred?: number | null
+          id?: string
+          storage_total_mb?: number | null
+          storage_used_mb?: number | null
+          sync_duration_seconds?: number | null
+          sync_status?: string
+          synced_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       practice_sessions: {
         Row: {
           accuracy_score: number | null
