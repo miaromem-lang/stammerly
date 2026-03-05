@@ -40,6 +40,8 @@ import SystemStatus from "./pages/SystemStatus";
 import Blog from "./pages/Blog";
 import Roadmap from "./pages/Roadmap";
 import AlgorithmChangelog from "./pages/AlgorithmChangelog";
+import NhsWaitTimes from "./pages/NhsWaitTimes";
+import FindTherapist from "./pages/FindTherapist";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -77,6 +79,9 @@ const App = () => (
             <Route path="/blog" element={<Blog />} />
             <Route path="/roadmap" element={<Roadmap />} />
             <Route path="/algorithm-changelog" element={<AlgorithmChangelog />} />
+            <Route path="/nhs-wait-times" element={<NhsWaitTimes />} />
+            <Route path="/nhs-wait-times/:region" element={<NhsWaitTimes />} />
+            <Route path="/find-a-therapist" element={<FindTherapist />} />
             
             {/* Protected routes - require authentication */}
             <Route path="/hub/kid" element={<ProtectedRoute allowedRoles={['kid']}><KidHub /></ProtectedRoute>} />
