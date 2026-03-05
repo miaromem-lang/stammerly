@@ -38,6 +38,8 @@ import Procurement from "./pages/Procurement";
 import PendantSetup from "./pages/PendantSetup";
 import SystemStatus from "./pages/SystemStatus";
 import Blog from "./pages/Blog";
+import Roadmap from "./pages/Roadmap";
+import AlgorithmChangelog from "./pages/AlgorithmChangelog";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
