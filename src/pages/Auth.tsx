@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sparkles, ArrowLeft, Mail, Lock, Smile, Users, GraduationCap, Stethoscope, Loader2, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, AppRole } from "@/hooks/useAuth";
+import { lovable } from "@/integrations/lovable/index";
 import PageBackground from "@/components/PageBackground";
 
 // Validation schemas
