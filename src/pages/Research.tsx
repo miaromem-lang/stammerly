@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, BookOpen, Plus, ExternalLink, Calendar, Users } from 'lucide-react';
+import { ArrowLeft, BookOpen, Plus, ExternalLink, Calendar, Users, Brain, GraduationCap, Handshake, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useState } from 'react';
