@@ -85,6 +85,7 @@ interface TranscriptionResult {
   text: string;
   words: WordTiming[];
   duration: number;
+  audioFilePath?: string | null;
 }
 
 export function useSpeechAnalysis() {
