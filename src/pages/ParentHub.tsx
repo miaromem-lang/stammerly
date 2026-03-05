@@ -203,6 +203,9 @@ const ParentHub = () => {
               </CardContent>
             </Card>
 
+            {/* Mood & Fluency Trends */}
+            <ParentMoodTrends />
+
             {/* Recommendation Trend Charts - AI vs Therapist */}
             <RecommendationTrendCharts />
 
