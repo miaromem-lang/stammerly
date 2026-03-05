@@ -890,6 +890,10 @@ const TherapistAnalyticsHub = () => {
                   totalSessions: metrics.totalSessions,
                   adherenceRate: metrics.adherenceRate,
                   streakDays: metrics.streakDays,
+                  recentMoodAvg: moodData.recentMoodAvg,
+                  recentAnxietyAvg: moodData.recentAnxietyAvg,
+                  moodTrend: moodData.moodTrend,
+                  moodCheckinCount: moodData.moodCheckinCount,
                 }}
               />
             </TabsContent>
