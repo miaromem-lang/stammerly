@@ -282,7 +282,7 @@ export default function HybridLoopDiagram() {
               {steps.map((step, i) => (
                 <button
                   key={step.id}
-                  onClick={() => setActiveStep(i)}
+                  onClick={() => handleNodeClick(i)}
                   className="flex items-center gap-1.5 focus:outline-none"
                 >
                   <motion.div
