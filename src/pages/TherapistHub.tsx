@@ -10,6 +10,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Sparkles, ArrowLeft, BarChart3, Users, Calendar, FileText, Smartphone, Upload, Plus, Save, X, CalendarIcon, Star } from "lucide-react";
+import { CaseloadTriage } from "@/components/CaseloadTriage";
+import { NhsDataExport } from "@/components/NhsDataExport";
+import { XaiAuditTrail } from "@/components/XaiAuditTrail";
+import { BulkAssignment } from "@/components/BulkAssignment";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -231,33 +235,11 @@ const TherapistHub = () => {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Left Column - Patient List & Quick Actions */}
           <div className="space-y-4">
-            <Card className="glass-card-strong">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-foreground text-base">
-                  <Users className="w-4 h-4 text-accent-orange" />
-                  Patients
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {patients.map((patient) => (
-                  <div 
-                    key={patient.id}
-                    className="p-2.5 bg-secondary/50 rounded-lg cursor-pointer hover:bg-secondary transition-colors"
-                    onClick={() => navigate("/therapist-analytics")}
-                  >
-                    <div className="flex items-center justify-between mb-0.5">
-                      <span className="font-medium text-sm text-foreground">{patient.name}</span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                        patient.risk === "low" ? "bg-success/20 text-success" : "bg-gold/20 text-gold"
-                      }`}>
-                        {patient.progress}
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">Age {patient.age} • {patient.nextSession}</p>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+            {/* Caseload Triage Dashboard */}
+            <CaseloadTriage />
+
+            {/* Bulk Assignment */}
+            <BulkAssignment />
 
             {/* Exercise Library */}
             <Card className="glass-card-strong">
@@ -718,6 +700,12 @@ const TherapistHub = () => {
 
             {/* Recommendation Trend Charts */}
             <RecommendationTrendCharts />
+
+            {/* NHS Data Export */}
+            <NhsDataExport />
+
+            {/* XAI Audit Trail */}
+            <XaiAuditTrail />
 
             {/* AI Learning History - Limited Height */}
             <AILearningHistory maxHeight="280px" />
