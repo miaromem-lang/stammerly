@@ -630,6 +630,50 @@ export type Database = {
           },
         ]
       }
+      therapist_annotations: {
+        Row: {
+          assessment_correct: boolean
+          corrected_severity: string | null
+          corrected_type: string | null
+          created_at: string
+          disfluency_log_id: string
+          id: string
+          notes: string | null
+          therapist_id: string
+          updated_at: string
+        }
+        Insert: {
+          assessment_correct: boolean
+          corrected_severity?: string | null
+          corrected_type?: string | null
+          created_at?: string
+          disfluency_log_id: string
+          id?: string
+          notes?: string | null
+          therapist_id: string
+          updated_at?: string
+        }
+        Update: {
+          assessment_correct?: boolean
+          corrected_severity?: string | null
+          corrected_type?: string | null
+          created_at?: string
+          disfluency_log_id?: string
+          id?: string
+          notes?: string | null
+          therapist_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "therapist_annotations_disfluency_log_id_fkey"
+            columns: ["disfluency_log_id"]
+            isOneToOne: false
+            referencedRelation: "disfluency_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       therapist_assigned_quests: {
         Row: {
           ai_agrees: boolean | null
@@ -934,6 +978,7 @@ export type Database = {
       }
     }
     Functions: {
+      cleanup_expired_audio: { Args: never; Returns: undefined }
       current_user_has_role: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
