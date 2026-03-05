@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import { Sparkles, Mail } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -10,6 +11,7 @@ const Index = () => {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,6 +29,7 @@ const Index = () => {
             title: "Already on the list! 😊",
             description: "This email is already registered. We'll be in touch soon!",
           });
+          navigate("/product");
         } else {
           throw error;
         }
@@ -35,6 +38,7 @@ const Index = () => {
           title: "You're on the list! 🎉",
           description: "We'll notify you when Stammerly launches.",
         });
+        navigate("/product");
       }
       setEmail("");
     } catch {

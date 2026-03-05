@@ -31,6 +31,7 @@ import KidHubOverview from "./pages/KidHubOverview";
 import StoryExercise from "./pages/StoryExercise";
 import FreeTalk from "./pages/FreeTalk";
 import SelectRole from "./pages/SelectRole";
+import Product from "./pages/Product";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -60,6 +61,7 @@ const App = () => (
             <Route path="/childrens-privacy" element={<ChildrensPrivacy />} />
             <Route path="/nhs-compliance" element={<NhsCompliance />} />
             <Route path="/accessibility" element={<AccessibilityStatement />} />
+            <Route path="/product" element={<Product />} />
             
             {/* Protected routes - require authentication */}
             <Route path="/hub/kid" element={<ProtectedRoute allowedRoles={['kid']}><KidHub /></ProtectedRoute>} />
