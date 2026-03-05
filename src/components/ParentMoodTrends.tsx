@@ -13,7 +13,7 @@ const MOOD_EMOJIS: Record<number, string> = {
 
 export const ParentMoodTrends = () => {
   const { recentCheckins, loading: moodLoading } = useMoodCheckins();
-  const { recentRatings, loading: ratingsLoading } = useFluencyRatings();
+  const { ratings, loading: ratingsLoading } = useFluencyRatings();
   const loading = moodLoading || ratingsLoading;
 
   const chartData = useMemo(() => {
