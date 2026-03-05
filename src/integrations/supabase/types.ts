@@ -178,6 +178,39 @@ export type Database = {
         }
         Relationships: []
       }
+      mood_checkins: {
+        Row: {
+          anxiety_level: number | null
+          checkin_date: string
+          context_note: string | null
+          created_at: string
+          id: string
+          mood_emoji: string
+          mood_score: number
+          user_id: string
+        }
+        Insert: {
+          anxiety_level?: number | null
+          checkin_date?: string
+          context_note?: string | null
+          created_at?: string
+          id?: string
+          mood_emoji?: string
+          mood_score: number
+          user_id: string
+        }
+        Update: {
+          anxiety_level?: number | null
+          checkin_date?: string
+          context_note?: string | null
+          created_at?: string
+          id?: string
+          mood_emoji?: string
+          mood_score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       pendant_sync_history: {
         Row: {
           battery_level: number | null
