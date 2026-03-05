@@ -98,6 +98,9 @@ const TeacherHub = () => {
               </CardContent>
             </Card>
 
+            {/* Traffic Light Readiness */}
+            <TrafficLightReadiness />
+
             {/* Classroom Accommodations */}
             <ClassroomAccommodations />
 
