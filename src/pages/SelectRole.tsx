@@ -25,10 +25,15 @@ const roleToHub: Record<AppRole, string> = {
 
 const SelectRole = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, signOut } = useAuth();
   const { toast } = useToast();
   const [selectedRole, setSelectedRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/signin", { replace: true });
+  };
 
   if (!isAuthenticated || !user) {
     navigate("/signin", { replace: true });
