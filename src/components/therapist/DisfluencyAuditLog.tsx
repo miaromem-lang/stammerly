@@ -225,7 +225,7 @@ export function DisfluencyAuditLog({ patientId }: DisfluencyAuditLogProps) {
     const ann = annotations.get(eventId);
     if (!ann) return null;
     return ann.assessmentCorrect
-      ? <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
+      ? <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
       : <XCircle className="w-3.5 h-3.5 text-destructive" />;
   };
 
