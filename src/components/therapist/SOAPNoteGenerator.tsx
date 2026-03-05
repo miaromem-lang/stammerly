@@ -36,6 +36,12 @@ interface ClinicalData {
   // Context
   patientName?: string;
   sessionDate?: string;
+
+  // Psychosocial
+  recentMoodAvg?: number | null;
+  recentAnxietyAvg?: number | null;
+  moodTrend?: "improving" | "declining" | "stable" | null;
+  moodCheckinCount?: number;
 }
 
 interface SOAPNoteGeneratorProps {
