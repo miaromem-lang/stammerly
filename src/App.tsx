@@ -75,6 +75,8 @@ const App = () => (
             <Route path="/procurement" element={<Procurement />} />
             <Route path="/system-status" element={<SystemStatus />} />
             <Route path="/blog" element={<Blog />} />
+            <Route path="/roadmap" element={<Roadmap />} />
+            <Route path="/algorithm-changelog" element={<AlgorithmChangelog />} />
             
             {/* Protected routes - require authentication */}
             <Route path="/hub/kid" element={<ProtectedRoute allowedRoles={['kid']}><KidHub /></ProtectedRoute>} />
