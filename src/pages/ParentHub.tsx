@@ -204,6 +204,9 @@ const ParentHub = () => {
 
             {/* Recommendation Trend Charts - AI vs Therapist */}
             <RecommendationTrendCharts />
+
+            {/* Sync History */}
+            <SyncHistoryLog variant="parent" />
           </div>
 
           {/* Right Column */}
