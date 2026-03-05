@@ -22,6 +22,7 @@ import {
 } from "@/data/exerciseData";
 import PageBackground from "@/components/PageBackground";
 import { PendantStatusCard } from "@/components/PendantStatusCard";
+import { SyncHistoryLog } from "@/components/SyncHistoryLog";
 
 const characters = [
   { id: "otter", name: "Echo the Otter", emoji: "🦦", color: "from-cyan-400 to-blue-500", personality: "playful and encouraging" },
@@ -427,6 +428,9 @@ const KidHub = () => {
 
             {/* Practice Analytics */}
             <PracticeAnalytics variant="kid" showRecent={false} />
+
+            {/* Sync History */}
+            <SyncHistoryLog variant="kid" />
 
             <Card className="rounded-kids overflow-hidden bg-card/80 backdrop-blur-sm">
               <CardContent className="p-6">
