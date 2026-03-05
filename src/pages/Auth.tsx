@@ -54,7 +54,7 @@ const Auth = () => {
           };
           navigate(roleToHub[role], { replace: true });
         }
-      } else if (!loading) {
+      } else if (!authLoading) {
         // Authenticated but no role — first-time OAuth user
         navigate('/select-role', { replace: true });
       }
