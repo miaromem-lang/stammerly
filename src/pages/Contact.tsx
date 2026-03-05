@@ -250,6 +250,7 @@ const Contact = () => {
           </div>
         </div>
       </main>
+      <LiveChatWidget />
     </div>
   );
 };
