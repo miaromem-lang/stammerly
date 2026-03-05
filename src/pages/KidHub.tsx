@@ -256,6 +256,11 @@ const KidHub = () => {
           </CardContent>
         </Card>
 
+        {/* Pendant Status */}
+        <div className="mb-8">
+          <PendantStatusCard variant="kid" />
+        </div>
+
         {/* Daily Streak & Stats */}
         <div className="flex items-center gap-4 mb-8 overflow-x-auto pb-2">
           <div className="flex items-center gap-2 bg-success/20 px-4 py-3 rounded-kids min-w-fit">

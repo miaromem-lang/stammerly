@@ -160,6 +160,9 @@ const ParentHub = () => {
               </CardContent>
             </Card>
 
+            {/* Pendant Status */}
+            <PendantStatusCard variant="parent" />
+
             {/* App Integration */}
             <Card className="glass-card-strong border-primary/30">
               <CardHeader>
