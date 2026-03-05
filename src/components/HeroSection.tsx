@@ -96,8 +96,11 @@ export const HeroSection = () => {
               <Button variant="ghost" size="sm" className="hidden md:inline-flex" onClick={() => navigate("/signin")}>
                 Sign In
               </Button>
-              <Button variant="navy" size="sm" className="hidden md:inline-flex" onClick={() => navigate("/signin")}>
-                Get Started
+              <Button variant="orange" size="sm" className="hidden md:inline-flex" onClick={() => navigate("/")}>
+                Join Parent Waitlist
+              </Button>
+              <Button variant="navy" size="sm" className="hidden md:inline-flex" onClick={() => navigate("/procurement")}>
+                Request Clinic Pilot
               </Button>
               
               {/* Mobile Hamburger Menu */}

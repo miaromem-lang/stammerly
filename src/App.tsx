@@ -37,6 +37,7 @@ import HardwareSafety from "./pages/HardwareSafety";
 import Procurement from "./pages/Procurement";
 import PendantSetup from "./pages/PendantSetup";
 import SystemStatus from "./pages/SystemStatus";
+import Blog from "./pages/Blog";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -71,6 +72,7 @@ const App = () => (
             <Route path="/hardware-safety" element={<HardwareSafety />} />
             <Route path="/procurement" element={<Procurement />} />
             <Route path="/system-status" element={<SystemStatus />} />
+            <Route path="/blog" element={<Blog />} />
             
             {/* Protected routes - require authentication */}
             <Route path="/hub/kid" element={<ProtectedRoute allowedRoles={['kid']}><KidHub /></ProtectedRoute>} />

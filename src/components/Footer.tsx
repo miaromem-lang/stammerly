@@ -27,9 +27,11 @@ export const Footer = () => {
             <h4 className="font-semibold mb-4">Resources</h4>
             <ul className="space-y-3 text-background/70">
               <li><Link to="/research" className="hover:text-background transition-colors">Research</Link></li>
+              <li><Link to="/blog" className="hover:text-background transition-colors">Articles & Resources</Link></li>
               <li><Link to="/reviews" className="hover:text-background transition-colors">Reviews</Link></li>
               <li><Link to="/hardware-safety" className="hover:text-background transition-colors">Hardware Safety</Link></li>
               <li><Link to="/procurement" className="hover:text-background transition-colors">NHS & School Procurement</Link></li>
+              <li><Link to="/system-status" className="hover:text-background transition-colors">System Status</Link></li>
               <li><Link to="/contact" className="hover:text-background transition-colors">Contact Us</Link></li>
             </ul>
           </div>
