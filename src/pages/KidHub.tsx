@@ -11,6 +11,10 @@ import { PersonalizedQuestMap } from "@/components/PersonalizedQuestMap";
 import { KidContact } from "@/components/KidContact";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useAchievements } from "@/hooks/useAchievements";
+import { SensoryFriendlyToggle } from "@/components/SensoryFriendlyToggle";
+import { AvatarStore } from "@/components/AvatarStore";
+import { SafeCommunity } from "@/components/SafeCommunity";
+import { NonPunitiveFeedback, getFeedbackType } from "@/components/NonPunitiveFeedback";
 import { 
   exerciseCategories as fullExerciseCategories, 
   questLevelMapping, 
