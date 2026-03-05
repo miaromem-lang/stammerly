@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/Footer";
 import DisfluencyVisualiser from "@/components/DisfluencyVisualiser";
 import SamplePracticeGame from "@/components/SamplePracticeGame";
+import TherapistROICalculator from "@/components/TherapistROICalculator";
+import HardwareAnatomyDiagram from "@/components/HardwareAnatomyDiagram";
+import UserJourneyCarousel from "@/components/UserJourneyCarousel";
+import FAQSection from "@/components/FAQSection";
 import type { Variants } from "framer-motion";
 
 const fadeUp: Variants = {
