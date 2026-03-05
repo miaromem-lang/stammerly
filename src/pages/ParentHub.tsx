@@ -18,6 +18,7 @@ import PageBackground from "@/components/PageBackground";
 import { PendantStatusCard } from "@/components/PendantStatusCard";
 import { SyncHistoryLog } from "@/components/SyncHistoryLog";
 import { ParentMoodTrends } from "@/components/ParentMoodTrends";
+import { PrivacyPortal } from "@/components/PrivacyPortal";
 
 const ParentHub = () => {
   const navigate = useNavigate();
