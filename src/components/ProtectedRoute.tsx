@@ -20,8 +20,12 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   }
 
   if (!isAuthenticated) {
-    // Redirect to signin, preserving the intended destination
     return <Navigate to="/signin" state={{ from: location }} replace />;
+  }
+
+  // If authenticated but no role assigned (e.g. first-time OAuth user), redirect to role selection
+  if (!role) {
+    return <Navigate to="/select-role" replace />;
   }
 
   // Admins can access any hub - skip role check
