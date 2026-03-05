@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Smile, Users, GraduationCap, Stethoscope, Loader2 } from "lucide-react";
+import { Sparkles, Smile, Users, GraduationCap, Stethoscope, Loader2, LogOut } from "lucide-react";
 import { useAuth, AppRole } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,10 +25,15 @@ const roleToHub: Record<AppRole, string> = {
 
 const SelectRole = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, signOut } = useAuth();
   const { toast } = useToast();
   const [selectedRole, setSelectedRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/signin", { replace: true });
+  };
 
   if (!isAuthenticated || !user) {
     navigate("/signin", { replace: true });
@@ -65,13 +70,17 @@ const SelectRole = () => {
     <div className="min-h-screen relative flex flex-col">
       <PageBackground />
 
-      <header className="container mx-auto px-4 py-6">
-        <div className="flex items-center justify-center gap-2">
+      <header className="container mx-auto px-4 py-6 flex items-center justify-between">
+        <div className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
             <Sparkles className="w-5 h-5 text-primary-foreground" />
           </div>
           <span className="font-display font-bold text-xl text-foreground">Stammerly</span>
         </div>
+        <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-muted-foreground">
+          <LogOut className="w-4 h-4 mr-2" />
+          Sign Out
+        </Button>
       </header>
 
       <main className="flex-1 container mx-auto px-4 py-8 flex items-center justify-center">
