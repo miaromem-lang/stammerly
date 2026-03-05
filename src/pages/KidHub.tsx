@@ -422,14 +422,25 @@ const KidHub = () => {
                 <p className="text-muted-foreground text-sm capitalize">
                   {selectedCharacter.personality}
                 </p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="mt-3 rounded-kids"
-                  onClick={() => setShowCharacterPicker(true)}
-                >
-                  Change Buddy
-                </Button>
+                <div className="flex gap-2 mt-3">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="rounded-kids flex-1"
+                    onClick={() => setShowCharacterPicker(true)}
+                  >
+                    Change Buddy
+                  </Button>
+                  <AvatarStore />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Safe Community Interactions */}
+            <SafeCommunity 
+              characterName={selectedCharacter.name}
+              characterEmoji={selectedCharacter.emoji}
+            />
               </CardContent>
             </Card>
 
