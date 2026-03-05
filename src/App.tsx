@@ -35,6 +35,7 @@ import SelectRole from "./pages/SelectRole";
 import Product from "./pages/Product";
 import HardwareSafety from "./pages/HardwareSafety";
 import Procurement from "./pages/Procurement";
+import PendantSetup from "./pages/PendantSetup";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
