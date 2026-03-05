@@ -116,19 +116,49 @@ const Index = () => {
           </p>
           
           {/* Waitlist Form */}
-          <form onSubmit={handleSubmit} className="max-w-md mx-auto mb-12">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-12 h-14 text-base rounded-xl border-2 border-border/50 focus:border-primary bg-background/80 backdrop-blur-sm"
-                  required
-                />
+          <form onSubmit={handleSubmit} className="max-w-lg mx-auto mb-12">
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-12 h-14 text-base rounded-xl border-2 border-border/50 focus:border-primary bg-background/80 backdrop-blur-sm"
+                    required
+                  />
+                </div>
+                <Select value={userType} onValueChange={setUserType}>
+                  <SelectTrigger className="h-14 rounded-xl border-2 border-border/50 bg-background/80 backdrop-blur-sm sm:w-48">
+                    <SelectValue placeholder="I am a…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="kid">Child / Young Person</SelectItem>
+                    <SelectItem value="parent">Parent / Carer</SelectItem>
+                    <SelectItem value="adult_pws">Adult Who Stammers</SelectItem>
+                    <SelectItem value="therapist">Speech & Language Therapist</SelectItem>
+                    <SelectItem value="educator">Teacher / Educator</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
+
+              {userType === "kid" && (
+                <Select value={childAge} onValueChange={setChildAge}>
+                  <SelectTrigger className="h-12 rounded-xl border-2 border-border/50 bg-background/80 backdrop-blur-sm">
+                    <SelectValue placeholder="Age range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="3-5">3–5 years</SelectItem>
+                    <SelectItem value="6-8">6–8 years</SelectItem>
+                    <SelectItem value="9-11">9–11 years</SelectItem>
+                    <SelectItem value="12-15">12–15 years</SelectItem>
+                    <SelectItem value="16+">16+ years</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+
               <Button 
                 type="submit" 
                 variant="hero" 
