@@ -24,7 +24,9 @@ import Research from "./pages/Research";
 import Contact from "./pages/Contact";
 import Team from "./pages/Team";
 import Reviews from "./pages/Reviews";
-
+import ChildrensPrivacy from "./pages/ChildrensPrivacy";
+import NhsCompliance from "./pages/NhsCompliance";
+import AccessibilityStatement from "./pages/AccessibilityStatement";
 import KidHubOverview from "./pages/KidHubOverview";
 import StoryExercise from "./pages/StoryExercise";
 import FreeTalk from "./pages/FreeTalk";
@@ -55,6 +57,9 @@ const App = () => (
             <Route path="/contact" element={<Contact />} />
             <Route path="/team" element={<Team />} />
             <Route path="/reviews" element={<Reviews />} />
+            <Route path="/childrens-privacy" element={<ChildrensPrivacy />} />
+            <Route path="/nhs-compliance" element={<NhsCompliance />} />
+            <Route path="/accessibility" element={<AccessibilityStatement />} />
             
             {/* Protected routes - require authentication */}
             <Route path="/hub/kid" element={<ProtectedRoute allowedRoles={['kid']}><KidHub /></ProtectedRoute>} />
