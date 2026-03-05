@@ -21,6 +21,7 @@ import {
   type ExerciseCategory
 } from "@/data/exerciseData";
 import PageBackground from "@/components/PageBackground";
+import { PendantStatusCard } from "@/components/PendantStatusCard";
 
 const characters = [
   { id: "otter", name: "Echo the Otter", emoji: "🦦", color: "from-cyan-400 to-blue-500", personality: "playful and encouraging" },
@@ -254,6 +255,11 @@ const KidHub = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Pendant Status */}
+        <div className="mb-8">
+          <PendantStatusCard variant="kid" />
+        </div>
 
         {/* Daily Streak & Stats */}
         <div className="flex items-center gap-4 mb-8 overflow-x-auto pb-2">

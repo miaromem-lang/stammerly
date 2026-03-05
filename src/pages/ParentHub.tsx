@@ -15,6 +15,7 @@ import { useVictoryLogs } from "@/hooks/useVictoryLogs";
 import { useContextNotes } from "@/hooks/useContextNotes";
 import { useFluencyRatings } from "@/hooks/useFluencyRatings";
 import PageBackground from "@/components/PageBackground";
+import { PendantStatusCard } from "@/components/PendantStatusCard";
 
 const ParentHub = () => {
   const navigate = useNavigate();
@@ -158,6 +159,9 @@ const ParentHub = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Pendant Status */}
+            <PendantStatusCard variant="parent" />
 
             {/* App Integration */}
             <Card className="glass-card-strong border-primary/30">
