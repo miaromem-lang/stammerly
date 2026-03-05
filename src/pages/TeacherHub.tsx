@@ -249,6 +249,9 @@ const TeacherHub = () => {
               </CardContent>
             </Card>
 
+            {/* IEP Goals Sync */}
+            <IepGoalsSync />
+
             {/* App Integration */}
             <Card className="glass-card-strong border-success/30">
               <CardHeader>
