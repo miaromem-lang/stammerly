@@ -62,7 +62,31 @@ const steps: LoopStep[] = [
 
 export default function HybridLoopDiagram() {
   const [activeStep, setActiveStep] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const active = steps[activeStep];
+
+  const startTimer = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setActiveStep((prev) => (prev + 1) % steps.length);
+    }, 4000);
+  }, []);
+
+  useEffect(() => {
+    if (!paused) startTimer();
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [paused, startTimer]);
+
+  const handleNodeClick = (i: number) => {
+    setActiveStep(i);
+    setPaused(true);
+    // Resume after 12s of inactivity
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      setPaused(false);
+    }, 12000) as unknown as ReturnType<typeof setInterval>;
+  };
 
   return (
     <section className="py-16 md:py-24 relative overflow-hidden">
