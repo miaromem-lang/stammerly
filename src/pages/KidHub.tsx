@@ -23,6 +23,7 @@ import {
 import PageBackground from "@/components/PageBackground";
 import { PendantStatusCard } from "@/components/PendantStatusCard";
 import { SyncHistoryLog } from "@/components/SyncHistoryLog";
+import { MoodCheckIn } from "@/components/MoodCheckIn";
 
 const characters = [
   { id: "otter", name: "Echo the Otter", emoji: "🦦", color: "from-cyan-400 to-blue-500", personality: "playful and encouraging" },
