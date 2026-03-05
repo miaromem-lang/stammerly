@@ -41,7 +41,7 @@ const Team = () => {
               Meet the <span className="text-primary">Team</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              The passionate founders behind Stammerly, dedicated to transforming speech therapy support for children.
+              The passionate founder behind Stammerly, dedicated to transforming speech therapy support for children.
             </p>
             <div className="w-24 h-1 bg-gradient-to-r from-primary to-secondary mx-auto rounded-full mt-6" />
           </div>
