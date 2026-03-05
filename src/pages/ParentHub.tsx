@@ -166,6 +166,30 @@ const ParentHub = () => {
             {/* Pendant Status */}
             <PendantStatusCard variant="parent" />
 
+            {/* Pendant Setup Link */}
+            <Card className="glass-card-strong border-accent-sky/30 bg-gradient-to-r from-accent-sky/5 to-primary/5">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-accent-sky/20 flex items-center justify-center">
+                      <Smartphone className="w-6 h-6 text-accent-sky" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground">Pendant Setup & Onboarding</h3>
+                      <p className="text-sm text-muted-foreground">Calibrate, pair, and link professionals</p>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => navigate("/hub/parent/pendant-setup")}
+                    className="gap-2"
+                  >
+                    Open Setup
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* App Integration */}
             <Card className="glass-card-strong border-primary/30">
               <CardHeader>
