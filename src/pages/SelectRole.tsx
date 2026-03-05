@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Smile, Users, GraduationCap, Stethoscope, Loader2 } from "lucide-react";
+import { Sparkles, Smile, Users, GraduationCap, Stethoscope, Loader2, LogOut } from "lucide-react";
 import { useAuth, AppRole } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
