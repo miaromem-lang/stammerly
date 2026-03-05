@@ -429,6 +429,9 @@ const KidHub = () => {
             {/* Practice Analytics */}
             <PracticeAnalytics variant="kid" showRecent={false} />
 
+            {/* Sync History */}
+            <SyncHistoryLog variant="kid" />
+
             <Card className="rounded-kids overflow-hidden bg-card/80 backdrop-blur-sm">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
