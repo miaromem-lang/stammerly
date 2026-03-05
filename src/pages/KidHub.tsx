@@ -441,8 +441,6 @@ const KidHub = () => {
               characterName={selectedCharacter.name}
               characterEmoji={selectedCharacter.emoji}
             />
-              </CardContent>
-            </Card>
 
             {/* Practice Analytics */}
             <PracticeAnalytics variant="kid" showRecent={false} />
