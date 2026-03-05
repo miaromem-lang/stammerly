@@ -10,6 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const [email, setEmail] = useState("");
+  const [userType, setUserType] = useState("");
+  const [childAge, setChildAge] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
