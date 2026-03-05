@@ -26,6 +26,7 @@ import {
   PredictiveRelapseRisk,
   ConcomitantMovementTracker,
   MoodFluencyCorrelation,
+  DisfluencyAuditLog,
 } from "@/components/therapist";
 
 // Mock patients for demo
