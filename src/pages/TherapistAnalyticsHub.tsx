@@ -26,6 +26,7 @@ import {
   PredictiveRelapseRisk,
   ConcomitantMovementTracker,
   MoodFluencyCorrelation,
+  DisfluencyAuditLog,
 } from "@/components/therapist";
 
 // Mock patients for demo
@@ -723,6 +724,9 @@ const TherapistAnalyticsHub = () => {
                   wordAvoidances={metrics.wordAvoidances}
                 />
               </div>
+
+              {/* Disfluency Audit Log */}
+              <DisfluencyAuditLog patientId={selectedPatient} />
               
             </TabsContent>
 

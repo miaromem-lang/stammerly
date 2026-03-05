@@ -258,6 +258,7 @@ export type Database = {
           accuracy_score: number | null
           adaptation_score: number | null
           articulation_rate: number | null
+          audio_file_path: string | null
           avg_pause_duration_ms: number | null
           blocks_count: number | null
           consistency_words: Json | null
@@ -313,6 +314,7 @@ export type Database = {
           accuracy_score?: number | null
           adaptation_score?: number | null
           articulation_rate?: number | null
+          audio_file_path?: string | null
           avg_pause_duration_ms?: number | null
           blocks_count?: number | null
           consistency_words?: Json | null
@@ -368,6 +370,7 @@ export type Database = {
           accuracy_score?: number | null
           adaptation_score?: number | null
           articulation_rate?: number | null
+          audio_file_path?: string | null
           avg_pause_duration_ms?: number | null
           blocks_count?: number | null
           consistency_words?: Json | null

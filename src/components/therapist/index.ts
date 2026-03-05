@@ -13,3 +13,5 @@ export { PredictiveRelapseRisk } from './PredictiveRelapseRisk';
 export { ConcomitantMovementTracker } from './ConcomitantMovementTracker';
 export { MoodFluencyCorrelation } from './MoodFluencyCorrelation';
 export { WeeklyPsychosocialSummary } from './WeeklyPsychosocialSummary';
+export { AudioClipPlayer } from './AudioClipPlayer';
+export { DisfluencyAuditLog } from './DisfluencyAuditLog';

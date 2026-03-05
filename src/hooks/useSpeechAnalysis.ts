@@ -85,6 +85,7 @@ interface TranscriptionResult {
   text: string;
   words: WordTiming[];
   duration: number;
+  audioFilePath?: string | null;
 }
 
 export function useSpeechAnalysis() {
@@ -92,6 +93,7 @@ export function useSpeechAnalysis() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState<string>('');
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+  const [audioFilePath, setAudioFilePath] = useState<string | null>(null);
   const [recordingTime, setRecordingTime] = useState(0);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -186,6 +188,9 @@ export function useSpeechAnalysis() {
               const transcription = transcriptionData as TranscriptionResult;
               console.log('Transcription result:', transcription);
               setTranscript(transcription.text);
+              if (transcription.audioFilePath) {
+                setAudioFilePath(transcription.audioFilePath);
+              }
 
               // Step 2: Analyze with word timings
               console.log('Analyzing speech...');
@@ -226,9 +231,10 @@ export function useSpeechAnalysis() {
   }, []);
 
   const reset = useCallback(() => {
-    setTranscript('');
-    setAnalysis(null);
-    setRecordingTime(0);
+      setTranscript('');
+      setAnalysis(null);
+      setAudioFilePath(null);
+      setRecordingTime(0);
     setIsProcessing(false);
     setIsRecording(false);
     
@@ -243,6 +249,7 @@ export function useSpeechAnalysis() {
     isProcessing,
     transcript,
     analysis,
+    audioFilePath,
     recordingTime,
     startRecording,
     stopRecording,
