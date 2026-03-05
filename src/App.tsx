@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DevRoleSwitcher } from "@/components/DevRoleSwitcher";
+import { AccessibilityProvider } from "@/hooks/useAccessibility";
 import Index from "./pages/Index";
 import DevHome from "./pages/DevHome";
 import Auth from "./pages/Auth";
