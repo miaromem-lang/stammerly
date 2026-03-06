@@ -7,6 +7,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DevRoleSwitcher } from "@/components/DevRoleSwitcher";
 import { AccessibilityProvider } from "@/hooks/useAccessibility";
+import PublicLayout from "@/components/PublicLayout";
 import Index from "./pages/Index";
 import DevHome from "./pages/DevHome";
 import Auth from "./pages/Auth";
@@ -62,37 +63,41 @@ const App = () => (
         <BrowserRouter>
           <DevRoleSwitcher />
           <Routes>
-            {/* Public routes */}
+            {/* Standalone public routes (no shared nav/footer) */}
             <Route path="/" element={<Index />} />
             <Route path="/dev" element={<DevHome />} />
             <Route path="/signin" element={<Auth />} />
             <Route path="/waitlist-thank-you" element={<WaitlistThankYou />} />
             <Route path="/select-role" element={<SelectRole />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/our-story" element={<OurStory />} />
-            <Route path="/mission" element={<Mission />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/research" element={<Research />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/team" element={<Team />} />
-            <Route path="/reviews" element={<Reviews />} />
-            <Route path="/childrens-privacy" element={<ChildrensPrivacy />} />
-            <Route path="/nhs-compliance" element={<NhsCompliance />} />
-            <Route path="/accessibility" element={<AccessibilityStatement />} />
-            <Route path="/product" element={<Product />} />
-            <Route path="/hardware-safety" element={<HardwareSafety />} />
-            <Route path="/procurement" element={<Procurement />} />
-            <Route path="/system-status" element={<SystemStatus />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/roadmap" element={<Roadmap />} />
-            <Route path="/algorithm-changelog" element={<AlgorithmChangelog />} />
-            <Route path="/nhs-wait-times" element={<NhsWaitTimes />} />
-            <Route path="/nhs-wait-times/:region" element={<NhsWaitTimes />} />
-            <Route path="/find-a-therapist" element={<FindTherapist />} />
-            <Route path="/regulatory" element={<RegulatoryStatus />} />
-            <Route path="/sensory-fit-guide" element={<SensoryFitGuide />} />
-            <Route path="/funding-support" element={<FundingSupport />} />
-            <Route path="/technical-integration" element={<TechnicalIntegration />} />
+
+            {/* Public pages with shared SiteNavigation + Footer */}
+            <Route element={<PublicLayout />}>
+              <Route path="/about" element={<About />} />
+              <Route path="/our-story" element={<OurStory />} />
+              <Route path="/mission" element={<Mission />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/research" element={<Research />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/team" element={<Team />} />
+              <Route path="/reviews" element={<Reviews />} />
+              <Route path="/childrens-privacy" element={<ChildrensPrivacy />} />
+              <Route path="/nhs-compliance" element={<NhsCompliance />} />
+              <Route path="/accessibility" element={<AccessibilityStatement />} />
+              <Route path="/product" element={<Product />} />
+              <Route path="/hardware-safety" element={<HardwareSafety />} />
+              <Route path="/procurement" element={<Procurement />} />
+              <Route path="/system-status" element={<SystemStatus />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/roadmap" element={<Roadmap />} />
+              <Route path="/algorithm-changelog" element={<AlgorithmChangelog />} />
+              <Route path="/nhs-wait-times" element={<NhsWaitTimes />} />
+              <Route path="/nhs-wait-times/:region" element={<NhsWaitTimes />} />
+              <Route path="/find-a-therapist" element={<FindTherapist />} />
+              <Route path="/regulatory" element={<RegulatoryStatus />} />
+              <Route path="/sensory-fit-guide" element={<SensoryFitGuide />} />
+              <Route path="/funding-support" element={<FundingSupport />} />
+              <Route path="/technical-integration" element={<TechnicalIntegration />} />
+            </Route>
             
             {/* Protected routes - require authentication */}
             <Route path="/hub/kid" element={<ProtectedRoute allowedRoles={['kid']}><KidHub /></ProtectedRoute>} />
