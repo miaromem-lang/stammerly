@@ -27,7 +27,7 @@ import { SubscriptionPortal } from "@/components/SubscriptionPortal";
 
 const ParentHub = () => {
   const navigate = useNavigate();
-  const { progress, loading: progressLoading } = useUserProgress();
+  const { progress, loading: progressLoading, activateStreakFreeze } = useUserProgress();
   const { victories, formatVictoryTime } = useVictoryLogs();
   const { addNote } = useContextNotes();
   const { saveRating } = useFluencyRatings();
