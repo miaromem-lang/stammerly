@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Activity, Brain, Target, FileText, Grid3X3, Clock, Loader2, RefreshCw, Repeat, MapPin, Pause, Shield, Camera } from "lucide-react";
+import { ArrowLeft, Activity, Brain, Target, FileText, Grid3X3, Clock, Loader2, RefreshCw, Repeat, MapPin, Pause, Shield, Camera, AlertTriangle, Filter } from "lucide-react";
 import { HubNavigation } from "@/components/HubNavigation";
 import PageBackground from "@/components/PageBackground";
 import AIInsightsExplainer from "@/components/AIInsightsExplainer";
