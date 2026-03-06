@@ -15,3 +15,4 @@ export { MoodFluencyCorrelation } from './MoodFluencyCorrelation';
 export { WeeklyPsychosocialSummary } from './WeeklyPsychosocialSummary';
 export { AudioClipPlayer } from './AudioClipPlayer';
 export { DisfluencyAuditLog } from './DisfluencyAuditLog';
+export { BillingExport } from './BillingExport';

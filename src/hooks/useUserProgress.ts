@@ -340,6 +340,7 @@ export const useUserProgress = () => {
     updateStreak,
     addGemsAndStars,
     incrementDailyGoal,
+    activateStreakFreeze,
     refetch: fetchProgress,
   };
 };
