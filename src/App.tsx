@@ -46,6 +46,7 @@ import RegulatoryStatus from "./pages/RegulatoryStatus";
 import SensoryFitGuide from "./pages/SensoryFitGuide";
 import FundingSupport from "./pages/FundingSupport";
 import TechnicalIntegration from "./pages/TechnicalIntegration";
+import AdminHub from "./pages/AdminHub";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
