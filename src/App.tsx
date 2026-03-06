@@ -11,6 +11,7 @@ import PublicLayout from "@/components/PublicLayout";
 import Index from "./pages/Index";
 import DevHome from "./pages/DevHome";
 import Auth from "./pages/Auth";
+import AdminLogin from "./pages/AdminLogin";
 import WaitlistThankYou from "./pages/WaitlistThankYou";
 import KidHub from "./pages/KidHub";
 import ParentHub from "./pages/ParentHub";
@@ -68,6 +69,7 @@ const App = () => (
             <Route path="/dev" element={<DevHome />} />
             <Route path="/signin" element={<Auth />} />
             <Route path="/waitlist-thank-you" element={<WaitlistThankYou />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/select-role" element={<SelectRole />} />
 
             {/* Public pages with shared SiteNavigation + Footer */}
