@@ -106,7 +106,19 @@ serve(async (req) => {
       });
     }
 
-    console.log('Processing audio for transcription, user:', userId);
+    // --- Rate Limit Check ---
+    const serviceClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+    const { data: rlCheck } = await serviceClient.rpc('check_rate_limit', { _function_name: 'transcribe-speech', _user_id: userId });
+    if (rlCheck && !rlCheck.allowed) {
+      console.warn('Rate limit hit for transcribe-speech:', rlCheck.reason);
+      return new Response(JSON.stringify({ error: `Rate limit exceeded: ${rlCheck.reason}` }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     const binaryAudio = processBase64Chunks(audio);
     console.log(`Audio size: ${binaryAudio.length} bytes`);
@@ -178,6 +190,19 @@ serve(async (req) => {
       language: result.language || language,
       audioFilePath,
     };
+
+    // --- Log API Usage ---
+    try {
+      const audioSeconds = result.duration || 0;
+      const estimatedCost = audioSeconds * 0.0001; // ~£0.006/min for Whisper
+      await serviceClient.from('api_usage_logs').insert({
+        function_name: 'transcribe-speech',
+        user_id: userId,
+        tokens_used: Math.round(audioSeconds * 25), // approximate token equivalent
+        estimated_cost_gbp: estimatedCost,
+        status: 'success',
+      });
+    } catch (logErr) { console.error('Usage logging failed:', logErr); }
 
     return new Response(JSON.stringify(transcription), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

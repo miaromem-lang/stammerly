@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -43,6 +44,20 @@ serve(async (req) => {
       console.error('LOVABLE_API_KEY is not configured');
       return new Response(JSON.stringify({ error: 'Service temporarily unavailable' }), {
         status: 503,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // --- Rate Limit Check ---
+    const serviceClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+    const { data: rlCheck } = await serviceClient.rpc('check_rate_limit', { _function_name: 'generate-soap-note' });
+    if (rlCheck && !rlCheck.allowed) {
+      console.warn('Rate limit hit for generate-soap-note:', rlCheck.reason);
+      return new Response(JSON.stringify({ error: `Rate limit exceeded: ${rlCheck.reason}` }), {
+        status: 429,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -130,6 +145,17 @@ Format the note with clear section headers (SUBJECTIVE, OBJECTIVE, ASSESSMENT, P
 
     const result = await response.json();
     const soapNote = result.choices?.[0]?.message?.content || 'Unable to generate note';
+
+    // --- Log API Usage ---
+    try {
+      const usageTokens = soapNote.length;
+      await serviceClient.from('api_usage_logs').insert({
+        function_name: 'generate-soap-note',
+        tokens_used: usageTokens,
+        estimated_cost_gbp: usageTokens * 0.000002,
+        status: 'success',
+      });
+    } catch (logErr) { console.error('Usage logging failed:', logErr); }
 
     console.log('S.O.A.P. note generated successfully');
 

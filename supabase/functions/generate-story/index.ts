@@ -107,6 +107,20 @@ serve(async (req) => {
       });
     }
 
+    // --- Rate Limit Check ---
+    const serviceClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+    const { data: rlCheck } = await serviceClient.rpc('check_rate_limit', { _function_name: 'generate-story', _user_id: userId });
+    if (rlCheck && !rlCheck.allowed) {
+      console.warn('Rate limit hit for generate-story:', rlCheck.reason);
+      return new Response(JSON.stringify({ error: `Rate limit exceeded: ${rlCheck.reason}` }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const difficultyPrompts: Record<string, string> = {
       beginner: "Use very simple words and short sentences (5-8 words each). Avoid complex vocabulary.",
       intermediate: "Use medium complexity with some descriptive words. Sentences can be 8-12 words.",
@@ -162,6 +176,18 @@ Guidelines:
 
     const data = await response.json();
     const story = data.choices?.[0]?.message?.content || "";
+
+    // --- Log API Usage ---
+    try {
+      const usageTokens = story.length;
+      await serviceClient.from('api_usage_logs').insert({
+        function_name: 'generate-story',
+        user_id: userId,
+        tokens_used: usageTokens,
+        estimated_cost_gbp: usageTokens * 0.000001,
+        status: 'success',
+      });
+    } catch (logErr) { console.error('Usage logging failed:', logErr); }
 
     console.log('Story generated for user:', userId);
 

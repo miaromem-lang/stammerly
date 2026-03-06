@@ -119,6 +119,20 @@ serve(async (req) => {
       });
     }
 
+    // --- Rate Limit Check ---
+    const serviceClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+    const { data: rlCheck } = await serviceClient.rpc('check_rate_limit', { _function_name: 'therapist-ai-chat', _user_id: userId });
+    if (rlCheck && !rlCheck.allowed) {
+      console.warn('Rate limit hit for therapist-ai-chat:', rlCheck.reason);
+      return new Response(JSON.stringify({ error: `Rate limit exceeded: ${rlCheck.reason}` }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Safely extract quest context values
     const questTitle = typeof questContext.questTitle === 'string' ? questContext.questTitle : 'Unknown';
     const exerciseCategory = typeof questContext.exerciseCategory === 'string' ? questContext.exerciseCategory : 'Unknown';
@@ -196,6 +210,18 @@ Remember: The therapist has clinical expertise you don't have - respect their ju
 
     const aiResult = await response.json();
     const aiMessage = aiResult.choices?.[0]?.message?.content || "I'm having trouble responding right now. Please try again.";
+
+    // --- Log API Usage ---
+    try {
+      const usageTokens = aiMessage.length;
+      await serviceClient.from('api_usage_logs').insert({
+        function_name: 'therapist-ai-chat',
+        user_id: userId,
+        tokens_used: usageTokens,
+        estimated_cost_gbp: usageTokens * 0.000002,
+        status: 'success',
+      });
+    } catch (logErr) { console.error('Usage logging failed:', logErr); }
 
     console.log('AI chat response for user:', userId);
 

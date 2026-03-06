@@ -99,6 +99,20 @@ serve(async (req) => {
       });
     }
 
+    // --- Rate Limit Check ---
+    const serviceClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+    const { data: rlCheck } = await serviceClient.rpc('check_rate_limit', { _function_name: 'validate-quest-assignment', _user_id: userId });
+    if (rlCheck && !rlCheck.allowed) {
+      console.warn('Rate limit hit for validate-quest-assignment:', rlCheck.reason);
+      return new Response(JSON.stringify({ error: `Rate limit exceeded: ${rlCheck.reason}` }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const systemPrompt = `You are a speech therapy AI assistant that collaborates with human therapists. Your role is to:
 1. Analyze therapist quest assignments for children who stutter
 2. Provide constructive feedback based on the child's practice data
@@ -173,7 +187,6 @@ Respond in JSON format:
     // Parse the JSON response from AI
     let parsedFeedback;
     try {
-      // Extract JSON from the response (handle markdown code blocks)
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         parsedFeedback = JSON.parse(jsonMatch[0]);
@@ -188,6 +201,18 @@ Respond in JSON format:
         alternativeSuggestion: null,
       };
     }
+
+    // --- Log API Usage ---
+    try {
+      const usageTokens = content.length;
+      await serviceClient.from('api_usage_logs').insert({
+        function_name: 'validate-quest-assignment',
+        user_id: userId,
+        tokens_used: usageTokens,
+        estimated_cost_gbp: usageTokens * 0.000001,
+        status: 'success',
+      });
+    } catch (logErr) { console.error('Usage logging failed:', logErr); }
 
     console.log('Quest validation for user:', userId);
 

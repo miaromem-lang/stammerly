@@ -479,6 +479,20 @@ serve(async (req) => {
 
     console.log('Analyzing speech for user:', userId, { transcript, targetPhrase, wordCount: words?.length });
 
+    // --- Rate Limit Check ---
+    const serviceClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+    const { data: rlCheck } = await serviceClient.rpc('check_rate_limit', { _function_name: 'analyze-speech', _user_id: userId });
+    if (rlCheck && !rlCheck.allowed) {
+      console.warn('Rate limit hit for analyze-speech:', rlCheck.reason);
+      return new Response(JSON.stringify({ error: `Rate limit exceeded: ${rlCheck.reason}` }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Calculate duration and speech rate metrics
     const totalDuration = words && words.length > 0 ? words[words.length - 1].end : 0;
     const totalSyllables = estimateSyllables(transcript);
@@ -814,6 +828,20 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
         }
       }
       
+      // --- Log API Usage ---
+      try {
+        const usageTokens = JSON.stringify(finalAnalysis).length; // approximate
+        await serviceClient.from('api_usage_logs').insert({
+          function_name: 'analyze-speech',
+          user_id: userId,
+          tokens_used: usageTokens,
+          estimated_cost_gbp: usageTokens * 0.000002,
+          status: 'success',
+        });
+      } catch (logErr) {
+        console.error('Usage logging failed (non-blocking):', logErr);
+      }
+
       console.log('Final comprehensive analysis for user:', userId, {
         wss: finalAnalysis.weightedStutteringSeverity,
         percentSS: finalAnalysis.percentSyllablesStuttered,

@@ -113,6 +113,20 @@ serve(async (req) => {
       });
     }
 
+    // --- Rate Limit Check ---
+    const serviceClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+    const { data: rlCheck } = await serviceClient.rpc('check_rate_limit', { _function_name: 'free-talk-chat', _user_id: userId });
+    if (rlCheck && !rlCheck.allowed) {
+      console.warn('Rate limit hit for free-talk-chat:', rlCheck.reason);
+      return new Response(JSON.stringify({ error: `Rate limit exceeded: ${rlCheck.reason}` }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const systemPrompt = `You are ${characterName}, a friendly animal character who helps children practice speaking fluently. Your personality is ${characterPersonality}.
 
 ## CORE MISSION - STAY FOCUSED
@@ -243,6 +257,17 @@ Speak like a friendly animal buddy using simple, warm language. Be genuinely int
     
     if (toolCall?.function?.arguments) {
       const result = JSON.parse(toolCall.function.arguments);
+      // --- Log API Usage ---
+      try {
+        const usageTokens = JSON.stringify(result).length;
+        await serviceClient.from('api_usage_logs').insert({
+          function_name: 'free-talk-chat',
+          user_id: userId,
+          tokens_used: usageTokens,
+          estimated_cost_gbp: usageTokens * 0.000001,
+          status: 'success',
+        });
+      } catch (logErr) { console.error('Usage logging failed:', logErr); }
       console.log('Free talk response for user:', userId);
       return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
