@@ -260,7 +260,8 @@ export const useUserProgress = () => {
     }
   }, [fetchProgress]);
 
-  const addGemsAndStars = useCallback(async (gems: number, stars: number) => {
+  const addGemsAndStars = useCallback(async (gems: number, stars: number): Promise<RewardResult> => {
+    const reward = generateReward(gems, stars);
     try {
       const { data: existing } = await supabase
         .from("user_progress")
@@ -272,8 +273,8 @@ export const useUserProgress = () => {
         await supabase
           .from("user_progress")
           .update({
-            total_gems: existing.total_gems + gems,
-            total_stars: existing.total_stars + stars,
+            total_gems: existing.total_gems + reward.gems,
+            total_stars: existing.total_stars + reward.stars,
             total_sessions: existing.total_sessions + 1,
           })
           .eq("id", existing.id);
@@ -281,8 +282,8 @@ export const useUserProgress = () => {
         await supabase
           .from("user_progress")
           .insert({
-            total_gems: gems,
-            total_stars: stars,
+            total_gems: reward.gems,
+            total_stars: reward.stars,
             total_sessions: 1,
           });
       }
@@ -292,6 +293,7 @@ export const useUserProgress = () => {
     } catch (error) {
       console.error("Error adding gems and stars:", error);
     }
+    return reward;
   }, [updateStreak]);
 
   const incrementDailyGoal = useCallback(async () => {
