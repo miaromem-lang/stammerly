@@ -215,7 +215,6 @@ const NhsWaitTimes = () => {
               </Card>
             </motion.div>
           </section>
-          <Footer />
         </main>
       </>
     );
