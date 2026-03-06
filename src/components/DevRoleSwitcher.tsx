@@ -69,7 +69,7 @@ export function DevRoleSwitcher() {
               );
             })}
           </div>
-          <div className="mt-3 pt-2 border-t">
+          <div className="mt-3 pt-2 border-t space-y-1">
             <Button
               variant="ghost"
               size="sm"
@@ -77,6 +77,14 @@ export function DevRoleSwitcher() {
               onClick={() => navigate("/therapist-analytics")}
             >
               📊 Clinical Analytics Hub
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-xs"
+              onClick={() => navigate("/admin")}
+            >
+              🛡️ Super Admin Hub
             </Button>
           </div>
         </Card>
