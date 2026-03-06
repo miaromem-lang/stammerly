@@ -36,6 +36,19 @@ const ParentHub = () => {
   const [fluencyEntry, setFluencyEntry] = useState("");
   const [savingComment, setSavingComment] = useState(false);
   const [savingEntry, setSavingEntry] = useState(false);
+  const [freezeDays, setFreezeDays] = useState("3");
+  const [freezing, setFreezing] = useState(false);
+
+  const handleActivateFreeze = async () => {
+    setFreezing(true);
+    const result = await activateStreakFreeze(parseInt(freezeDays));
+    if (result.success) {
+      toast.success(`Streak freeze activated for ${freezeDays} days! ❄️`);
+    } else {
+      toast.error(result.reason || "Could not activate freeze");
+    }
+    setFreezing(false);
+  };
 
   const handleSubmitComment = async () => {
     if (comment.trim()) {
