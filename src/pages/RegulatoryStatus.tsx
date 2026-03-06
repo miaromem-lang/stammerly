@@ -194,8 +194,6 @@ const RegulatoryStatus = () => {
             </motion.div>
           </motion.div>
         </section>
-
-        <Footer />
       </main>
     </>
   );

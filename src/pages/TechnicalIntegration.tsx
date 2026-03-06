@@ -284,8 +284,6 @@ const TechnicalIntegration = () => {
             </motion.div>
           </motion.div>
         </section>
-
-        <Footer />
       </main>
     </>
   );

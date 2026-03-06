@@ -313,8 +313,6 @@ const Procurement = () => {
             </p>
           </div>
         </section>
-
-        <Footer />
       </main>
     </>
   );

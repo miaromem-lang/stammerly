@@ -182,8 +182,6 @@ const Blog = () => {
             </motion.div>
           </motion.div>
         </section>
-
-        <Footer />
       </main>
     </>
   );

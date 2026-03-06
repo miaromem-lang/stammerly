@@ -170,8 +170,6 @@ const SensoryFitGuide = () => {
             </motion.div>
           </motion.div>
         </section>
-
-        <Footer />
       </main>
     </>
   );

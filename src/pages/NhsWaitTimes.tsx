@@ -337,7 +337,7 @@ const NhsWaitTimes = () => {
             </div>
           </motion.div>
         </section>
-        <Footer />
+        
       </main>
     </>
   );

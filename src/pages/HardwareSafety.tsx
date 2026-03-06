@@ -202,8 +202,6 @@ const HardwareSafety = () => {
             </motion.div>
           </div>
         </section>
-
-        <Footer />
       </main>
     </>
   );

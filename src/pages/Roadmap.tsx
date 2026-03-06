@@ -298,8 +298,6 @@ const Roadmap = () => {
             )}
           </motion.div>
         </section>
-
-        <Footer />
       </main>
     </>
   );

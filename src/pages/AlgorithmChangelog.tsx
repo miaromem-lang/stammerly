@@ -158,8 +158,6 @@ const AlgorithmChangelog = () => {
             )}
           </motion.div>
         </section>
-
-        <Footer />
       </main>
     </>
   );

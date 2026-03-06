@@ -183,8 +183,6 @@ const SystemStatus = () => {
             </CardContent>
           </Card>
         </section>
-
-        <Footer />
       </main>
     </>
   );

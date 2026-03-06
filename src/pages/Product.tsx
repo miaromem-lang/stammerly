@@ -373,8 +373,6 @@ const Product = () => {
             </motion.div>
           </div>
         </section>
-
-        <Footer />
       </main>
     </>
   );

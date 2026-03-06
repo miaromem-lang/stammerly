@@ -221,8 +221,6 @@ const FindTherapist = () => {
             </Card>
           </motion.div>
         </section>
-
-        <Footer />
       </main>
     </>
   );
