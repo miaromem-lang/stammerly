@@ -69,6 +69,7 @@ const App = () => (
             <Route path="/dev" element={<DevHome />} />
             <Route path="/signin" element={<Auth />} />
             <Route path="/waitlist-thank-you" element={<WaitlistThankYou />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/select-role" element={<SelectRole />} />
 
             {/* Public pages with shared SiteNavigation + Footer */}
