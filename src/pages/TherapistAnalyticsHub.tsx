@@ -162,7 +162,42 @@ const TherapistAnalyticsHub = () => {
   useEffect(() => {
     fetchClinicalMetrics();
     fetchMoodData();
+    fetchSafeguardingAlerts();
   }, [selectedPatient]);
+
+  const fetchSafeguardingAlerts = async () => {
+    try {
+      const { data } = await supabase
+        .from("safeguarding_alerts")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(20);
+      setSafeguardingAlerts(data || []);
+    } catch {
+      setSafeguardingAlerts([]);
+    }
+  };
+
+  const handleDismissAlert = async (alertId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from("safeguarding_alerts").update({
+      status: 'reviewed',
+      reviewed_by: user.id,
+      reviewed_at: new Date().toISOString(),
+    }).eq("id", alertId);
+    toast.success("Alert marked as reviewed");
+    fetchSafeguardingAlerts();
+  };
+
+  const toggleDisfluencyType = (key: DisfluencyTypeKey) => {
+    setVisibleDisfluencyTypes(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
 
   const fetchMoodData = async () => {
     if (selectedPatient === "all") {
