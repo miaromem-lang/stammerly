@@ -22,6 +22,7 @@ const mainLinks = [
 const resourceLinks = [
   { to: "/blog", label: "Articles & Resources" },
   { to: "/roadmap", label: "Product Roadmap" },
+  { to: "/algorithm-changelog", label: "Algorithm Changelog" },
   { to: "/nhs-wait-times", label: "NHS Wait Times" },
   { to: "/find-a-therapist", label: "Find a Therapist" },
   { to: "/funding-support", label: "Funding Support" },
