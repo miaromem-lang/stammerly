@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_permissions: {
+        Row: {
+          created_at: string
+          id: string
+          permission_area: string
+          permission_level: Database["public"]["Enums"]["admin_permission_level"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          permission_area: string
+          permission_level?: Database["public"]["Enums"]["admin_permission_level"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          permission_area?: string
+          permission_level?: Database["public"]["Enums"]["admin_permission_level"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       algorithm_changelog: {
         Row: {
           created_at: string
@@ -47,6 +74,72 @@ export type Database = {
           summary?: string
           title?: string
           version?: string
+        }
+        Relationships: []
+      }
+      api_rate_limits: {
+        Row: {
+          created_at: string
+          function_name: string
+          id: string
+          is_enabled: boolean
+          max_daily_cost_gbp: number
+          max_requests_per_hour: number
+          max_requests_per_minute: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          function_name: string
+          id?: string
+          is_enabled?: boolean
+          max_daily_cost_gbp?: number
+          max_requests_per_hour?: number
+          max_requests_per_minute?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          function_name?: string
+          id?: string
+          is_enabled?: boolean
+          max_daily_cost_gbp?: number
+          max_requests_per_hour?: number
+          max_requests_per_minute?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      api_usage_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          estimated_cost_gbp: number
+          function_name: string
+          id: string
+          status: string
+          tokens_used: number
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          estimated_cost_gbp?: number
+          function_name: string
+          id?: string
+          status?: string
+          tokens_used?: number
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          estimated_cost_gbp?: number
+          function_name?: string
+          id?: string
+          status?: string
+          tokens_used?: number
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1204,6 +1297,10 @@ export type Database = {
       }
     }
     Functions: {
+      check_rate_limit: {
+        Args: { _function_name: string; _user_id?: string }
+        Returns: Json
+      }
       cleanup_expired_audio: { Args: never; Returns: undefined }
       current_user_has_role: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
@@ -1218,6 +1315,7 @@ export type Database = {
       }
     }
     Enums: {
+      admin_permission_level: "none" | "read" | "write" | "full"
       app_role: "kid" | "parent" | "teacher" | "therapist" | "admin"
     }
     CompositeTypes: {
@@ -1346,6 +1444,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      admin_permission_level: ["none", "read", "write", "full"],
       app_role: ["kid", "parent", "teacher", "therapist", "admin"],
     },
   },
