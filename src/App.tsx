@@ -10,6 +10,7 @@ import { AccessibilityProvider } from "@/hooks/useAccessibility";
 import Index from "./pages/Index";
 import DevHome from "./pages/DevHome";
 import Auth from "./pages/Auth";
+import WaitlistThankYou from "./pages/WaitlistThankYou";
 import KidHub from "./pages/KidHub";
 import ParentHub from "./pages/ParentHub";
 import TeacherHub from "./pages/TeacherHub";
