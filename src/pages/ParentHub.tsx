@@ -258,6 +258,43 @@ const ParentHub = () => {
 
           {/* Right Column */}
           <div className="space-y-6">
+            {/* Streak Freeze */}
+            <Card className="glass-card-strong border-accent-sky/30">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Snowflake className="w-5 h-5 text-accent-sky" />
+                  Streak Freeze
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Going on holiday or feeling unwell? Pause your child's streak so they don't lose their progress.
+                </p>
+                <div className="flex items-center gap-2">
+                  <Select value={freezeDays} onValueChange={setFreezeDays}>
+                    <SelectTrigger className="w-28">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 4, 5, 6, 7].map(d => (
+                        <SelectItem key={d} value={String(d)}>{d} day{d > 1 ? 's' : ''}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    onClick={handleActivateFreeze}
+                    disabled={freezing}
+                    variant="navy"
+                    className="flex-1"
+                  >
+                    {freezing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Snowflake className="w-4 h-4 mr-2" />}
+                    Activate Freeze
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">3 freezes available per month</p>
+              </CardContent>
+            </Card>
+
             {/* Therapist Reviews Summary */}
             <TherapistReviewsSummary />
 
