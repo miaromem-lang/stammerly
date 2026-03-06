@@ -24,6 +24,8 @@ import { NotificationPreferences } from "@/components/NotificationPreferences";
 import { AccessRevocation } from "@/components/AccessRevocation";
 import { HardwareDiagnostics } from "@/components/HardwareDiagnostics";
 import { SubscriptionPortal } from "@/components/SubscriptionPortal";
+import { MicroLearningLibrary } from "@/components/MicroLearningLibrary";
+import { ChildProfileSwitcher } from "@/components/ChildProfileSwitcher";
 
 const ParentHub = () => {
   const navigate = useNavigate();
