@@ -787,6 +787,33 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
         environmentType: environmentType || 'home'
       };
       
+      // --- Safeguarding Check ---
+      const safeguardingKeywords = ['hurt', 'hit', 'scared', 'help me', 'don\'t touch', 'stop it', 'go away', 'kill', 'die', 'hate myself'];
+      const lowerTranscript = transcript.toLowerCase();
+      const safeguardingTriggered = safeguardingKeywords.some(kw => lowerTranscript.includes(kw));
+      
+      if (safeguardingTriggered) {
+        try {
+          const serviceClient = createClient(
+            Deno.env.get('SUPABASE_URL')!,
+            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+          );
+          
+          const matchedKeyword = safeguardingKeywords.find(kw => lowerTranscript.includes(kw)) || 'unknown';
+          
+          await serviceClient.from('safeguarding_alerts').insert({
+            user_id: userId,
+            alert_type: 'keyword_detected',
+            reason: `Keyword detected in transcript: "${matchedKeyword}"`,
+            status: 'pending',
+          });
+          
+          console.log('Safeguarding alert created for user:', userId, 'keyword:', matchedKeyword);
+        } catch (safeguardingError) {
+          console.error('Failed to create safeguarding alert:', safeguardingError);
+        }
+      }
+      
       console.log('Final comprehensive analysis for user:', userId, {
         wss: finalAnalysis.weightedStutteringSeverity,
         percentSS: finalAnalysis.percentSyllablesStuttered,
