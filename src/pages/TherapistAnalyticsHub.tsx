@@ -134,12 +134,29 @@ interface ClinicalMetrics {
   previousTechniqueSuccessRate: number;
 }
 
+const DISFLUENCY_TYPES = [
+  { key: 'blocks', label: 'Blocks' },
+  { key: 'prolongations', label: 'Prolongations' },
+  { key: 'soundReps', label: 'Sound Repetitions' },
+  { key: 'syllableReps', label: 'Syllable Repetitions' },
+  { key: 'wordReps', label: 'Word Repetitions' },
+  { key: 'phraseReps', label: 'Phrase Repetitions' },
+  { key: 'revisions', label: 'Revisions' },
+  { key: 'interjections', label: 'Interjections' },
+] as const;
+
+type DisfluencyTypeKey = typeof DISFLUENCY_TYPES[number]['key'];
+
 const TherapistAnalyticsHub = () => {
   const navigate = useNavigate();
   const [selectedPatient, setSelectedPatient] = useState("all");
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState<ClinicalMetrics | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
+  const [visibleDisfluencyTypes, setVisibleDisfluencyTypes] = useState<Set<DisfluencyTypeKey>>(
+    new Set(DISFLUENCY_TYPES.map(t => t.key))
+  );
+  const [safeguardingAlerts, setSafeguardingAlerts] = useState<any[]>([]);
   const [moodData, setMoodData] = useState<{ recentMoodAvg: number | null; recentAnxietyAvg: number | null; moodTrend: "improving" | "declining" | "stable" | null; moodCheckinCount: number }>({ recentMoodAvg: null, recentAnxietyAvg: null, moodTrend: null, moodCheckinCount: 0 });
 
   useEffect(() => {
