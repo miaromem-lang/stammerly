@@ -257,6 +257,17 @@ Speak like a friendly animal buddy using simple, warm language. Be genuinely int
     
     if (toolCall?.function?.arguments) {
       const result = JSON.parse(toolCall.function.arguments);
+      // --- Log API Usage ---
+      try {
+        const usageTokens = JSON.stringify(result).length;
+        await serviceClient.from('api_usage_logs').insert({
+          function_name: 'free-talk-chat',
+          user_id: userId,
+          tokens_used: usageTokens,
+          estimated_cost_gbp: usageTokens * 0.000001,
+          status: 'success',
+        });
+      } catch (logErr) { console.error('Usage logging failed:', logErr); }
       console.log('Free talk response for user:', userId);
       return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

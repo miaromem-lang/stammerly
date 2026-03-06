@@ -177,6 +177,18 @@ Guidelines:
     const data = await response.json();
     const story = data.choices?.[0]?.message?.content || "";
 
+    // --- Log API Usage ---
+    try {
+      const usageTokens = story.length;
+      await serviceClient.from('api_usage_logs').insert({
+        function_name: 'generate-story',
+        user_id: userId,
+        tokens_used: usageTokens,
+        estimated_cost_gbp: usageTokens * 0.000001,
+        status: 'success',
+      });
+    } catch (logErr) { console.error('Usage logging failed:', logErr); }
+
     console.log('Story generated for user:', userId);
 
     return new Response(JSON.stringify({ story }), {

@@ -828,6 +828,20 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
         }
       }
       
+      // --- Log API Usage ---
+      try {
+        const usageTokens = JSON.stringify(finalAnalysis).length; // approximate
+        await serviceClient.from('api_usage_logs').insert({
+          function_name: 'analyze-speech',
+          user_id: userId,
+          tokens_used: usageTokens,
+          estimated_cost_gbp: usageTokens * 0.000002,
+          status: 'success',
+        });
+      } catch (logErr) {
+        console.error('Usage logging failed (non-blocking):', logErr);
+      }
+
       console.log('Final comprehensive analysis for user:', userId, {
         wss: finalAnalysis.weightedStutteringSeverity,
         percentSS: finalAnalysis.percentSyllablesStuttered,

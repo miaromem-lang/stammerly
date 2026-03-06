@@ -211,6 +211,18 @@ Remember: The therapist has clinical expertise you don't have - respect their ju
     const aiResult = await response.json();
     const aiMessage = aiResult.choices?.[0]?.message?.content || "I'm having trouble responding right now. Please try again.";
 
+    // --- Log API Usage ---
+    try {
+      const usageTokens = aiMessage.length;
+      await serviceClient.from('api_usage_logs').insert({
+        function_name: 'therapist-ai-chat',
+        user_id: userId,
+        tokens_used: usageTokens,
+        estimated_cost_gbp: usageTokens * 0.000002,
+        status: 'success',
+      });
+    } catch (logErr) { console.error('Usage logging failed:', logErr); }
+
     console.log('AI chat response for user:', userId);
 
     return new Response(JSON.stringify({ message: aiMessage }), {

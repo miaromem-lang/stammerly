@@ -145,6 +145,17 @@ Format the note with clear section headers (SUBJECTIVE, OBJECTIVE, ASSESSMENT, P
     const result = await response.json();
     const soapNote = result.choices?.[0]?.message?.content || 'Unable to generate note';
 
+    // --- Log API Usage ---
+    try {
+      const usageTokens = soapNote.length;
+      await serviceClient.from('api_usage_logs').insert({
+        function_name: 'generate-soap-note',
+        tokens_used: usageTokens,
+        estimated_cost_gbp: usageTokens * 0.000002,
+        status: 'success',
+      });
+    } catch (logErr) { console.error('Usage logging failed:', logErr); }
+
     console.log('S.O.A.P. note generated successfully');
 
     return new Response(JSON.stringify({ soapNote }), {

@@ -187,7 +187,6 @@ Respond in JSON format:
     // Parse the JSON response from AI
     let parsedFeedback;
     try {
-      // Extract JSON from the response (handle markdown code blocks)
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         parsedFeedback = JSON.parse(jsonMatch[0]);
@@ -202,6 +201,18 @@ Respond in JSON format:
         alternativeSuggestion: null,
       };
     }
+
+    // --- Log API Usage ---
+    try {
+      const usageTokens = content.length;
+      await serviceClient.from('api_usage_logs').insert({
+        function_name: 'validate-quest-assignment',
+        user_id: userId,
+        tokens_used: usageTokens,
+        estimated_cost_gbp: usageTokens * 0.000001,
+        status: 'success',
+      });
+    } catch (logErr) { console.error('Usage logging failed:', logErr); }
 
     console.log('Quest validation for user:', userId);
 
