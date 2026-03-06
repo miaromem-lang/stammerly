@@ -701,6 +701,9 @@ const TherapistHub = () => {
             {/* Recommendation Trend Charts */}
             <RecommendationTrendCharts />
 
+            {/* Billing & Invoice Export */}
+            <BillingExport />
+
             {/* NHS Data Export */}
             <NhsDataExport />
 
