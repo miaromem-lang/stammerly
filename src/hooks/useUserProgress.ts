@@ -181,8 +181,24 @@ export const useUserProgress = () => {
           // Continuing streak
           newStreak = existing.current_streak + 1;
         } else {
-          // Streak broken, start new
-          newStreak = 1;
+          // Check if streak freeze is active
+          const freezeActive = (existing as any).streak_freeze_active;
+          const freezeUntil = (existing as any).streak_freeze_until;
+          
+          if (freezeActive && freezeUntil && today <= freezeUntil) {
+            // Streak is frozen — preserve current streak
+            newStreak = existing.current_streak;
+          } else {
+            // Streak broken, start new
+            newStreak = 1;
+            // If freeze expired, deactivate it
+            if (freezeActive) {
+              await supabase
+                .from("user_streaks")
+                .update({ streak_freeze_active: false, streak_freeze_until: null } as any)
+                .eq("id", existing.id);
+            }
+          }
         }
 
         await supabase
@@ -208,6 +224,39 @@ export const useUserProgress = () => {
       await fetchProgress();
     } catch (error) {
       console.error("Error updating streak:", error);
+    }
+  }, [fetchProgress]);
+
+  const activateStreakFreeze = useCallback(async (days: number) => {
+    try {
+      const { data: existing } = await supabase
+        .from("user_streaks")
+        .select("*")
+        .limit(1)
+        .maybeSingle();
+
+      if (!existing) return { success: false, reason: "No streak data" };
+
+      const remaining = (existing as any).streak_freezes_remaining ?? 3;
+      if (remaining <= 0) return { success: false, reason: "No freezes remaining this month" };
+
+      const freezeUntil = new Date();
+      freezeUntil.setDate(freezeUntil.getDate() + days);
+
+      await supabase
+        .from("user_streaks")
+        .update({
+          streak_freeze_active: true,
+          streak_freeze_until: freezeUntil.toISOString().split('T')[0],
+          streak_freezes_remaining: remaining - 1,
+        } as any)
+        .eq("id", existing.id);
+
+      await fetchProgress();
+      return { success: true };
+    } catch (error) {
+      console.error("Error activating streak freeze:", error);
+      return { success: false, reason: "Failed to activate" };
     }
   }, [fetchProgress]);
 
