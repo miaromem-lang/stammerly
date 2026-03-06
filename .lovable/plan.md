@@ -1,94 +1,190 @@
 
+# Implementation Plan: Complete Minor Gaps in Clinical Analytics Hub
 
-# Implementation Plan: Gamification Safeguards, Spaced Repetition, Variable Rewards, and Clinical Enhancements
-
----
-
-## 1. Streak Freeze Mechanism
-
-**Goal**: Let parents pause a child's streak without losing progress.
-
-**Database changes**:
-- Add columns to `user_streaks` table: `streak_freeze_active BOOLEAN DEFAULT false`, `streak_freeze_until DATE`, `streak_freezes_remaining INTEGER DEFAULT 3`.
-
-**Code changes**:
-- **`src/hooks/useUserProgress.ts`**: Update `updateStreak()` logic — if `streak_freeze_active` is true and today is before `streak_freeze_until`, skip the streak-break check and preserve the current streak count. Add `activateStreakFreeze(days: number)` function.
-- **`src/pages/ParentHub.tsx`**: Add a "Streak Freeze" card in the parent dashboard with a toggle/button to activate a freeze for 1-7 days. Show remaining freezes (3 per month).
-- **`src/pages/KidHub.tsx`**: Display a snowflake/pause icon on the streak indicator when a freeze is active, so the child understands their streak is safe.
+## Overview
+This plan addresses the three remaining gaps in the Multi-Dimensional Assessment Framework:
+1. **%SS Comparison Chart** - Visualize stuttering rates by task type (Reading vs Spontaneous Speech)
+2. **Webcam Integration** - Detect concomitant secondary behaviours (eye blinks, jaw tension, head movements)
+3. **Technique Accuracy with Acoustic Analysis** - Detect Easy Onset volume-rise signature from raw audio
 
 ---
 
-## 2. Spaced Repetition for Trigger Words
+## Feature 1: %SS Comparison Chart by Task Type
 
-**Goal**: Strategically reintroduce mastered trigger words at increasing intervals.
+### Purpose
+Allow therapists to compare Percentage of Syllables Stuttered (%SS) across different exercise categories (Reading, Spontaneous Speech, Conversation, etc.) to identify situational patterns.
 
-**Database changes**:
-- Create `spaced_repetition_items` table: `id UUID PK`, `user_id UUID NOT NULL`, `phoneme TEXT`, `word TEXT`, `exercise_id TEXT`, `ease_factor NUMERIC DEFAULT 2.5`, `interval_days INTEGER DEFAULT 1`, `next_review_date DATE DEFAULT CURRENT_DATE`, `repetition_count INTEGER DEFAULT 0`, `last_reviewed_at TIMESTAMPTZ`, `created_at TIMESTAMPTZ DEFAULT now()`. RLS: users can CRUD own rows.
+### Implementation
 
-**Code changes**:
-- **`src/hooks/useSpacedRepetition.ts`** (new): Implement SM-2 algorithm logic — after each practice, update `ease_factor` and `interval_days` based on fluency score. Fetch items due for review (`next_review_date <= today`).
-- **`src/components/PersonalizedQuestMap.tsx`**: Integrate spaced repetition items into the quest recommendation list. Items due for review appear as priority "revision" quests with a distinct visual style (e.g., a refresh icon).
-- **Practice flow**: After completing a practice session involving a trigger word, call the spaced repetition hook to schedule the next review.
+**A. Update SurfaceCommandCentre Component**
+- Add a new props interface to accept task-type breakdown data
+- Create a bar chart visualization using Recharts showing %SS per category
+- Display clinical insights comparing Reading vs Spontaneous performance
 
----
+**B. Update TherapistAnalyticsHub Data Fetching**
+- Group practice_sessions by `exercise_category`
+- Calculate %SS per category using existing SLD counts and syllable estimates
+- Pass aggregated data to SurfaceCommandCentre
 
-## 3. Variable Reward Schedules
+**C. Visual Design**
+- Horizontal bar chart with category labels
+- Color-coded bars (green = low %SS, yellow = moderate, red = high)
+- Clinical insight text explaining Reading vs Spontaneous patterns
 
-**Goal**: Replace static point awards with randomised, tiered rewards.
-
-**Code changes**:
-- **`src/lib/rewardEngine.ts`** (new): Create a reward generator with tiered probability:
-  - 60% chance: standard reward (base gems)
-  - 25% chance: bonus reward (1.5x-2x gems + special animation)
-  - 10% chance: rare reward (3x gems + rare badge unlock)
-  - 5% chance: jackpot (5x gems + exclusive avatar item)
-- **`src/hooks/useUserProgress.ts`**: Replace the current static `addGemsAndStars()` with a call to the reward engine. Return the reward tier so the UI can show appropriate celebration.
-- **`src/pages/KidHub.tsx`** and practice completion flow: Display different celebration animations based on reward tier (confetti, sparkles, rainbow explosion for jackpot). Show "You found a rare gem!" type messaging.
-
----
-
-## 4. Ambient Safeguarding Triggers
-
-**Goal**: Flag audio containing distress markers for a Clinical Safety Officer.
-
-**Code changes**:
-- **`supabase/functions/analyze-speech/index.ts`**: Add a safeguarding check to the AI prompt — instruct the model to flag if the transcript contains indicators of severe distress or harm keywords. Return a `safeguardingFlag: boolean` and `safeguardingReason: string` in the response.
-- **Database**: Create `safeguarding_alerts` table: `id UUID PK`, `user_id UUID NOT NULL`, `session_id UUID`, `alert_type TEXT`, `reason TEXT`, `audio_file_path TEXT`, `status TEXT DEFAULT 'pending'`, `reviewed_by UUID`, `reviewed_at TIMESTAMPTZ`, `created_at TIMESTAMPTZ DEFAULT now()`. RLS: only users with `therapist` role can SELECT; system inserts via service role.
-- **`supabase/functions/analyze-speech/index.ts`**: If safeguarding flag is triggered, insert into `safeguarding_alerts` using service role client. The flagged audio file path is stored but access is restricted.
-- **`src/pages/TherapistAnalyticsHub.tsx`**: Add a safeguarding alerts panel (visible only to designated safety officers) showing pending alerts with review/dismiss actions.
+### Files to Modify
+- `src/components/therapist/SurfaceCommandCentre.tsx` - Add TaskTypeChart sub-component
+- `src/pages/TherapistAnalyticsHub.tsx` - Add task-type aggregation to metrics
 
 ---
 
-## 5. Private Practice Billing Integration
+## Feature 2: Webcam Integration for Concomitant Behaviours
 
-**Goal**: Map session data to clinical diagnostic codes for invoice generation.
+### Purpose
+Detect physical secondary behaviours (eye blinking, jaw tightening, head nodding) that accompany speech blocks using TensorFlow.js face detection models.
 
-**Code changes**:
-- **`src/components/therapist/BillingExport.tsx`** (new): Create a component that:
-  - Maps practice session data to ICD-10 codes (F98.5 for stuttering, F80.0 for phonological disorder).
-  - Generates a downloadable CSV/PDF invoice line item with: date, patient reference, diagnostic code, session duration, and billable amount (based on therapist's hourly rate input).
-  - Uses `jspdf` (already installed) for PDF export.
-- **`src/pages/TherapistHub.tsx`**: Add the BillingExport component to the therapist operational tools section.
+### Implementation
+
+**A. Create ConcomitantMovementTracker Component**
+New component with:
+- Webcam video feed display
+- Real-time face landmark detection using MediaPipe/TensorFlow.js
+- Detection algorithms for:
+  - **Eye blinks**: Track eye aspect ratio changes
+  - **Jaw tension**: Monitor mouth opening/closing patterns
+  - **Head movements**: Detect rapid head position changes
+- Visual overlay showing detected movements
+- Session summary with movement counts and timestamps
+
+**B. Create useWebcamAnalysis Hook**
+New custom hook to:
+- Initialize webcam stream
+- Load TensorFlow.js FaceMesh model
+- Process video frames at 10-15 FPS
+- Detect and log secondary behaviours
+- Provide real-time metrics to UI
+
+**C. Update TherapistAnalyticsHub**
+- Add new "Physicality" tab dedicated to this feature
+- Display aggregate movement statistics
+- Provide clinical interpretation of concomitant patterns
+
+**D. Database Schema Consideration**
+- Store concomitant metrics in practice_sessions (new fields or JSON column)
+- No immediate schema change required - use existing JSON flexibility
+
+### Files to Create
+- `src/hooks/useWebcamAnalysis.ts` - Webcam and face detection logic
+- `src/components/therapist/ConcomitantMovementTracker.tsx` - UI component
+
+### Files to Modify
+- `src/pages/TherapistAnalyticsHub.tsx` - Add Physicality tab and integration
+
+### Dependencies Note
+TensorFlow.js face detection will be loaded via CDN to avoid bundle bloat. The model runs client-side for privacy.
 
 ---
 
-## 6. Disfluency Typology Filtering on Trend Charts
+## Feature 3: Acoustic Signature Analysis for Easy Onset
 
-**Goal**: Allow therapists to filter analytics by specific disfluency types.
+### Purpose
+Detect the characteristic "gentle rise in volume" acoustic signature of a proper Easy Onset technique, rather than relying solely on AI inference.
 
-**Code changes**:
-- **`src/pages/TherapistAnalyticsHub.tsx`**: Add a multi-select filter component on the Fluency tab allowing therapists to isolate: blocks, prolongations, sound repetitions, syllable repetitions, word repetitions, phrase repetitions, revisions, interjections.
-- The existing data fetch already retrieves all these counts from `practice_sessions`. Add a filter state that controls which disfluency types are displayed in the `SurfaceCommandCentre` breakdown chart and trend lines.
-- **`src/components/therapist/SurfaceCommandCentre.tsx`**: Accept an optional `visibleTypes` prop to filter the disfluency breakdown display.
-- **`src/components/ProgressCharts.tsx`**: If applicable, add typology toggle for the trend view showing individual disfluency type lines over time.
+### Implementation
+
+**A. Create analyzeVolumeEnvelope Function**
+New utility function to:
+- Decode raw audio from base64 to AudioBuffer
+- Calculate RMS (Root Mean Square) volume at sentence starts
+- Detect volume rise patterns (gradual increase over 100-300ms = Easy Onset)
+- Identify abrupt volume spikes (potential hard onset)
+
+**B. Update useSpeechAnalysis Hook**
+- Before sending to edge function, analyze audio locally
+- Extract volume envelope data for first 500ms of each detected sentence
+- Calculate Easy Onset signature matches:
+  - Measure volume slope at utterance start
+  - Compare to ideal Easy Onset profile (gradual 0.2-0.4s rise)
+- Send volume analysis results alongside transcription
+
+**C. Update analyze-speech Edge Function**
+- Accept new `volumeAnalysis` parameter containing:
+  - `sentenceOnsets`: Array of onset patterns detected
+  - `easyOnsetSignatures`: Count of proper Easy Onset patterns
+  - `hardOnsetSignatures`: Count of abrupt starts
+- Use this data to enhance technique scoring accuracy
+
+**D. Update TechniqueAccuracyTracker UI**
+- Display "Acoustic Signature Analysis" section
+- Show breakdown of detected onset patterns
+- Visual waveform representation of ideal vs detected onset
+
+### Files to Create
+- `src/lib/audioAnalysis.ts` - Volume envelope analysis utilities
+
+### Files to Modify
+- `src/hooks/useSpeechAnalysis.ts` - Add volume analysis before edge function call
+- `supabase/functions/analyze-speech/index.ts` - Accept and integrate volume data
+- `src/components/therapist/TechniqueAccuracyTracker.tsx` - Add acoustic analysis display
 
 ---
 
-## Summary of Files
+## Technical Approach
 
-| Action | File |
-|--------|------|
-| Migration | Add columns to `user_streaks`; create `spaced_repetition_items` and `safeguarding_alerts` tables |
-| Create | `src/hooks/useSpacedRepetition.ts`, `src/lib/rewardEngine.ts`, `src/components/therapist/BillingExport.tsx` |
-| Edit | `src/hooks/useUserProgress.ts`, `src/pages/ParentHub.tsx`, `src/pages/KidHub.tsx`, `src/components/PersonalizedQuestMap.tsx`, `supabase/functions/analyze-speech/index.ts`, `src/pages/TherapistAnalyticsHub.tsx`, `src/components/therapist/SurfaceCommandCentre.tsx`, `src/pages/TherapistHub.tsx`, `src/components/therapist/index.ts` |
+### Volume Envelope Analysis Algorithm
+```text
+For each detected sentence start:
+1. Extract audio samples for first 300ms
+2. Calculate RMS volume in 20ms windows
+3. Compute volume slope (rate of increase)
+4. Classify onset:
+   - Gradual rise (slope < 0.3) = Easy Onset signature
+   - Moderate rise (0.3-0.6) = Partial Easy Onset
+   - Abrupt rise (slope > 0.6) = Hard Onset
+```
 
+### Face Detection for Concomitants
+```text
+Using TensorFlow.js FaceMesh:
+1. Track 468 facial landmarks at 10 FPS
+2. Eye Blink Detection:
+   - Calculate Eye Aspect Ratio (EAR)
+   - EAR < 0.2 for >100ms = blink detected
+3. Jaw Tension Detection:
+   - Monitor lip distance variance
+   - Rapid changes during blocks = tension indicator
+4. Head Movement:
+   - Track nose tip position
+   - Rapid displacement during speech = secondary behaviour
+```
+
+---
+
+## Implementation Order
+
+1. **%SS Comparison Chart** (simplest - UI only, uses existing data)
+2. **Acoustic Signature Analysis** (moderate - requires audio processing)
+3. **Webcam Integration** (complex - requires TensorFlow.js and real-time video processing)
+
+---
+
+## Summary of Changes
+
+| Category | Files Created | Files Modified |
+|----------|---------------|----------------|
+| %SS Chart | 0 | 2 |
+| Webcam/Concomitant | 2 | 1 |
+| Acoustic Analysis | 1 | 3 |
+| **Total** | **3** | **6** |
+
+### New Files
+1. `src/hooks/useWebcamAnalysis.ts`
+2. `src/components/therapist/ConcomitantMovementTracker.tsx`
+3. `src/lib/audioAnalysis.ts`
+
+### Modified Files
+1. `src/components/therapist/SurfaceCommandCentre.tsx`
+2. `src/components/therapist/TechniqueAccuracyTracker.tsx`
+3. `src/pages/TherapistAnalyticsHub.tsx`
+4. `src/hooks/useSpeechAnalysis.ts`
+5. `supabase/functions/analyze-speech/index.ts`
+6. `src/components/therapist/index.ts` (export new component)

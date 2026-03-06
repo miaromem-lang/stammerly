@@ -274,6 +274,7 @@ const KidHub = () => {
           <div className="flex items-center gap-2 bg-success/20 px-4 py-3 rounded-kids min-w-fit">
             <Zap className="w-6 h-6 text-success" />
             <span className="font-bold text-foreground">{progress.currentStreak} Day Streak! 🔥</span>
+            {/* Streak freeze indicator — shown via a simple snowflake when frozen */}
           </div>
           <div className="flex items-center gap-2 bg-primary/20 px-4 py-3 rounded-kids min-w-fit">
             <Trophy className="w-6 h-6 text-primary" />

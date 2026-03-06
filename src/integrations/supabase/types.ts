@@ -587,6 +587,53 @@ export type Database = {
           },
         ]
       }
+      safeguarding_alerts: {
+        Row: {
+          alert_type: string
+          audio_file_path: string | null
+          created_at: string
+          id: string
+          reason: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          session_id: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          alert_type?: string
+          audio_file_path?: string | null
+          created_at?: string
+          id?: string
+          reason: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          session_id?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          alert_type?: string
+          audio_file_path?: string | null
+          created_at?: string
+          id?: string
+          reason?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          session_id?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "safeguarding_alerts_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "practice_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       session_reviews: {
         Row: {
           created_at: string
@@ -627,6 +674,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      spaced_repetition_items: {
+        Row: {
+          created_at: string
+          ease_factor: number
+          exercise_id: string | null
+          id: string
+          interval_days: number
+          last_reviewed_at: string | null
+          next_review_date: string
+          phoneme: string | null
+          repetition_count: number
+          user_id: string
+          word: string | null
+        }
+        Insert: {
+          created_at?: string
+          ease_factor?: number
+          exercise_id?: string | null
+          id?: string
+          interval_days?: number
+          last_reviewed_at?: string | null
+          next_review_date?: string
+          phoneme?: string | null
+          repetition_count?: number
+          user_id: string
+          word?: string | null
+        }
+        Update: {
+          created_at?: string
+          ease_factor?: number
+          exercise_id?: string | null
+          id?: string
+          interval_days?: number
+          last_reviewed_at?: string | null
+          next_review_date?: string
+          phoneme?: string | null
+          repetition_count?: number
+          user_id?: string
+          word?: string | null
+        }
+        Relationships: []
       }
       subjective_ratings: {
         Row: {
@@ -952,6 +1041,9 @@ export type Database = {
           id: string
           last_practice_date: string | null
           longest_streak: number
+          streak_freeze_active: boolean
+          streak_freeze_until: string | null
+          streak_freezes_remaining: number
           total_practice_days: number
           updated_at: string
           user_id: string | null
@@ -962,6 +1054,9 @@ export type Database = {
           id?: string
           last_practice_date?: string | null
           longest_streak?: number
+          streak_freeze_active?: boolean
+          streak_freeze_until?: string | null
+          streak_freezes_remaining?: number
           total_practice_days?: number
           updated_at?: string
           user_id?: string | null
@@ -972,6 +1067,9 @@ export type Database = {
           id?: string
           last_practice_date?: string | null
           longest_streak?: number
+          streak_freeze_active?: boolean
+          streak_freeze_until?: string | null
+          streak_freezes_remaining?: number
           total_practice_days?: number
           updated_at?: string
           user_id?: string | null

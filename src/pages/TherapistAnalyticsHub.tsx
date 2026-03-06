@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Activity, Brain, Target, FileText, Grid3X3, Clock, Loader2, RefreshCw, Repeat, MapPin, Pause, Shield, Camera } from "lucide-react";
+import { ArrowLeft, Activity, Brain, Target, FileText, Grid3X3, Clock, Loader2, RefreshCw, Repeat, MapPin, Pause, Shield, Camera, AlertTriangle, Filter } from "lucide-react";
 import { HubNavigation } from "@/components/HubNavigation";
 import PageBackground from "@/components/PageBackground";
 import AIInsightsExplainer from "@/components/AIInsightsExplainer";
@@ -134,18 +134,70 @@ interface ClinicalMetrics {
   previousTechniqueSuccessRate: number;
 }
 
+const DISFLUENCY_TYPES = [
+  { key: 'blocks', label: 'Blocks' },
+  { key: 'prolongations', label: 'Prolongations' },
+  { key: 'soundReps', label: 'Sound Repetitions' },
+  { key: 'syllableReps', label: 'Syllable Repetitions' },
+  { key: 'wordReps', label: 'Word Repetitions' },
+  { key: 'phraseReps', label: 'Phrase Repetitions' },
+  { key: 'revisions', label: 'Revisions' },
+  { key: 'interjections', label: 'Interjections' },
+] as const;
+
+type DisfluencyTypeKey = typeof DISFLUENCY_TYPES[number]['key'];
+
 const TherapistAnalyticsHub = () => {
   const navigate = useNavigate();
   const [selectedPatient, setSelectedPatient] = useState("all");
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState<ClinicalMetrics | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
+  const [visibleDisfluencyTypes, setVisibleDisfluencyTypes] = useState<Set<DisfluencyTypeKey>>(
+    new Set(DISFLUENCY_TYPES.map(t => t.key))
+  );
+  const [safeguardingAlerts, setSafeguardingAlerts] = useState<any[]>([]);
   const [moodData, setMoodData] = useState<{ recentMoodAvg: number | null; recentAnxietyAvg: number | null; moodTrend: "improving" | "declining" | "stable" | null; moodCheckinCount: number }>({ recentMoodAvg: null, recentAnxietyAvg: null, moodTrend: null, moodCheckinCount: 0 });
 
   useEffect(() => {
     fetchClinicalMetrics();
     fetchMoodData();
+    fetchSafeguardingAlerts();
   }, [selectedPatient]);
+
+  const fetchSafeguardingAlerts = async () => {
+    try {
+      const { data } = await supabase
+        .from("safeguarding_alerts")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(20);
+      setSafeguardingAlerts(data || []);
+    } catch {
+      setSafeguardingAlerts([]);
+    }
+  };
+
+  const handleDismissAlert = async (alertId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from("safeguarding_alerts").update({
+      status: 'reviewed',
+      reviewed_by: user.id,
+      reviewed_at: new Date().toISOString(),
+    }).eq("id", alertId);
+    toast.success("Alert marked as reviewed");
+    fetchSafeguardingAlerts();
+  };
+
+  const toggleDisfluencyType = (key: DisfluencyTypeKey) => {
+    setVisibleDisfluencyTypes(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
 
   const fetchMoodData = async () => {
     if (selectedPatient === "all") {
@@ -693,6 +745,31 @@ const TherapistAnalyticsHub = () => {
 
             {/* Fluency Tab - Surface + Adaptation + Phonemes */}
             <TabsContent value="fluency" className="space-y-6">
+              {/* Disfluency Typology Filter */}
+              <Card className="glass-card-strong">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Filter className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-medium text-foreground">Filter Disfluency Types</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {DISFLUENCY_TYPES.map(type => (
+                      <button
+                        key={type.key}
+                        onClick={() => toggleDisfluencyType(type.key)}
+                        className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                          visibleDisfluencyTypes.has(type.key)
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-secondary/50 text-muted-foreground border-border hover:border-primary/50'
+                        }`}
+                      >
+                        {type.label}
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
               <SurfaceCommandCentre 
                 metrics={{
                   weightedStutteringSeverity: metrics.weightedStutteringSeverity,
@@ -701,9 +778,10 @@ const TherapistAnalyticsHub = () => {
                   odCount: metrics.odCount,
                   syllablesPerMinute: metrics.syllablesPerMinute,
                   articulationRate: metrics.articulationRate,
-                  blocksCount: metrics.blocksCount,
-                  prolongationsCount: metrics.prolongationsCount,
-                  repetitionsCount: metrics.repetitionsCount,
+                  blocksCount: visibleDisfluencyTypes.has('blocks') ? metrics.blocksCount : 0,
+                  prolongationsCount: visibleDisfluencyTypes.has('prolongations') ? metrics.prolongationsCount : 0,
+                  repetitionsCount: visibleDisfluencyTypes.has('wordReps') || visibleDisfluencyTypes.has('soundReps') 
+                    ? metrics.repetitionsCount : 0,
                 }}
                 taskTypeData={metrics.taskTypeData}
               />
@@ -875,6 +953,39 @@ const TherapistAnalyticsHub = () => {
                   }}
                 />
               </div>
+
+              {/* Safeguarding Alerts */}
+              {safeguardingAlerts.length > 0 && (
+                <Card className="glass-card-strong border-destructive/30">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-destructive">
+                      <AlertTriangle className="w-5 h-5" />
+                      Safeguarding Alerts
+                      <span className="text-xs bg-destructive/20 text-destructive px-2 py-0.5 rounded-full ml-auto">
+                        {safeguardingAlerts.filter(a => a.status === 'pending').length} pending
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {safeguardingAlerts.slice(0, 5).map((alert: any) => (
+                      <div key={alert.id} className={`p-3 rounded-lg border ${alert.status === 'pending' ? 'bg-destructive/5 border-destructive/20' : 'bg-secondary/30 border-border'}`}>
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="text-sm font-medium text-foreground">{alert.alert_type}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{alert.reason}</p>
+                            <p className="text-[10px] text-muted-foreground mt-1">{new Date(alert.created_at).toLocaleString()}</p>
+                          </div>
+                          {alert.status === 'pending' && (
+                            <Button size="sm" variant="outline" onClick={() => handleDismissAlert(alert.id)}>
+                              Mark Reviewed
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
               
               {/* S.O.A.P. Note Generator */}
               <SOAPNoteGenerator 
