@@ -953,6 +953,39 @@ const TherapistAnalyticsHub = () => {
                   }}
                 />
               </div>
+
+              {/* Safeguarding Alerts */}
+              {safeguardingAlerts.length > 0 && (
+                <Card className="glass-card-strong border-destructive/30">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-destructive">
+                      <AlertTriangle className="w-5 h-5" />
+                      Safeguarding Alerts
+                      <span className="text-xs bg-destructive/20 text-destructive px-2 py-0.5 rounded-full ml-auto">
+                        {safeguardingAlerts.filter(a => a.status === 'pending').length} pending
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {safeguardingAlerts.slice(0, 5).map((alert: any) => (
+                      <div key={alert.id} className={`p-3 rounded-lg border ${alert.status === 'pending' ? 'bg-destructive/5 border-destructive/20' : 'bg-secondary/30 border-border'}`}>
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="text-sm font-medium text-foreground">{alert.alert_type}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{alert.reason}</p>
+                            <p className="text-[10px] text-muted-foreground mt-1">{new Date(alert.created_at).toLocaleString()}</p>
+                          </div>
+                          {alert.status === 'pending' && (
+                            <Button size="sm" variant="outline" onClick={() => handleDismissAlert(alert.id)}>
+                              Mark Reviewed
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
               
               {/* S.O.A.P. Note Generator */}
               <SOAPNoteGenerator 
