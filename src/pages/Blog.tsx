@@ -5,7 +5,7 @@ import { ArrowLeft, Search, BookOpen, Stethoscope, Lightbulb, Megaphone } from "
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Footer } from "@/components/Footer";
+
 import { useState } from "react";
 import type { Variants } from "framer-motion";
 
@@ -182,8 +182,6 @@ const Blog = () => {
             </motion.div>
           </motion.div>
         </section>
-
-        <Footer />
       </main>
     </>
   );

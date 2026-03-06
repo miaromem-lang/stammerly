@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Shield, Battery, Droplets, Wind, AlertTriangle, CheckCircle, ArrowLeft } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Footer } from "@/components/Footer";
+
 import type { Variants } from "framer-motion";
 
 const fadeUp: Variants = {
@@ -202,8 +202,6 @@ const HardwareSafety = () => {
             </motion.div>
           </div>
         </section>
-
-        <Footer />
       </main>
     </>
   );

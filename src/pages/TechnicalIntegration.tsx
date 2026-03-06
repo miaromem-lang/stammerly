@@ -5,7 +5,7 @@ import { ArrowLeft, Server, Shield, Lock, Database, FileJson, Network, CheckCirc
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Footer } from "@/components/Footer";
+
 import type { Variants } from "framer-motion";
 
 const fadeUp: Variants = {
@@ -284,8 +284,6 @@ const TechnicalIntegration = () => {
             </motion.div>
           </motion.div>
         </section>
-
-        <Footer />
       </main>
     </>
   );

@@ -5,7 +5,7 @@ import { Sparkles, BarChart3, FileText, Shield, Users, Zap, ArrowRight, Monitor,
 import HybridLoopDiagram from "@/components/HybridLoopDiagram";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Footer } from "@/components/Footer";
+
 import DisfluencyVisualiser from "@/components/DisfluencyVisualiser";
 import SamplePracticeGame from "@/components/SamplePracticeGame";
 import TherapistROICalculator from "@/components/TherapistROICalculator";
@@ -373,8 +373,6 @@ const Product = () => {
             </motion.div>
           </div>
         </section>
-
-        <Footer />
       </main>
     </>
   );

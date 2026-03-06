@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Footer } from "@/components/Footer";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -215,7 +215,6 @@ const NhsWaitTimes = () => {
               </Card>
             </motion.div>
           </section>
-          <Footer />
         </main>
       </>
     );
@@ -338,7 +337,7 @@ const NhsWaitTimes = () => {
             </div>
           </motion.div>
         </section>
-        <Footer />
+        
       </main>
     </>
   );

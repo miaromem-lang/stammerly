@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { ArrowLeft, GitCommit, Shield, Brain, Zap, BarChart3, FileText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Footer } from "@/components/Footer";
+
 import { supabase } from "@/integrations/supabase/client";
 import type { Variants } from "framer-motion";
 
@@ -158,8 +158,6 @@ const AlgorithmChangelog = () => {
             )}
           </motion.div>
         </section>
-
-        <Footer />
       </main>
     </>
   );

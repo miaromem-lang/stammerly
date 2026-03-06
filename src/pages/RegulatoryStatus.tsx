@@ -5,7 +5,7 @@ import { Shield, FileText, AlertTriangle, CheckCircle, ArrowLeft, Scale, Buildin
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Footer } from "@/components/Footer";
+
 import type { Variants } from "framer-motion";
 
 const fadeUp: Variants = {
@@ -194,8 +194,6 @@ const RegulatoryStatus = () => {
             </motion.div>
           </motion.div>
         </section>
-
-        <Footer />
       </main>
     </>
   );
