@@ -178,17 +178,59 @@ serve(async (req) => {
     console.log('Transcription complete for user:', userId);
 
     const words = result.words || [];
+    const rawText = result.text || '';
+    const rawWords = words.map((w: { word: string; start: number; end: number }) => ({
+      word: w.word,
+      start: w.start,
+      end: w.end,
+      duration: w.end - w.start
+    }));
+
+    // --- PII Scrubbing Pass (GDPR compliance) ---
+    let scrubbedText = rawText;
+    let scrubbedWords = rawWords;
+    let piiDetected = false;
+    let piiCategories: string[] = [];
+
+    try {
+      console.log('Running PII scrubbing pass...');
+      const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+      if (LOVABLE_API_KEY && rawText.trim().length > 0) {
+        const piiResponse = await fetch(
+          `${Deno.env.get('SUPABASE_URL')}/functions/v1/scrub-pii`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': authHeader,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text: rawText, words: rawWords }),
+          }
+        );
+
+        if (piiResponse.ok) {
+          const piiResult = await piiResponse.json();
+          scrubbedText = piiResult.scrubbedText || rawText;
+          scrubbedWords = piiResult.scrubbedWords || rawWords;
+          piiDetected = piiResult.piiDetected || false;
+          piiCategories = piiResult.piiCategories || [];
+          console.log(`PII scrub result: detected=${piiDetected}, categories=${piiCategories.join(',')}`);
+        } else {
+          console.warn('PII scrubbing failed (non-blocking), using raw transcript:', piiResponse.status);
+        }
+      }
+    } catch (piiErr) {
+      console.error('PII scrubbing error (non-blocking):', piiErr);
+    }
+
     const transcription = {
-      text: result.text || '',
-      words: words.map((w: { word: string; start: number; end: number }) => ({
-        word: w.word,
-        start: w.start,
-        end: w.end,
-        duration: w.end - w.start
-      })),
+      text: scrubbedText,
+      words: scrubbedWords,
       duration: result.duration || 0,
       language: result.language || language,
       audioFilePath,
+      piiScrubbed: piiDetected,
+      piiCategories,
     };
 
     // --- Log API Usage ---

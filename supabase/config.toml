@@ -17,3 +17,5 @@ project_id = "hiigdwgdfuabgjiiapid"
     verify_jwt = false
   [functions.validate-quest-assignment]
     verify_jwt = false
+  [functions.scrub-pii]
+    verify_jwt = false
