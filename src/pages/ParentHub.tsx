@@ -256,6 +256,9 @@ const ParentHub = () => {
 
             {/* Sync History */}
             <SyncHistoryLog variant="parent" />
+
+            {/* Micro-Learning Library */}
+            <MicroLearningLibrary />
           </div>
 
           {/* Right Column */}
