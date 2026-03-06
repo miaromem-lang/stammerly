@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { generateReward, type RewardResult } from "@/lib/rewardEngine";
 
 interface UserProgress {
   totalGems: number;
