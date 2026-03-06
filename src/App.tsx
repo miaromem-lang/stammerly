@@ -10,6 +10,7 @@ import { AccessibilityProvider } from "@/hooks/useAccessibility";
 import Index from "./pages/Index";
 import DevHome from "./pages/DevHome";
 import Auth from "./pages/Auth";
+import WaitlistThankYou from "./pages/WaitlistThankYou";
 import KidHub from "./pages/KidHub";
 import ParentHub from "./pages/ParentHub";
 import TeacherHub from "./pages/TeacherHub";
@@ -65,6 +66,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/dev" element={<DevHome />} />
             <Route path="/signin" element={<Auth />} />
+            <Route path="/waitlist-thank-you" element={<WaitlistThankYou />} />
             <Route path="/select-role" element={<SelectRole />} />
             <Route path="/about" element={<About />} />
             <Route path="/our-story" element={<OurStory />} />
