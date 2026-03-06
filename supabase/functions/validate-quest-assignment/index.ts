@@ -99,6 +99,20 @@ serve(async (req) => {
       });
     }
 
+    // --- Rate Limit Check ---
+    const serviceClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+    const { data: rlCheck } = await serviceClient.rpc('check_rate_limit', { _function_name: 'validate-quest-assignment', _user_id: userId });
+    if (rlCheck && !rlCheck.allowed) {
+      console.warn('Rate limit hit for validate-quest-assignment:', rlCheck.reason);
+      return new Response(JSON.stringify({ error: `Rate limit exceeded: ${rlCheck.reason}` }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const systemPrompt = `You are a speech therapy AI assistant that collaborates with human therapists. Your role is to:
 1. Analyze therapist quest assignments for children who stutter
 2. Provide constructive feedback based on the child's practice data
