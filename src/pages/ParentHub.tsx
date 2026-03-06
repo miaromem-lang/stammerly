@@ -260,6 +260,8 @@ const ParentHub = () => {
 
           {/* Right Column */}
           <div className="space-y-6">
+            {/* Child Profile Switcher */}
+            <ChildProfileSwitcher />
             {/* Streak Freeze */}
             <Card className="glass-card-strong border-accent-sky/30">
               <CardHeader>
