@@ -312,6 +312,33 @@ export type Database = {
         }
         Relationships: []
       }
+      parent_child_links: {
+        Row: {
+          child_display_name: string
+          child_user_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          parent_user_id: string
+        }
+        Insert: {
+          child_display_name?: string
+          child_user_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          parent_user_id: string
+        }
+        Update: {
+          child_display_name?: string
+          child_user_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          parent_user_id?: string
+        }
+        Relationships: []
+      }
       pendant_sync_history: {
         Row: {
           battery_level: number | null

@@ -24,6 +24,8 @@ import { NotificationPreferences } from "@/components/NotificationPreferences";
 import { AccessRevocation } from "@/components/AccessRevocation";
 import { HardwareDiagnostics } from "@/components/HardwareDiagnostics";
 import { SubscriptionPortal } from "@/components/SubscriptionPortal";
+import { MicroLearningLibrary } from "@/components/MicroLearningLibrary";
+import { ChildProfileSwitcher } from "@/components/ChildProfileSwitcher";
 
 const ParentHub = () => {
   const navigate = useNavigate();
@@ -254,10 +256,15 @@ const ParentHub = () => {
 
             {/* Sync History */}
             <SyncHistoryLog variant="parent" />
+
+            {/* Micro-Learning Library */}
+            <MicroLearningLibrary />
           </div>
 
           {/* Right Column */}
           <div className="space-y-6">
+            {/* Child Profile Switcher */}
+            <ChildProfileSwitcher />
             {/* Streak Freeze */}
             <Card className="glass-card-strong border-accent-sky/30">
               <CardHeader>
