@@ -118,7 +118,7 @@ const OurStory = () => {
                   <h3 className="text-xl font-bold text-foreground">Global Impact</h3>
                 </div>
                 <p className="text-3xl font-bold text-primary mb-2">Millions</p>
-                <p className="text-muted-foreground">of children aged 4-12 with speech impediments worldwide</p>
+                <p className="text-muted-foreground">of children aged 4-17 with speech impediments worldwide</p>
               </CardContent>
             </Card>
 
