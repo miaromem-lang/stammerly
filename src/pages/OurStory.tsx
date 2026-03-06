@@ -118,7 +118,7 @@ const OurStory = () => {
                   <h3 className="text-xl font-bold text-foreground">Global Impact</h3>
                 </div>
                 <p className="text-3xl font-bold text-primary mb-2">Millions</p>
-                <p className="text-muted-foreground">of children aged 4-12 with speech impediments worldwide</p>
+                <p className="text-muted-foreground">of children aged 4-17 with speech impediments worldwide</p>
               </CardContent>
             </Card>
 
@@ -128,7 +128,7 @@ const OurStory = () => {
                   <Clock className="w-8 h-8 text-destructive" />
                   <h3 className="text-xl font-bold text-foreground">The Crisis</h3>
                 </div>
-                <p className="text-4xl md:text-5xl font-bold text-destructive mb-2">50,000+</p>
+                <p className="text-4xl md:text-5xl font-bold text-destructive mb-2">70,000+</p>
                 <p className="text-lg font-medium text-foreground mb-1">Children on Waiting Lists</p>
                 <p className="text-muted-foreground">Waiting 12-18 months for professional speech therapy help</p>
               </CardContent>
