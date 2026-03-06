@@ -745,6 +745,31 @@ const TherapistAnalyticsHub = () => {
 
             {/* Fluency Tab - Surface + Adaptation + Phonemes */}
             <TabsContent value="fluency" className="space-y-6">
+              {/* Disfluency Typology Filter */}
+              <Card className="glass-card-strong">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Filter className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-medium text-foreground">Filter Disfluency Types</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {DISFLUENCY_TYPES.map(type => (
+                      <button
+                        key={type.key}
+                        onClick={() => toggleDisfluencyType(type.key)}
+                        className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                          visibleDisfluencyTypes.has(type.key)
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-secondary/50 text-muted-foreground border-border hover:border-primary/50'
+                        }`}
+                      >
+                        {type.label}
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
               <SurfaceCommandCentre 
                 metrics={{
                   weightedStutteringSeverity: metrics.weightedStutteringSeverity,
@@ -753,9 +778,10 @@ const TherapistAnalyticsHub = () => {
                   odCount: metrics.odCount,
                   syllablesPerMinute: metrics.syllablesPerMinute,
                   articulationRate: metrics.articulationRate,
-                  blocksCount: metrics.blocksCount,
-                  prolongationsCount: metrics.prolongationsCount,
-                  repetitionsCount: metrics.repetitionsCount,
+                  blocksCount: visibleDisfluencyTypes.has('blocks') ? metrics.blocksCount : 0,
+                  prolongationsCount: visibleDisfluencyTypes.has('prolongations') ? metrics.prolongationsCount : 0,
+                  repetitionsCount: visibleDisfluencyTypes.has('wordReps') || visibleDisfluencyTypes.has('soundReps') 
+                    ? metrics.repetitionsCount : 0,
                 }}
                 taskTypeData={metrics.taskTypeData}
               />
