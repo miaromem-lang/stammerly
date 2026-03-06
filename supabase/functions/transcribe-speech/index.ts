@@ -191,6 +191,19 @@ serve(async (req) => {
       audioFilePath,
     };
 
+    // --- Log API Usage ---
+    try {
+      const audioSeconds = result.duration || 0;
+      const estimatedCost = audioSeconds * 0.0001; // ~£0.006/min for Whisper
+      await serviceClient.from('api_usage_logs').insert({
+        function_name: 'transcribe-speech',
+        user_id: userId,
+        tokens_used: Math.round(audioSeconds * 25), // approximate token equivalent
+        estimated_cost_gbp: estimatedCost,
+        status: 'success',
+      });
+    } catch (logErr) { console.error('Usage logging failed:', logErr); }
+
     return new Response(JSON.stringify(transcription), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
