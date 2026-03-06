@@ -33,7 +33,7 @@ const Index = () => {
             title: "Already on the list! 😊",
             description: "This email is already registered. We'll be in touch soon!",
           });
-          navigate("/product");
+          navigate("/waitlist-thank-you");
         } else {
           throw error;
         }
@@ -42,7 +42,7 @@ const Index = () => {
           title: "You're on the list! 🎉",
           description: "We'll notify you when Stammerly launches.",
         });
-        navigate("/product");
+        navigate("/waitlist-thank-you");
       }
       setEmail("");
       setUserType("");
