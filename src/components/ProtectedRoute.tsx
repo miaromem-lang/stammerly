@@ -11,12 +11,6 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   const { isAuthenticated, role, loading } = useAuth();
   const location = useLocation();
 
-  // Dev bypass: allow access from /admin-login hub selector
-  const devBypass = sessionStorage.getItem("dev_admin_bypass") === "true";
-  if (devBypass) {
-    return <>{children}</>;
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
