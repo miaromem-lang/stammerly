@@ -43,7 +43,7 @@ const SamplePracticeGame = () => {
   const [feedback, setFeedback] = useState("");
   const [combo, setCombo] = useState(0);
   const [showReward, setShowReward] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const totalWords = 5;
   const currentWord = words[currentIndex % words.length];
