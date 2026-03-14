@@ -199,6 +199,9 @@ const Index = () => {
                 </Button>
               </a>
             </div>
+            <p className="text-center text-sm text-muted-foreground mt-4">
+              Contact: <a href="mailto:miaromem@gmail.com" className="text-primary hover:underline">miaromem@gmail.com</a>
+            </p>
           </div>
           
           {/* Features Preview */}
