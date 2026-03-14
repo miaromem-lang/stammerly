@@ -11,6 +11,12 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   const { isAuthenticated, role, loading } = useAuth();
   const location = useLocation();
 
+  // Dev bypass: allow access from /admin-login hub selector
+  const devBypass = sessionStorage.getItem("dev_admin_bypass") === "true";
+  if (devBypass) {
+    return <>{children}</>;
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -35,7 +41,6 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
 
   // If specific roles are required, check if user has one of them
   if (allowedRoles && role && !allowedRoles.includes(role)) {
-    // Redirect to appropriate hub based on user's actual role
     const roleToHub: Record<AppRole, string> = {
       kid: '/hub/kid',
       parent: '/hub/parent',

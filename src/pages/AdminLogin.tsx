@@ -1,52 +1,24 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth, AppRole } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sparkles, ArrowLeft, Lock, Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Sparkles, ArrowLeft, Lock, Smile, Users, GraduationCap, Stethoscope, Shield } from "lucide-react";
 import PageBackground from "@/components/PageBackground";
 
-const roleToHub: Record<AppRole, string> = {
-  kid: "/hub/kid",
-  parent: "/hub/parent",
-  teacher: "/hub/teacher",
-  therapist: "/hub/therapist",
-  admin: "/hub/therapist",
-};
+const hubs = [
+  { id: "kid", label: "Kid Hub", icon: Smile, path: "/hub/kid", color: "bg-orange-500" },
+  { id: "parent", label: "Parent Hub", icon: Users, path: "/hub/parent", color: "bg-blue-500" },
+  { id: "teacher", label: "Teacher Hub", icon: GraduationCap, path: "/hub/teacher", color: "bg-green-500" },
+  { id: "therapist", label: "Therapist Hub", icon: Stethoscope, path: "/hub/therapist", color: "bg-purple-500" },
+  { id: "admin", label: "Admin Hub", icon: Shield, path: "/admin", color: "bg-red-500" },
+];
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const { signIn } = useAuth();
-  const { toast } = useToast();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    const { error } = await signIn(email, password);
-
-    if (error) {
-      toast({
-        title: "Sign in failed",
-        description: error.message,
-        variant: "destructive",
-      });
-      setLoading(false);
-      return;
-    }
-
-    // Small delay to let auth state settle and role to be fetched
-    setTimeout(() => {
-      // useAuth will have set the role by now; navigate based on it
-      // Default to therapist hub for admins
-      navigate("/hub/therapist", { replace: true });
-    }, 500);
+  const handleHubSelect = (path: string) => {
+    // Set dev bypass flag so ProtectedRoute allows access
+    sessionStorage.setItem("dev_admin_bypass", "true");
+    navigate(path);
   };
 
   return (
@@ -73,44 +45,33 @@ const AdminLogin = () => {
       </header>
 
       <main className="flex-1 container mx-auto px-4 py-8 flex items-center justify-center">
-        <Card className="w-full max-w-md bg-card border shadow-xl">
+        <Card className="w-full max-w-lg bg-card border shadow-xl">
           <CardHeader className="pb-4 text-center">
             <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
               <Lock className="w-8 h-8 text-primary" />
             </div>
-            <CardTitle className="font-display text-2xl">Team Sign In</CardTitle>
+            <CardTitle className="font-display text-2xl">Team Hub Viewer</CardTitle>
+            <p className="text-sm text-muted-foreground mt-2">Select a hub to preview</p>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@stammerly.com"
-                  required
-                  autoComplete="email"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  autoComplete="current-password"
-                />
-              </div>
-              <Button type="submit" className="w-full h-12 rounded-xl text-lg font-semibold" disabled={loading}>
-                {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
-                Sign In
-              </Button>
-            </form>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {hubs.map((hub) => {
+                const Icon = hub.icon;
+                return (
+                  <Button
+                    key={hub.id}
+                    variant="outline"
+                    className="h-auto py-4 flex flex-col items-center gap-2 hover:shadow-md transition-all"
+                    onClick={() => handleHubSelect(hub.path)}
+                  >
+                    <div className={`p-2 rounded-lg ${hub.color}`}>
+                      <Icon className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="font-semibold">{hub.label}</span>
+                  </Button>
+                );
+              })}
+            </div>
           </CardContent>
         </Card>
       </main>
