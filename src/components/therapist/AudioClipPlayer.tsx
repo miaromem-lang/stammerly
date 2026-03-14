@@ -28,7 +28,7 @@ export function AudioClipPlayer({
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const startSec = startTimeMs != null ? startTimeMs / 1000 : 0;
   const endSec = endTimeMs != null ? endTimeMs / 1000 : undefined;
