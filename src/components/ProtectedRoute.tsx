@@ -11,6 +11,12 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   const { isAuthenticated, role, loading } = useAuth();
   const location = useLocation();
 
+  // Dev bypass for admin hub viewing via hidden /admin-login route
+  const devBypass = sessionStorage.getItem("dev_admin_bypass") === "true";
+  if (devBypass) {
+    return <>{children}</>;
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -23,17 +29,14 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     return <Navigate to="/signin" state={{ from: location }} replace />;
   }
 
-  // If authenticated but no role assigned (e.g. first-time OAuth user), redirect to role selection
   if (!role) {
     return <Navigate to="/select-role" replace />;
   }
 
-  // Admins can access any hub - skip role check
   if (role === 'admin') {
     return <>{children}</>;
   }
 
-  // If specific roles are required, check if user has one of them
   if (allowedRoles && role && !allowedRoles.includes(role)) {
     const roleToHub: Record<AppRole, string> = {
       kid: '/hub/kid',
