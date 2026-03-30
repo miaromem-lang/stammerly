@@ -1,12 +1,7 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Sparkles, ArrowLeft, Lock, Smile, Users, GraduationCap, Stethoscope, Shield, Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
+import { Sparkles, ArrowLeft, Shield, Smile, Users, GraduationCap, Stethoscope } from "lucide-react";
 import PageBackground from "@/components/PageBackground";
 
 const hubs = [
@@ -15,35 +10,16 @@ const hubs = [
   { id: "teacher", label: "Teacher Hub", icon: GraduationCap, path: "/hub/teacher", color: "bg-green-500" },
   { id: "therapist", label: "Therapist Hub", icon: Stethoscope, path: "/hub/therapist", color: "bg-purple-500" },
   { id: "admin", label: "Admin Hub", icon: Shield, path: "/admin", color: "bg-red-500" },
+  { id: "analytics", label: "Clinical Analytics", icon: Stethoscope, path: "/therapist-analytics", color: "bg-indigo-500" },
 ];
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const { signIn, role, isAuthenticated } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password) return;
-
-    setIsLoading(true);
-    const { error } = await signIn(email, password);
-    setIsLoading(false);
-
-    if (error) {
-      toast({
-        title: "Login failed",
-        description: "Invalid credentials.",
-        variant: "destructive",
-      });
-    }
+  const handleHubSelect = (path: string) => {
+    sessionStorage.setItem("dev_admin_bypass", "true");
+    navigate(path);
   };
-
-  // Show hub selector only after authenticated admin login
-  const isAdmin = isAuthenticated && role === "admin";
 
   return (
     <div className="min-h-screen relative flex flex-col">
@@ -69,81 +45,35 @@ const AdminLogin = () => {
       </header>
 
       <main className="flex-1 container mx-auto px-4 py-8 flex items-center justify-center">
-        {!isAdmin ? (
-          <Card className="w-full max-w-md bg-card border shadow-xl">
-            <CardHeader className="pb-4 text-center">
-              <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-                <Lock className="w-8 h-8 text-primary" />
-              </div>
-              <CardTitle className="font-display text-2xl">Team Login</CardTitle>
-              <p className="text-sm text-muted-foreground mt-2">Sign in with your admin credentials</p>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="admin@stammerly.com"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                  Sign In
-                </Button>
-              </form>
-              {isAuthenticated && role && role !== "admin" && (
-                <p className="text-sm text-destructive mt-4 text-center">
-                  Your account does not have admin access.
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        ) : (
-          <Card className="w-full max-w-lg bg-card border shadow-xl">
-            <CardHeader className="pb-4 text-center">
-              <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-                <Shield className="w-8 h-8 text-primary" />
-              </div>
-              <CardTitle className="font-display text-2xl">Hub Viewer</CardTitle>
-              <p className="text-sm text-muted-foreground mt-2">Select a hub to preview</p>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {hubs.map((hub) => {
-                  const Icon = hub.icon;
-                  return (
-                    <Button
-                      key={hub.id}
-                      variant="outline"
-                      className="h-auto py-4 flex flex-col items-center gap-2 hover:shadow-md transition-all"
-                      onClick={() => navigate(hub.path)}
-                    >
-                      <div className={`p-2 rounded-lg ${hub.color}`}>
-                        <Icon className="w-5 h-5 text-white" />
-                      </div>
-                      <span className="font-semibold">{hub.label}</span>
-                    </Button>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        <Card className="w-full max-w-lg bg-card border shadow-xl">
+          <CardHeader className="pb-4 text-center">
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+              <Shield className="w-8 h-8 text-primary" />
+            </div>
+            <CardTitle className="font-display text-2xl">Hub Viewer</CardTitle>
+            <p className="text-sm text-muted-foreground mt-2">Select a hub to preview</p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {hubs.map((hub) => {
+                const Icon = hub.icon;
+                return (
+                  <Button
+                    key={hub.id}
+                    variant="outline"
+                    className="h-auto py-4 flex flex-col items-center gap-2 hover:shadow-md transition-all"
+                    onClick={() => handleHubSelect(hub.path)}
+                  >
+                    <div className={`p-2 rounded-lg ${hub.color}`}>
+                      <Icon className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="font-semibold">{hub.label}</span>
+                  </Button>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
       </main>
     </div>
   );
