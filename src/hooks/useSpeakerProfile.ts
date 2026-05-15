@@ -250,7 +250,14 @@ export function useSpeakerProfile(
   const fingerprintRef = useRef<SpeakerFingerprint | null>(fingerprint);
   useEffect(() => { fingerprintRef.current = fingerprint; }, [fingerprint]);
 
-  useEffect(() => { setFingerprint(loadFingerprint(childId)); }, [childId]);
+  const [settings, setSettings] = useState<SpeakerGateSettings>(() => loadSettings(childId));
+  const settingsRef = useRef(settings);
+  useEffect(() => { settingsRef.current = settings; }, [settings]);
+
+  useEffect(() => {
+    setFingerprint(loadFingerprint(childId));
+    setSettings(loadSettings(childId));
+  }, [childId]);
 
   const startEnrollment = useCallback(async (): Promise<SpeakerFingerprint | null> => {
     if (isEnrolling) return null;
