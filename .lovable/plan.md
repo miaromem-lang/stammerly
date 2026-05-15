@@ -1,190 +1,80 @@
+## Goal
 
-# Implementation Plan: Complete Minor Gaps in Clinical Analytics Hub
+Wire the `/session` Stammer Detector to write a row into Supabase `practice_sessions` when the user presses **Stop session**, and replace the dummy data on `/history` with real rows from that table for the signed-in user. This also makes the data visible in the Therapist Analytics dashboard, which already reads from `practice_sessions` via the existing therapist RLS policy.
 
-## Overview
-This plan addresses the three remaining gaps in the Multi-Dimensional Assessment Framework:
-1. **%SS Comparison Chart** - Visualize stuttering rates by task type (Reading vs Spontaneous Speech)
-2. **Webcam Integration** - Detect concomitant secondary behaviours (eye blinks, jaw tension, head movements)
-3. **Technique Accuracy with Acoustic Analysis** - Detect Easy Onset volume-rise signature from raw audio
+## Auth precondition
 
----
+`practice_sessions` RLS requires `user_id = auth.uid()`. The detector must only attempt to save when a Supabase session exists. If the user is not signed in (e.g. dev / waitlist mode), we skip the insert silently and show a toast that the session was not saved. We will not change the existing pre-launch auth gate.
 
-## Feature 1: %SS Comparison Chart by Task Type
+## Changes
 
-### Purpose
-Allow therapists to compare Percentage of Syllables Stuttered (%SS) across different exercise categories (Reading, Spontaneous Speech, Conversation, etc.) to identify situational patterns.
+### 1. `src/hooks/useStammerDetector.ts`
+- Track `sessionStartedAt: Date | null` when `startRecording` runs and clear it on reset.
+- Expose `sessionStartedAt` on the hook's return value alongside `events`, `counts`, `totalEvents`, etc. (already exposed today).
 
-### Implementation
+### 2. New: `src/hooks/usePersistDetectorSession.ts`
+A small hook that takes `{ events, counts, sessionStartedAt, environmentType, sessionContext }` and provides `saveSession()`:
+- Reads `supabase.auth.getUser()`; if no user, returns `{ saved: false, reason: 'not_authenticated' }`.
+- Computes:
+  - `duration_seconds` = `(now - sessionStartedAt) / 1000`
+  - `blocks_count`, `repetitions_count` (= REPETITION), `prolongations_count`, `interjections_count` from `counts`
+  - `sound_repetitions_count` = same as REPETITION for now (best available mapping)
+  - `session_date` = `sessionStartedAt.toISOString()`
+- Inserts into `practice_sessions` with:
+  - `user_id` = `auth.uid()`
+  - `exercise_category` = `'live_session'`
+  - `exercise_name` = `'Stammerly Live Session'`
+  - `exercise_difficulty` = `'beginner'`
+  - `environment_type` = passed-in audio profile (quiet/classroom/cafeteria/outdoor)
+  - `session_context` = `'live_detector'`
+  - the disfluency counts above
+  - `transcript` = null (no transcript captured by this detector)
+- Returns the inserted row id; toasts success / failure via `sonner`.
 
-**A. Update SurfaceCommandCentre Component**
-- Add a new props interface to accept task-type breakdown data
-- Create a bar chart visualization using Recharts showing %SS per category
-- Display clinical insights comparing Reading vs Spontaneous performance
+### 3. `src/components/StammerDetector.tsx`
+- Accept new optional props: `environmentType?: string` (mirrors `defaultProfile`) and `onSessionSaved?: (id: string) => void`.
+- Wrap `detector.stopRecording` in a handler that:
+  1. Calls `detector.stopRecording()` (existing behavior).
+  2. If `detector.totalEvents > 0` and `sessionStartedAt` exists, calls `usePersistDetectorSession.saveSession(...)`.
+- Pass that wrapped handler to `<RecordButton onStop={...} />`.
 
-**B. Update TherapistAnalyticsHub Data Fetching**
-- Group practice_sessions by `exercise_category`
-- Calculate %SS per category using existing SLD counts and syllable estimates
-- Pass aggregated data to SurfaceCommandCentre
+### 4. `src/pages/Session.tsx`
+- Pass `environmentType={audioProfile}` to `<StammerDetector>` so the saved row records the chosen environment.
+- Child name + role stay in component state as today; `child_user_id` is implicit (the row's `user_id` is the signed-in user, which is the child for the kid flow).
 
-**C. Visual Design**
-- Horizontal bar chart with category labels
-- Color-coded bars (green = low %SS, yellow = moderate, red = high)
-- Clinical insight text explaining Reading vs Spontaneous patterns
+### 5. `src/pages/History.tsx`
+- Remove dummy `SESSIONS` array.
+- Add a `useEffect` that fetches the most recent 50 rows for the signed-in user:
+  ```ts
+  supabase
+    .from('practice_sessions')
+    .select('id, session_date, duration_seconds, blocks_count, repetitions_count, prolongations_count, interjections_count, environment_type')
+    .order('session_date', { ascending: false })
+    .limit(50)
+  ```
+  (RLS already restricts to own rows.)
+- Compute per row:
+  - `totalEvents` = sum of the four count columns
+  - `dominantMarker` = whichever of Block / Repetition / Prolongation / Interjection has the highest count (ties → Block)
+  - `durationMin` = `Math.round(duration_seconds / 60)`
+  - `date` = `new Date(session_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })`
+- Render the same card list as today, plus:
+  - Loading skeleton state
+  - Empty state ("No sessions yet — start one from the Session tab")
+  - Show `environment_type` as a small muted label next to the date
 
-### Files to Modify
-- `src/components/therapist/SurfaceCommandCentre.tsx` - Add TaskTypeChart sub-component
-- `src/pages/TherapistAnalyticsHub.tsx` - Add task-type aggregation to metrics
+## Database
 
----
+No schema changes. `practice_sessions` already has every column we need (`user_id`, `session_date`, `duration_seconds`, `blocks_count`, `repetitions_count`, `prolongations_count`, `interjections_count`, `environment_type`, `session_context`, `exercise_category`, `exercise_name`). RLS is already correct: users see/insert their own rows; assigned therapists see their patients' rows.
 
-## Feature 2: Webcam Integration for Concomitant Behaviours
+## What this delivers
 
-### Purpose
-Detect physical secondary behaviours (eye blinking, jaw tightening, head nodding) that accompany speech blocks using TensorFlow.js face detection models.
+- Pressing **Stop session** on `/session` saves the session to Supabase (when signed in).
+- `/history` lists those real sessions with date, duration, total events, dominant marker badge, and environment.
+- The same rows automatically appear in the Therapist Analytics dashboard for any therapist with an active `therapist_assigned_quests` link to that child — no extra wiring needed.
 
-### Implementation
+## Out of scope (flag for later)
 
-**A. Create ConcomitantMovementTracker Component**
-New component with:
-- Webcam video feed display
-- Real-time face landmark detection using MediaPipe/TensorFlow.js
-- Detection algorithms for:
-  - **Eye blinks**: Track eye aspect ratio changes
-  - **Jaw tension**: Monitor mouth opening/closing patterns
-  - **Head movements**: Detect rapid head position changes
-- Visual overlay showing detected movements
-- Session summary with movement counts and timestamps
-
-**B. Create useWebcamAnalysis Hook**
-New custom hook to:
-- Initialize webcam stream
-- Load TensorFlow.js FaceMesh model
-- Process video frames at 10-15 FPS
-- Detect and log secondary behaviours
-- Provide real-time metrics to UI
-
-**C. Update TherapistAnalyticsHub**
-- Add new "Physicality" tab dedicated to this feature
-- Display aggregate movement statistics
-- Provide clinical interpretation of concomitant patterns
-
-**D. Database Schema Consideration**
-- Store concomitant metrics in practice_sessions (new fields or JSON column)
-- No immediate schema change required - use existing JSON flexibility
-
-### Files to Create
-- `src/hooks/useWebcamAnalysis.ts` - Webcam and face detection logic
-- `src/components/therapist/ConcomitantMovementTracker.tsx` - UI component
-
-### Files to Modify
-- `src/pages/TherapistAnalyticsHub.tsx` - Add Physicality tab and integration
-
-### Dependencies Note
-TensorFlow.js face detection will be loaded via CDN to avoid bundle bloat. The model runs client-side for privacy.
-
----
-
-## Feature 3: Acoustic Signature Analysis for Easy Onset
-
-### Purpose
-Detect the characteristic "gentle rise in volume" acoustic signature of a proper Easy Onset technique, rather than relying solely on AI inference.
-
-### Implementation
-
-**A. Create analyzeVolumeEnvelope Function**
-New utility function to:
-- Decode raw audio from base64 to AudioBuffer
-- Calculate RMS (Root Mean Square) volume at sentence starts
-- Detect volume rise patterns (gradual increase over 100-300ms = Easy Onset)
-- Identify abrupt volume spikes (potential hard onset)
-
-**B. Update useSpeechAnalysis Hook**
-- Before sending to edge function, analyze audio locally
-- Extract volume envelope data for first 500ms of each detected sentence
-- Calculate Easy Onset signature matches:
-  - Measure volume slope at utterance start
-  - Compare to ideal Easy Onset profile (gradual 0.2-0.4s rise)
-- Send volume analysis results alongside transcription
-
-**C. Update analyze-speech Edge Function**
-- Accept new `volumeAnalysis` parameter containing:
-  - `sentenceOnsets`: Array of onset patterns detected
-  - `easyOnsetSignatures`: Count of proper Easy Onset patterns
-  - `hardOnsetSignatures`: Count of abrupt starts
-- Use this data to enhance technique scoring accuracy
-
-**D. Update TechniqueAccuracyTracker UI**
-- Display "Acoustic Signature Analysis" section
-- Show breakdown of detected onset patterns
-- Visual waveform representation of ideal vs detected onset
-
-### Files to Create
-- `src/lib/audioAnalysis.ts` - Volume envelope analysis utilities
-
-### Files to Modify
-- `src/hooks/useSpeechAnalysis.ts` - Add volume analysis before edge function call
-- `supabase/functions/analyze-speech/index.ts` - Accept and integrate volume data
-- `src/components/therapist/TechniqueAccuracyTracker.tsx` - Add acoustic analysis display
-
----
-
-## Technical Approach
-
-### Volume Envelope Analysis Algorithm
-```text
-For each detected sentence start:
-1. Extract audio samples for first 300ms
-2. Calculate RMS volume in 20ms windows
-3. Compute volume slope (rate of increase)
-4. Classify onset:
-   - Gradual rise (slope < 0.3) = Easy Onset signature
-   - Moderate rise (0.3-0.6) = Partial Easy Onset
-   - Abrupt rise (slope > 0.6) = Hard Onset
-```
-
-### Face Detection for Concomitants
-```text
-Using TensorFlow.js FaceMesh:
-1. Track 468 facial landmarks at 10 FPS
-2. Eye Blink Detection:
-   - Calculate Eye Aspect Ratio (EAR)
-   - EAR < 0.2 for >100ms = blink detected
-3. Jaw Tension Detection:
-   - Monitor lip distance variance
-   - Rapid changes during blocks = tension indicator
-4. Head Movement:
-   - Track nose tip position
-   - Rapid displacement during speech = secondary behaviour
-```
-
----
-
-## Implementation Order
-
-1. **%SS Comparison Chart** (simplest - UI only, uses existing data)
-2. **Acoustic Signature Analysis** (moderate - requires audio processing)
-3. **Webcam Integration** (complex - requires TensorFlow.js and real-time video processing)
-
----
-
-## Summary of Changes
-
-| Category | Files Created | Files Modified |
-|----------|---------------|----------------|
-| %SS Chart | 0 | 2 |
-| Webcam/Concomitant | 2 | 1 |
-| Acoustic Analysis | 1 | 3 |
-| **Total** | **3** | **6** |
-
-### New Files
-1. `src/hooks/useWebcamAnalysis.ts`
-2. `src/components/therapist/ConcomitantMovementTracker.tsx`
-3. `src/lib/audioAnalysis.ts`
-
-### Modified Files
-1. `src/components/therapist/SurfaceCommandCentre.tsx`
-2. `src/components/therapist/TechniqueAccuracyTracker.tsx`
-3. `src/pages/TherapistAnalyticsHub.tsx`
-4. `src/hooks/useSpeechAnalysis.ts`
-5. `supabase/functions/analyze-speech/index.ts`
-6. `src/components/therapist/index.ts` (export new component)
+- Per-event persistence into `disfluency_logs` (would let the therapist disfluency audit log drill into individual blocks). Easy follow-up: bulk-insert `events` mapped to `disfluency_logs` rows after the session insert.
+- Capturing a transcript (the lightweight detector doesn't transcribe; the Whisper pipeline in `useSpeechAnalysis` does).
+- Linking `child_user_id` to a separate parent account — for now the signed-in user is the owner of the row.
