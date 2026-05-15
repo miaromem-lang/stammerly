@@ -228,22 +228,55 @@ function clamp(v: number, lo: number, hi: number): number {
   return Number.isFinite(v) ? Math.max(lo, Math.min(hi, v)) : lo;
 }
 
-function loadSettings(childId: string): SpeakerGateSettings {
+/** Where global defaults are stored (one row, applies to all un-customised children). */
+export const GLOBAL_SETTINGS_KEY = "stammerly_speaker_settings_global";
+
+function sanitise(parsed: Partial<SpeakerGateSettings> | null | undefined, fallback: SpeakerGateSettings): SpeakerGateSettings {
+  return {
+    f0MarginHz: clamp(parsed?.f0MarginHz ?? fallback.f0MarginHz, F0_MARGIN_MIN_HZ, F0_MARGIN_MAX_HZ),
+    energyHeadroom: clamp(parsed?.energyHeadroom ?? fallback.energyHeadroom, ENERGY_HEADROOM_MIN, ENERGY_HEADROOM_MAX),
+  };
+}
+
+export function loadGlobalSettings(): SpeakerGateSettings {
   try {
-    const raw = localStorage.getItem(settingsKey(childId));
+    const raw = localStorage.getItem(GLOBAL_SETTINGS_KEY);
     if (!raw) return { ...DEFAULT_GATE_SETTINGS };
-    const parsed = JSON.parse(raw) as Partial<SpeakerGateSettings>;
-    return {
-      f0MarginHz: clamp(parsed.f0MarginHz ?? DEFAULT_GATE_SETTINGS.f0MarginHz, F0_MARGIN_MIN_HZ, F0_MARGIN_MAX_HZ),
-      energyHeadroom: clamp(parsed.energyHeadroom ?? DEFAULT_GATE_SETTINGS.energyHeadroom, ENERGY_HEADROOM_MIN, ENERGY_HEADROOM_MAX),
-    };
+    return sanitise(JSON.parse(raw) as Partial<SpeakerGateSettings>, DEFAULT_GATE_SETTINGS);
   } catch {
     return { ...DEFAULT_GATE_SETTINGS };
   }
 }
 
+export function saveGlobalSettings(s: SpeakerGateSettings): void {
+  try { localStorage.setItem(GLOBAL_SETTINGS_KEY, JSON.stringify(s)); } catch { /* ignore */ }
+}
+
+export function clearGlobalSettings(): void {
+  try { localStorage.removeItem(GLOBAL_SETTINGS_KEY); } catch { /* ignore */ }
+}
+
+/**
+ * Load per-child settings if present, otherwise fall back to the user's
+ * global defaults (or built-in defaults if no globals are saved).
+ */
+function loadSettings(childId: string): SpeakerGateSettings {
+  const globals = loadGlobalSettings();
+  try {
+    const raw = localStorage.getItem(settingsKey(childId));
+    if (!raw) return { ...globals };
+    return sanitise(JSON.parse(raw) as Partial<SpeakerGateSettings>, globals);
+  } catch {
+    return { ...globals };
+  }
+}
+
 function saveSettings(childId: string, s: SpeakerGateSettings): void {
   try { localStorage.setItem(settingsKey(childId), JSON.stringify(s)); } catch { /* ignore */ }
+}
+
+function clearChildSettings(childId: string): void {
+  try { localStorage.removeItem(settingsKey(childId)); } catch { /* ignore */ }
 }
 
 // ── Hook ─────────────────────────────────────────────────────────────────────
