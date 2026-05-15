@@ -166,6 +166,17 @@ export const SurfaceCommandCentre = ({
 }: SurfaceCommandCentreProps) => {
   const wss = metrics.weightedStutteringSeverity ?? 0;
   const prevWss = previousMetrics?.weightedStutteringSeverity ?? null;
+  const wssCI = metrics.weightedStutteringSeverityCI ?? null;
+  const ssCI = metrics.percentSyllablesStutteredCI ?? null;
+  const adequacy = metrics.sampleAdequacy ?? null;
+  const totalSyllables = metrics.totalSyllables ?? null;
+
+  const adequacyMeta: Record<'low' | 'moderate' | 'adequate', { label: string; cls: string; tip: string }> = {
+    low: { label: 'Low confidence', cls: 'bg-destructive/15 text-destructive', tip: `Only ${totalSyllables ?? '<100'} syllables — well below SSI-4 norm of 200. Treat scores as indicative only.` },
+    moderate: { label: 'Moderate confidence', cls: 'bg-gold/20 text-gold', tip: `${totalSyllables ?? '~150'} syllables — below SSI-4 norm of 200. Some uncertainty in the score.` },
+    adequate: { label: 'Adequate sample', cls: 'bg-success/20 text-success', tip: `${totalSyllables ?? '≥200'} syllables — meets SSI-4 norm.` },
+  };
+  const adequacyChip = adequacy ? adequacyMeta[adequacy] : null;
   
   // Determine severity level
   const getSeverityLevel = (wss: number): { label: string; color: string; bgColor: string } => {
