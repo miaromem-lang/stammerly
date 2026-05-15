@@ -126,10 +126,10 @@ const Practice = () => {
     try {
       const text = await file.text();
       const result = speaker.importSettings(text);
-      if (result.ok) {
+      if (result.ok === true) {
         toast.success(`Imported gate settings: ±${result.settings.f0MarginHz} Hz · ×${result.settings.energyHeadroom.toFixed(2)}`);
       } else {
-        toast.error(`Import failed: ${result.error}`);
+        toast.error(`Import failed: ${(result as { error: string }).error}`);
       }
     } catch (err) {
       toast.error(`Could not read file: ${err instanceof Error ? err.message : String(err)}`);
