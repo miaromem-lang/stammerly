@@ -99,14 +99,74 @@ const Practice = () => {
     onEnrolled: () => toast.success("Voice enrolment complete — detector will now focus on this speaker."),
     onEnrollError: (reason) => toast.error(reason),
   });
+
+  // Speaker-gate debug overlay (toggle with `?debugGate=1` or via the button).
+  const [showGateDebug, setShowGateDebug] = useState(
+    () => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("debugGate") === "1",
+  );
+  type GateReason = "no-profile" | "voiced-in-band" | "voiced-out-of-band" | "unvoiced-quiet" | "unvoiced-loud";
+  const gateStatsRef = useRef({
+    accepted: 0,
+    rejected: 0,
+    lastReason: "no-profile" as GateReason,
+    lastF0: 0,
+    lastRms: 0,
+  });
+  const [gateStats, setGateStats] = useState(gateStatsRef.current);
+  const gateFlushRef = useRef<number>(0);
+
+  const wrappedScoreFrame = useCallback(
+    (timeBuf: Float32Array, f0Hz: number) => {
+      const fp = speaker.fingerprint;
+      let reason: GateReason;
+      let accept: boolean;
+      let rmsVal = 0;
+      if (!fp) {
+        reason = "no-profile";
+        accept = true;
+      } else if (f0Hz > 0) {
+        const inBand = f0Hz >= fp.f0P10 - 30 && f0Hz <= fp.f0P90 + 30;
+        reason = inBand ? "voiced-in-band" : "voiced-out-of-band";
+        accept = inBand;
+      } else {
+        let s = 0;
+        for (let i = 0; i < timeBuf.length; i++) s += timeBuf[i] * timeBuf[i];
+        rmsVal = Math.sqrt(s / timeBuf.length);
+        const quiet = rmsVal <= fp.energyP75 * 1.5;
+        reason = quiet ? "unvoiced-quiet" : "unvoiced-loud";
+        accept = quiet;
+      }
+      const stats = gateStatsRef.current;
+      if (accept) stats.accepted++;
+      else stats.rejected++;
+      stats.lastReason = reason;
+      stats.lastF0 = f0Hz;
+      stats.lastRms = rmsVal;
+      // Throttle React updates to ~10 fps to keep the hot loop cheap.
+      const now = performance.now();
+      if (now - gateFlushRef.current > 100) {
+        gateFlushRef.current = now;
+        setGateStats({ ...stats });
+      }
+      return accept;
+    },
+    [speaker.fingerprint],
+  );
+
   const exerciseDetector = useStammerDetector({
     audioProfile: loadSavedProfile(),
-    scoreFrame: speaker.scoreFrame,
+    scoreFrame: wrappedScoreFrame,
     onEvent: (ev) => {
       acousticEventsRef.current.push(ev);
       setLiveAcousticEventCount(acousticEventsRef.current.length);
     },
   });
+
+  const resetGateStats = () => {
+    gateStatsRef.current = { accepted: 0, rejected: 0, lastReason: "no-profile", lastF0: 0, lastRms: 0 };
+    setGateStats({ ...gateStatsRef.current });
+  };
+
 
   // Snapshots used by the clinician-only AcousticTimeline in the results card.
   const [lastWordTimings, setLastWordTimings] = useState<WordTimingLite[]>([]);
@@ -796,8 +856,69 @@ const Practice = () => {
                 </p>
               </div>
             )}
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowGateDebug((v) => !v)}
+                className="text-[11px] text-muted-foreground hover:text-foreground underline underline-offset-2"
+              >
+                {showGateDebug ? "Hide" : "Show"} gate debug
+              </button>
+            </div>
           </CardContent>
         </Card>
+
+        {showGateDebug && (() => {
+          const total = gateStats.accepted + gateStats.rejected;
+          const acceptPct = total > 0 ? Math.round((gateStats.accepted / total) * 100) : 0;
+          const fp = speaker.fingerprint;
+          const reasonLabel: Record<typeof gateStats.lastReason, string> = {
+            "no-profile": "No profile (fail-open)",
+            "voiced-in-band": "Voiced · in pitch band ✓",
+            "voiced-out-of-band": "Voiced · OUT of pitch band ✗",
+            "unvoiced-quiet": "Unvoiced · quiet ✓",
+            "unvoiced-loud": "Unvoiced · LOUD ✗",
+          };
+          const isAccept = gateStats.lastReason === "no-profile" || gateStats.lastReason === "voiced-in-band" || gateStats.lastReason === "unvoiced-quiet";
+          return (
+            <div
+              className="fixed bottom-4 right-4 z-50 w-72 rounded-lg border border-border bg-card/95 backdrop-blur-md shadow-xl p-3 text-xs font-mono"
+              role="status"
+              aria-live="polite"
+              aria-label="Speaker gate debug overlay"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-semibold text-foreground">Speaker gate</span>
+                <div className="flex items-center gap-1">
+                  <button onClick={resetGateStats} className="text-muted-foreground hover:text-foreground underline">reset</button>
+                  <button onClick={() => setShowGateDebug(false)} aria-label="Close debug overlay" className="ml-1 text-muted-foreground hover:text-foreground">
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-1 text-muted-foreground">
+                <div className="flex justify-between"><span>Profile:</span><span className={fp ? "text-success" : "text-destructive"}>{fp ? "enrolled" : "none (fail-open)"}</span></div>
+                {fp && (
+                  <div className="flex justify-between"><span>Pitch band:</span><span className="text-foreground">{Math.round(fp.f0P10)}–{Math.round(fp.f0P90)} Hz</span></div>
+                )}
+                {fp && (
+                  <div className="flex justify-between"><span>Energy P75:</span><span className="text-foreground">{fp.energyP75.toFixed(3)}</span></div>
+                )}
+                <div className="flex justify-between"><span>Accepted:</span><span className="text-success">{gateStats.accepted}</span></div>
+                <div className="flex justify-between"><span>Rejected:</span><span className="text-destructive">{gateStats.rejected}</span></div>
+                <div className="flex justify-between"><span>Accept rate:</span><span className="text-foreground">{acceptPct}%</span></div>
+                <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                  <div className="h-full bg-success" style={{ width: `${acceptPct}%` }} />
+                </div>
+                <div className="pt-1 border-t border-border mt-2">
+                  <div className="flex justify-between"><span>Last F0:</span><span className="text-foreground">{gateStats.lastF0 > 0 ? `${gateStats.lastF0.toFixed(0)} Hz` : "—"}</span></div>
+                  <div className="flex justify-between"><span>Last RMS:</span><span className="text-foreground">{gateStats.lastRms > 0 ? gateStats.lastRms.toFixed(3) : "—"}</span></div>
+                  <div className={`mt-1 ${isAccept ? "text-success" : "text-destructive"}`}>{reasonLabel[gateStats.lastReason]}</div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         <Card className="rounded-kids overflow-hidden bg-card/90 backdrop-blur-sm border-2 border-accent-orange/30">
           <CardContent className="p-8">
