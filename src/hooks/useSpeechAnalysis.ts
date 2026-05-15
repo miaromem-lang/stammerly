@@ -80,6 +80,38 @@ interface AnalysisResult {
   longestBlockMs?: number | null;
   secondLongestBlockMs?: number | null;
   thirdLongestBlockMs?: number | null;
+
+  // Acoustic events merge
+  acousticEventsCount?: number;
+  intraWordBlocksCount?: number;
+
+  // Explainability: WSS transcript-only vs merged-pool breakdown
+  wssExplain?: {
+    transcriptOnly: {
+      wss: number;
+      percentStuttered: number;
+      sldCount: number;
+      longestBlocks: number[];
+      avgLongestBlockMs: number;
+    };
+    merged: {
+      wss: number;
+      percentStuttered: number;
+      sldCount: number;
+      longestBlocks: number[];
+      avgLongestBlockMs: number;
+    };
+    contributions: {
+      acousticEventsAdded: number;
+      acousticBlocksAdded: number;
+      intraWordBlocksAdded: number;
+      addedSldCount: number;
+      addedBlockDurationsMs: number[];
+      wssDelta: number;
+      percentStutteredDelta: number;
+      avgLongestBlockDeltaMs: number;
+    };
+  };
   
   // Context
   sessionContext?: string;
