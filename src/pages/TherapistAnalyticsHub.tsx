@@ -28,6 +28,7 @@ import {
   MoodFluencyCorrelation,
   DisfluencyAuditLog,
 } from "@/components/therapist";
+import { AcousticEventsAggregate } from "@/components/clinical/AcousticEventsAggregate";
 
 // Mock patients for demo
 const patients = [
