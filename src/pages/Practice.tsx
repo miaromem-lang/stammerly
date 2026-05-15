@@ -216,6 +216,9 @@ const Practice = () => {
       const wordTimings = transcriptionData?.words || [];
       const segmentTimings = transcriptionData?.segments || [];
       setTranscript(transcribedText);
+      // Snapshot timings for the clinician-only acoustic timeline.
+      setLastWordTimings(wordTimings.map((w: any) => ({ word: w.word, start: w.start, end: w.end })));
+      setLastTranscript(transcribedText);
       console.log('Transcription:', transcribedText);
 
       // Step 2: Analyze with AI including word + segment timings (segments
