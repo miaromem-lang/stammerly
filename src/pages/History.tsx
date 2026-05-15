@@ -60,6 +60,7 @@ function transform(rows: SessionRow[]): DisplaySession[] {
       (r.interjections_count ?? 0);
     return {
       id: r.id,
+      isoDate: r.session_date,
       date: new Date(r.session_date).toLocaleDateString("en-GB", {
         day: "2-digit",
         month: "short",
