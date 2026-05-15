@@ -698,7 +698,7 @@ serve(async (req) => {
     const acousticEventDisfluencies = acousticEvents.map(acousticEventToDisfluency);
 
     // Count SLD vs OD
-    const allDisfluencies = [...acousticAnalysis.patterns, ...textDisfluencies, ...acousticEventDisfluencies];
+    const allDisfluencies = [...acousticAnalysis.patterns, ...textDisfluencies, ...acousticEventDisfluencies, ...intraWordBlocks];
     const sldCount = allDisfluencies.filter(d => d.category === 'SLD').length;
     const odCount = allDisfluencies.filter(d => d.category === 'OD').length;
 
