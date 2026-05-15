@@ -673,6 +673,10 @@ serve(async (req) => {
 
     // Pre-analyze acoustic patterns from word timings
     const acousticAnalysis = analyzeAcousticPatterns(words || []);
+    // Detect blocks that occur *within* a single Whisper word using
+    // segment-level timestamps. These are silences the existing inter-word
+    // gap analysis cannot see.
+    const intraWordBlocks = detectIntraWordBlocks(words || [], segments);
     const textDisfluencies = detectTextDisfluencies(transcript);
     const wordAvoidances = detectWordAvoidances(transcript, targetPhrase || '');
     
