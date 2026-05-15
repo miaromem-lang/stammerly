@@ -3,7 +3,7 @@ import { Home, Mic, History, Settings as SettingsIcon } from "lucide-react";
 
 const tabs = [
   { to: "/",         label: "Home",     icon: Home },
-  { to: "/session",  label: "Session",  icon: Mic },
+  { to: "/practice?mode=live",  label: "Live",  icon: Mic },
   { to: "/history",  label: "History",  icon: History },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
 ];
