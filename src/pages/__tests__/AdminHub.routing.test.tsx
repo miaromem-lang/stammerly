@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 
 // Mock heavy AdminHub deps so we can mount it in isolation.
@@ -67,11 +66,10 @@ describe("Admin routing", () => {
   });
 
   it("AdminHub Back button navigates to /", async () => {
-    const user = userEvent.setup();
     renderAt("/admin");
 
     const backBtn = await screen.findByRole("button", { name: /back/i });
-    await user.click(backBtn);
+    fireEvent.click(backBtn);
 
     await waitFor(() => {
       expect(screen.getByText("Home page")).toBeInTheDocument();
@@ -80,11 +78,10 @@ describe("Admin routing", () => {
   });
 
   it("Back button still returns to / when entering /admin via the /dev redirect", async () => {
-    const user = userEvent.setup();
     renderAt("/dev");
 
     const backBtn = await screen.findByRole("button", { name: /back/i });
-    await user.click(backBtn);
+    fireEvent.click(backBtn);
 
     await waitFor(() => {
       expect(screen.getByTestId("pathname").textContent).toBe("/");
