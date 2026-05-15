@@ -201,6 +201,7 @@ export function useSpeechAnalysis() {
                   transcript: transcription.text,
                   targetPhrase,
                   words: transcription.words,
+                  segments: transcription.segments ?? [],
                   acousticEvents,
                 }
               });
