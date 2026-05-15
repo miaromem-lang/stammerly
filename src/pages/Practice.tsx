@@ -105,6 +105,37 @@ const Practice = () => {
   const [showGateDebug, setShowGateDebug] = useState(
     () => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("debugGate") === "1",
   );
+  const importFileRef = useRef<HTMLInputElement | null>(null);
+
+  const handleExportSettings = useCallback(() => {
+    const json = speaker.exportSettings();
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const safeChild = (childId || "child").replace(/[^a-z0-9_-]/gi, "_");
+    a.href = url;
+    a.download = `stammerly-gate-${safeChild}-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("Gate settings exported.");
+  }, [speaker, childId]);
+
+  const handleImportFile = useCallback(async (file: File) => {
+    try {
+      const text = await file.text();
+      const result = speaker.importSettings(text);
+      if (result.ok) {
+        toast.success(`Imported gate settings: ±${result.settings.f0MarginHz} Hz · ×${result.settings.energyHeadroom.toFixed(2)}`);
+      } else {
+        toast.error(`Import failed: ${result.error}`);
+      }
+    } catch (err) {
+      toast.error(`Could not read file: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }, [speaker]);
+
   type GateReason = "no-profile" | "voiced-in-band" | "voiced-out-of-band" | "unvoiced-quiet" | "unvoiced-loud";
   const gateStatsRef = useRef({
     accepted: 0,
