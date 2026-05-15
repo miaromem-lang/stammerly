@@ -242,8 +242,12 @@ const History = () => {
               </p>
               <ul className="space-y-3">
                 {filtered.map((s) => (
-                  <li key={s.id}>
-                    <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
+                  <li key={s.id} id={`session-${s.id}`}>
+                    <Card
+                      className={`bg-white shadow-sm hover:shadow-md transition-all ${
+                        highlightId === s.id ? "ring-2 ring-primary ring-offset-2" : ""
+                      }`}
+                    >
                       <CardContent className="p-5 flex items-center justify-between gap-4">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 flex-1 min-w-0">
                           <div className="flex items-center gap-2 text-foreground font-medium">
