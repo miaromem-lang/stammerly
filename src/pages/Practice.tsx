@@ -218,15 +218,26 @@ const Practice = () => {
       console.log('Transcription:', transcribedText);
 
       // Step 2: Analyze with AI including word + segment timings (segments
-      // enable intra-word block detection) and live acoustic events.
+      // enable intra-word block detection) and live acoustic events. Cap +
+      // chunk on the client so the edge function never receives more than
+      // its supported number of events per take.
       console.log('Analyzing speech...');
+      const limited = limitAcousticEvents(acousticEventsRef.current);
+      if (limited.truncated) {
+        console.warn(
+          `Trimmed acoustic events for analyze-speech: kept ${limited.kept}/${limited.total} (dropped ${limited.dropped}).`,
+        );
+        toast.message(
+          `Captured ${limited.total} acoustic events — sending top ${limited.kept} for analysis.`,
+        );
+      }
       const { data, error } = await supabase.functions.invoke('analyze-speech', {
         body: {
           transcript: transcribedText,
           targetPhrase,
           words: wordTimings,
           segments: segmentTimings,
-          acousticEvents: acousticEventsRef.current,
+          acousticEvents: limited.events,
         }
       });
 
