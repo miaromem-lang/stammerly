@@ -803,6 +803,9 @@ const TherapistAnalyticsHub = () => {
                 />
               </div>
 
+              {/* Acoustic Events Aggregate (live detector signal) */}
+              {selectedPatient && <AcousticEventsAggregate childUserId={selectedPatient} days={30} />}
+
               {/* Disfluency Audit Log */}
               <DisfluencyAuditLog patientId={selectedPatient} />
               
