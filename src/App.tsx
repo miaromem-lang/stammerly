@@ -50,7 +50,7 @@ import SensoryFitGuide from "./pages/SensoryFitGuide";
 import FundingSupport from "./pages/FundingSupport";
 import TechnicalIntegration from "./pages/TechnicalIntegration";
 import AdminHub from "./pages/AdminHub";
-import Recorder from "./pages/Recorder";
+
 import Session from "./pages/Session";
 import History from "./pages/History";
 import Settings from "./pages/Settings";
@@ -120,7 +120,7 @@ const App = () => (
             <Route path="/analytics/:role" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
             <Route path="/therapist-analytics" element={<ProtectedRoute allowedRoles={['therapist', 'admin']}><TherapistAnalyticsHub /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminHub /></ProtectedRoute>} />
-            <Route path="/recorder" element={<ProtectedRoute><Recorder /></ProtectedRoute>} />
+            
             <Route path="/session" element={<ProtectedRoute><Session /></ProtectedRoute>} />
             <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
