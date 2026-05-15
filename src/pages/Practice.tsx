@@ -464,10 +464,18 @@ const Practice = () => {
       setIsRecording(true);
       // Reset and start the headless stammer detector for this take
       acousticEventsRef.current = [];
+      setLiveAcousticEventCount(0);
+      setDetectorSkipReason(null);
+      setDetectorStatus('starting');
       recordingStartedAtRef.current = Date.now();
-      exerciseDetector.startRecording().catch((err) => {
-        console.warn('Stammer detector failed to start (continuing without acoustic events):', err);
-      });
+      exerciseDetector
+        .startRecording()
+        .then(() => setDetectorStatus('running'))
+        .catch((err) => {
+          console.warn('Stammer detector failed to start (continuing without acoustic events):', err);
+          setDetectorStatus('skipped');
+          setDetectorSkipReason(err?.message ?? 'detector unavailable');
+        });
       setRecordingTime(0);
       setActiveWord(0);
       setShowResults(false);
