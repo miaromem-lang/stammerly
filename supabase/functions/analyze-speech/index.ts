@@ -811,8 +811,9 @@ PHONEME TRIGGERS IDENTIFIED:
 ${acousticAnalysis.phonemeTriggers.length > 0 ? acousticAnalysis.phonemeTriggers.map(p => `- /${p.phoneme}/: ${p.count} occurrences (avg ${p.avgDurationMs.toFixed(0)}ms) - words: ${p.words.join(', ')}`).join('\n') : 'No significant phoneme triggers'}
 
 CLINICAL METRICS CALCULATED:
-- Weighted Stuttering Severity (WSS): ${wss.toFixed(1)}/100
-- Percent Syllables Stuttered (%SS): ${percentSS.toFixed(1)}%
+- Weighted Stuttering Severity (WSS): ${wss.toFixed(1)}/100 (95% CI ${wssCI.low.toFixed(1)}–${wssCI.high.toFixed(1)})
+- Percent Syllables Stuttered (%SS): ${percentSS.toFixed(1)}% (95% CI ${percentSSCI.low.toFixed(1)}–${percentSSCI.high.toFixed(1)}%)
+- Sample size: ${totalSyllables} syllables (adequacy: ${sampleAdequacy}; SSI-4 norm ≥200). Treat scores as ${sampleAdequacy === 'adequate' ? 'stable' : 'indicative only — wide CI reflects small sample'}.
 - SLD Count: ${sldCount}, OD Count: ${odCount}
 - Syllables Per Minute: ${syllablesPerMinute.toFixed(0)}
 - Articulation Rate: ${articulationRate.toFixed(0)} SPM
