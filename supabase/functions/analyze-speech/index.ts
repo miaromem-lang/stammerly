@@ -559,24 +559,11 @@ function detectWordAvoidances(transcript: string, targetPhrase: string): string[
   return avoidances;
 }
 
-// Calculate syllable count from text
+// Calculate total syllable count from text using the CMU-dict-backed counter.
 function estimateSyllables(text: string): number {
-  const words = text.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/).filter(w => w);
+  const words = text.toLowerCase().replace(/[^a-z'\s]/g, '').split(/\s+/).filter(w => w);
   let count = 0;
-  
-  for (const word of words) {
-    // Simple syllable estimation
-    const vowels = word.match(/[aeiouy]+/g);
-    let syllables = vowels ? vowels.length : 1;
-    
-    // Adjustments
-    if (word.endsWith('e') && syllables > 1) syllables--;
-    if (word.endsWith('le') && word.length > 2) syllables++;
-    if (syllables === 0) syllables = 1;
-    
-    count += syllables;
-  }
-  
+  for (const word of words) count += syllableCount(word);
   return count;
 }
 
