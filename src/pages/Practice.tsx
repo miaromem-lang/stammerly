@@ -508,6 +508,7 @@ const Practice = () => {
       if (audioContextRef.current) { audioContextRef.current.close(); audioContextRef.current = null; }
       if (timerRef.current) clearInterval(timerRef.current);
       try { exerciseDetector.stopRecording(); } catch { /* noop */ }
+      setDetectorStatus('idle');
     }
   };
 
