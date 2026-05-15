@@ -1091,6 +1091,9 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
         // Echo back the live acoustic events used in this analysis
         acousticEventsCount: acousticEvents.length,
         intraWordBlocksCount,
+
+        // Explainability: WSS breakdown vs transcript-only baseline
+        wssExplain,
         
         // All disfluencies with full detail
         disfluencies: uniqueDisfluencies,
