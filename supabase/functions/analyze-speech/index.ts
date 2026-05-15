@@ -1141,9 +1141,29 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
         pattern: new RegExp(`\\b${escapeRegex(kw)}\\b`, 'i'),
       }));
 
-      const matchedKeywords = keywordPatterns
-        .filter(({ pattern }) => pattern.test(transcript))
-        .map(({ keyword }) => keyword);
+      // Split transcript into sentence-level chunks so a phrase like
+      // "I had to kill some time before dinner" is evaluated independently
+      // of an unrelated clause elsewhere in the take. Splits on ., !, ?,
+      // newlines, and semicolons; falls back to the whole transcript if
+      // no terminators are present.
+      const sentences = transcript
+        .split(/(?<=[.!?])\s+|[\n\r;]+/)
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+      const chunks = sentences.length > 0 ? sentences : [transcript];
+
+      const matchesBySentence: { sentence: string; keywords: string[] }[] = [];
+      const matchedSet = new Set<string>();
+      for (const sentence of chunks) {
+        const hits = keywordPatterns
+          .filter(({ pattern }) => pattern.test(sentence))
+          .map(({ keyword }) => keyword);
+        if (hits.length > 0) {
+          matchesBySentence.push({ sentence, keywords: hits });
+          hits.forEach(k => matchedSet.add(k));
+        }
+      }
+      const matchedKeywords = Array.from(matchedSet);
 
       if (matchedKeywords.length > 0) {
         try {
@@ -1152,14 +1172,20 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
           );
 
+          const reasonDetail = matchesBySentence
+            .map(({ sentence, keywords }) =>
+              `[${keywords.map(k => `"${k}"`).join(', ')}] in "${sentence.slice(0, 200)}"`
+            )
+            .join(' | ');
+
           await serviceClient.from('safeguarding_alerts').insert({
             user_id: userId,
             alert_type: 'keyword_detected',
-            reason: `Keywords detected in transcript: ${matchedKeywords.map(k => `"${k}"`).join(', ')}`,
+            reason: `Keywords detected per sentence: ${reasonDetail}`,
             status: 'pending',
           });
 
-          console.log('Safeguarding alert created for user:', userId, 'keywords:', matchedKeywords);
+          console.log('Safeguarding alert created for user:', userId, 'matches:', matchesBySentence);
         } catch (safeguardingError) {
           console.error('Failed to create safeguarding alert:', safeguardingError);
         }
