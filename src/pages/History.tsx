@@ -81,6 +81,21 @@ const History = () => {
   const [search, setSearch] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (loading || sessions.length === 0) return;
+    const hash = window.location.hash;
+    const match = hash.match(/^#session-(.+)$/);
+    if (!match) return;
+    const id = match[1];
+    setHighlightId(id);
+    requestAnimationFrame(() => {
+      document.getElementById(`session-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    const t = setTimeout(() => setHighlightId(null), 3000);
+    return () => clearTimeout(t);
+  }, [loading, sessions]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
