@@ -78,6 +78,32 @@ const History = () => {
   const [loading, setLoading] = useState(true);
   const [sessions, setSessions] = useState<DisplaySession[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const fromTs = fromDate ? new Date(fromDate + "T00:00:00").getTime() : null;
+    const toTs = toDate ? new Date(toDate + "T23:59:59.999").getTime() : null;
+    return sessions.filter((s) => {
+      const ts = new Date(s.isoDate).getTime();
+      if (fromTs !== null && ts < fromTs) return false;
+      if (toTs !== null && ts > toTs) return false;
+      if (q) {
+        const hay = `${s.environment} ${s.dominantMarker} ${s.date}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [sessions, search, fromDate, toDate]);
+
+  const hasFilters = !!(search || fromDate || toDate);
+  const clearFilters = () => {
+    setSearch("");
+    setFromDate("");
+    setToDate("");
+  };
 
   useEffect(() => {
     let cancelled = false;
