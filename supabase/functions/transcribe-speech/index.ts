@@ -158,7 +158,10 @@ serve(async (req) => {
     formData.append('model', 'whisper-1');
     formData.append('language', language);
     formData.append('response_format', 'verbose_json');
+    // Request both word- and segment-level timestamps so the analyser can
+    // detect within-segment intra-word silences (blocks Whisper otherwise hides).
     formData.append('timestamp_granularities[]', 'word');
+    formData.append('timestamp_granularities[]', 'segment');
 
     const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
