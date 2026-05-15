@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AdminRoute } from "@/components/AdminRoute";
 import { DevRoleSwitcher } from "@/components/DevRoleSwitcher";
 import { AccessibilityProvider } from "@/hooks/useAccessibility";
 import PublicLayout from "@/components/PublicLayout";
@@ -119,7 +120,7 @@ const App = () => (
             <Route path="/practice" element={<ProtectedRoute><Practice /></ProtectedRoute>} />
             <Route path="/analytics/:role" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
             <Route path="/therapist-analytics" element={<ProtectedRoute allowedRoles={['therapist', 'admin']}><TherapistAnalyticsHub /></ProtectedRoute>} />
-            <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminHub /></ProtectedRoute>} />
+            <Route path="/admin" element={<AdminRoute><AdminHub /></AdminRoute>} />
             
             <Route path="/session" element={<Navigate to="/practice?mode=live" replace />} />
             <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
