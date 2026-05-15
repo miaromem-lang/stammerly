@@ -20,6 +20,7 @@ import TeacherHub from "./pages/TeacherHub";
 import TherapistHub from "./pages/TherapistHub";
 import TherapistAnalyticsHub from "./pages/TherapistAnalyticsHub";
 import Practice from "./pages/Practice";
+import Demo from "./pages/Demo";
 import Analytics from "./pages/Analytics";
 import About from "./pages/About";
 import OurStory from "./pages/OurStory";
