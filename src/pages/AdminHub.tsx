@@ -165,7 +165,7 @@ const AdminHub = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <button
-              onClick={() => navigate("/dev")}
+              onClick={() => navigate("/")}
               className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
