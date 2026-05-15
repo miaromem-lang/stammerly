@@ -18,6 +18,7 @@ import {
   useStammerDetector,
   type MarkerType,
   type StammerEvent,
+  type AudioProfile,
 } from '@/hooks/useStammerDetector'
 
 // ── Marker metadata ───────────────────────────────────────────────────────────
@@ -57,11 +58,25 @@ type ViewMode = 'child' | 'parent' | 'therapist'
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function StammerDetector() {
-  const [view, setView] = useState<ViewMode>('parent')
-  const [childName] = useState('Leo')
+export interface StammerDetectorProps {
+  childName?: string
+  childId?: string
+  defaultView?: ViewMode
+  defaultProfile?: AudioProfile | 'auto'
+}
+
+export function StammerDetector({
+  childName: childNameProp = 'Leo',
+  childId = 'child_001',
+  defaultView = 'parent',
+  defaultProfile = 'quiet',
+}: StammerDetectorProps = {}) {
+  const [view, setView] = useState<ViewMode>(defaultView)
+  const [childName] = useState(childNameProp)
 
   const detector = useStammerDetector({
+    childId,
+    audioProfile: defaultProfile,
     onEvent: (e) => {
       // Optional: POST to your own API here
       // fetch('/api/events', { method: 'POST', body: JSON.stringify(e) })

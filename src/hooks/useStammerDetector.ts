@@ -240,7 +240,7 @@ export function useStammerDetector(options: DetectorOptions = {}) {
   const analyserRef      = useRef<AnalyserNode | null>(null)
   const streamRef        = useRef<MediaStream | null>(null)
   const intervalRef      = useRef<ReturnType<typeof setInterval> | null>(null)
-  const recognitionRef   = useRef<SpeechRecognition | null>(null)
+  const recognitionRef   = useRef<any>(null)
 
   // Pre-allocated buffers — created once per session, reused every 30ms frame.
   // Allocating Float32Array inside the hot loop would trigger GC constantly.
@@ -340,7 +340,7 @@ export function useStammerDetector(options: DetectorOptions = {}) {
     const timeBuf  = timeBufRef.current
     if (!analyser || !ctx || !timeBuf) return
 
-    analyser.getFloatTimeDomainData(timeBuf)
+    analyser.getFloatTimeDomainData(timeBuf as any)
 
     const energy    = rms(timeBuf)
     const crossRate = zcr(timeBuf)
@@ -547,11 +547,11 @@ export function useStammerDetector(options: DetectorOptions = {}) {
 
   // ── Build Web Speech Recognition ──────────────────────────────────────────
 
-  const buildRecognition = useCallback((): SpeechRecognition | null => {
+  const buildRecognition = useCallback((): any => {
     const SpeechRec = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition
     if (!SpeechRec) return null
 
-    const rec: SpeechRecognition = new SpeechRec()
+    const rec: any = new SpeechRec()
     rec.continuous     = true
     rec.interimResults = true
     rec.lang           = 'en-GB'
