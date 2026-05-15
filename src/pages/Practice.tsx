@@ -16,6 +16,8 @@ import { StammerDetector } from "@/components/StammerDetector";
 import { useStammerDetector, type StammerEvent } from "@/hooks/useStammerDetector";
 import { HubNavigation } from "@/components/HubNavigation";
 import { loadSavedName, loadSavedProfile } from "@/pages/Settings";
+import { useAuth } from "@/hooks/useAuth";
+import { WSSExplainabilityPanel } from "@/components/clinical/WSSExplainabilityPanel";
 
 type LiveRole = "parent" | "therapist" | "child";
 
