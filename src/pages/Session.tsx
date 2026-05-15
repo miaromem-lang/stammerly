@@ -87,6 +87,7 @@ const Session = () => {
                 childId="child_001"
                 defaultView={role}
                 defaultProfile={audioProfile}
+                environmentType={typeof audioProfile === 'string' ? audioProfile : 'quiet'}
               />
             </>
           )}
