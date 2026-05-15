@@ -743,6 +743,62 @@ const Practice = () => {
           )}
         </div>
 
+        <Card className="rounded-kids bg-card/80 backdrop-blur-sm border border-border mb-6">
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex items-start sm:items-center justify-between gap-4 flex-col sm:flex-row">
+              <div className="flex items-start gap-3">
+                <div className={`p-2 rounded-lg ${speaker.isEnrolled ? "bg-success/10 text-success" : "bg-primary/10 text-primary"}`}>
+                  <UserCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="font-display font-semibold text-sm text-foreground">
+                    Voice enrolment {speaker.isEnrolled && <span className="text-success">· Active</span>}
+                  </h2>
+                  <p className="text-xs text-muted-foreground max-w-md">
+                    {speaker.isEnrolling
+                      ? "Keep speaking naturally for 10 seconds — try counting or describing your day."
+                      : speaker.isEnrolled
+                      ? "Your child's voice fingerprint is saved. The detector will ignore other voices nearby."
+                      : "Record a 10-second sample so the detector can focus on your child and ignore background voices."}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 self-end sm:self-auto">
+                {speaker.isEnrolling ? (
+                  <Button variant="outline" size="sm" onClick={speaker.cancelEnrollment}>
+                    <X className="w-4 h-4 mr-1" /> Cancel
+                  </Button>
+                ) : (
+                  <>
+                    {speaker.isEnrolled && (
+                      <Button variant="ghost" size="sm" onClick={speaker.clearProfile}>
+                        Clear
+                      </Button>
+                    )}
+                    <Button
+                      variant={speaker.isEnrolled ? "outline" : "default"}
+                      size="sm"
+                      onClick={() => { void speaker.startEnrollment(); }}
+                      disabled={isRecording || isAnalyzing}
+                    >
+                      <Mic className="w-4 h-4 mr-1" />
+                      {speaker.isEnrolled ? "Re-enrol voice" : "Start 10s enrolment"}
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+            {speaker.isEnrolling && speaker.enrollProgress !== null && (
+              <div className="mt-4 space-y-1">
+                <Progress value={Math.round(speaker.enrollProgress * 100)} className="h-2" />
+                <p className="text-xs text-muted-foreground text-right">
+                  {Math.round(speaker.enrollProgress * 100)}% — {Math.max(0, Math.ceil(10 - speaker.enrollProgress * 10))}s left
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         <Card className="rounded-kids overflow-hidden bg-card/90 backdrop-blur-sm border-2 border-accent-orange/30">
           <CardContent className="p-8">
             <div className="bg-gradient-to-br from-gold/20 to-accent-orange/20 rounded-kids p-8 mb-8 text-center">
