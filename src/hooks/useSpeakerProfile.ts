@@ -80,6 +80,7 @@ export interface UseSpeakerProfileReturn {
   /** Per-child gate strictness, persisted in localStorage. */
   settings: SpeakerGateSettings;
   updateSettings: (partial: Partial<SpeakerGateSettings>) => void;
+  /** Reset this child to the current global defaults (clears per-child override). */
   resetSettings: () => void;
   /** Serialise current settings to a portable JSON string. */
   exportSettings: () => string;
@@ -89,6 +90,16 @@ export interface UseSpeakerProfileReturn {
    * applied settings on success, or an error describing why import failed.
    */
   importSettings: (payload: string | unknown) => { ok: true; settings: SpeakerGateSettings } | { ok: false; error: string };
+  /** True when the current child has its own per-child overrides saved. */
+  hasCustomSettings: boolean;
+  /** Global defaults (apply to any child without per-child overrides). */
+  globalSettings: SpeakerGateSettings;
+  /** Save the current per-child values as the new global defaults. */
+  saveCurrentAsGlobalDefaults: () => void;
+  /** Replace global defaults with arbitrary clamped values. */
+  setGlobalDefaults: (s: Partial<SpeakerGateSettings>) => void;
+  /** Restore built-in factory defaults globally (±30 Hz · ×1.50). */
+  resetGlobalDefaults: () => void;
 }
 
 /** Stable identifier for the export envelope so future versions can migrate. */
