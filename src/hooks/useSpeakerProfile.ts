@@ -15,12 +15,19 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 
 // ── Constants ────────────────────────────────────────────────────────────────
-const ENROLL_DURATION_S      = 10;
-const F0_MARGIN_HZ           = 30;
-const ENERGY_HEADROOM        = 1.5;
-const VOICED_RMS_THRESHOLD   = 0.01;
-const MIN_VOICED_FRAMES      = 40;
-const STORAGE_KEY_PREFIX     = "stammerly_speaker_";
+const ENROLL_DURATION_S          = 10;
+const DEFAULT_F0_MARGIN_HZ       = 30;
+const DEFAULT_ENERGY_HEADROOM    = 1.5;
+const VOICED_RMS_THRESHOLD       = 0.01;
+const MIN_VOICED_FRAMES          = 40;
+const STORAGE_KEY_PREFIX         = "stammerly_speaker_";
+const SETTINGS_KEY_PREFIX        = "stammerly_speaker_settings_";
+
+// Settings clamps — keep values in a sensible, debuggable range.
+export const F0_MARGIN_MIN_HZ    = 0;
+export const F0_MARGIN_MAX_HZ    = 120;
+export const ENERGY_HEADROOM_MIN = 1.0;
+export const ENERGY_HEADROOM_MAX = 4.0;
 
 // ── Types ────────────────────────────────────────────────────────────────────
 export interface SpeakerFingerprint {
@@ -34,6 +41,18 @@ export interface SpeakerFingerprint {
   totalFrameCount: number;
   sampleRate: number;
 }
+
+export interface SpeakerGateSettings {
+  /** Hz of leeway added on each side of the [P10, P90] pitch band. */
+  f0MarginHz: number;
+  /** Multiplier on energyP75 before an unvoiced frame is rejected. */
+  energyHeadroom: number;
+}
+
+export const DEFAULT_GATE_SETTINGS: SpeakerGateSettings = {
+  f0MarginHz: DEFAULT_F0_MARGIN_HZ,
+  energyHeadroom: DEFAULT_ENERGY_HEADROOM,
+};
 
 export interface SpeakerProfileOptions {
   childId: string;
@@ -58,6 +77,10 @@ export interface UseSpeakerProfileReturn {
    */
   scoreFrame: (timeBuf: Float32Array, f0Hz: number) => boolean;
   clearProfile: () => void;
+  /** Per-child gate strictness, persisted in localStorage. */
+  settings: SpeakerGateSettings;
+  updateSettings: (partial: Partial<SpeakerGateSettings>) => void;
+  resetSettings: () => void;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -163,7 +186,8 @@ function percentile(sorted: number[], p: number): number {
   return sorted[idx];
 }
 
-const storageKey = (childId: string) => `${STORAGE_KEY_PREFIX}${childId}`;
+const storageKey  = (childId: string) => `${STORAGE_KEY_PREFIX}${childId}`;
+const settingsKey = (childId: string) => `${SETTINGS_KEY_PREFIX}${childId}`;
 
 function loadFingerprint(childId: string): SpeakerFingerprint | null {
   try {
@@ -178,6 +202,28 @@ function saveFingerprint(fp: SpeakerFingerprint): void {
   try {
     localStorage.setItem(storageKey(fp.childId), JSON.stringify(fp));
   } catch { /* localStorage unavailable */ }
+}
+
+function clamp(v: number, lo: number, hi: number): number {
+  return Number.isFinite(v) ? Math.max(lo, Math.min(hi, v)) : lo;
+}
+
+function loadSettings(childId: string): SpeakerGateSettings {
+  try {
+    const raw = localStorage.getItem(settingsKey(childId));
+    if (!raw) return { ...DEFAULT_GATE_SETTINGS };
+    const parsed = JSON.parse(raw) as Partial<SpeakerGateSettings>;
+    return {
+      f0MarginHz: clamp(parsed.f0MarginHz ?? DEFAULT_GATE_SETTINGS.f0MarginHz, F0_MARGIN_MIN_HZ, F0_MARGIN_MAX_HZ),
+      energyHeadroom: clamp(parsed.energyHeadroom ?? DEFAULT_GATE_SETTINGS.energyHeadroom, ENERGY_HEADROOM_MIN, ENERGY_HEADROOM_MAX),
+    };
+  } catch {
+    return { ...DEFAULT_GATE_SETTINGS };
+  }
+}
+
+function saveSettings(childId: string, s: SpeakerGateSettings): void {
+  try { localStorage.setItem(settingsKey(childId), JSON.stringify(s)); } catch { /* ignore */ }
 }
 
 // ── Hook ─────────────────────────────────────────────────────────────────────
@@ -204,7 +250,14 @@ export function useSpeakerProfile(
   const fingerprintRef = useRef<SpeakerFingerprint | null>(fingerprint);
   useEffect(() => { fingerprintRef.current = fingerprint; }, [fingerprint]);
 
-  useEffect(() => { setFingerprint(loadFingerprint(childId)); }, [childId]);
+  const [settings, setSettings] = useState<SpeakerGateSettings>(() => loadSettings(childId));
+  const settingsRef = useRef(settings);
+  useEffect(() => { settingsRef.current = settings; }, [settings]);
+
+  useEffect(() => {
+    setFingerprint(loadFingerprint(childId));
+    setSettings(loadSettings(childId));
+  }, [childId]);
 
   const startEnrollment = useCallback(async (): Promise<SpeakerFingerprint | null> => {
     if (isEnrolling) return null;
@@ -323,17 +376,35 @@ export function useSpeakerProfile(
     const fp = fingerprintRef.current;
     if (!fp) return true; // fail-open when not enrolled
 
+    const { f0MarginHz, energyHeadroom } = settingsRef.current;
     if (f0Hz > 0) {
       // Voiced frame — must fall in the child's habitual pitch band
-      return f0Hz >= fp.f0P10 - F0_MARGIN_HZ && f0Hz <= fp.f0P90 + F0_MARGIN_HZ;
+      return f0Hz >= fp.f0P10 - f0MarginHz && f0Hz <= fp.f0P90 + f0MarginHz;
     }
     // Unvoiced frame — pass quiet ambient, block loud non-child voices
-    return rms(timeBuf) <= fp.energyP75 * ENERGY_HEADROOM;
+    return rms(timeBuf) <= fp.energyP75 * energyHeadroom;
   }, []);
 
   const clearProfile = useCallback(() => {
     try { localStorage.removeItem(storageKey(childId)); } catch { /* ignore */ }
     setFingerprint(null);
+  }, [childId]);
+
+  const updateSettings = useCallback((partial: Partial<SpeakerGateSettings>) => {
+    setSettings(prev => {
+      const next: SpeakerGateSettings = {
+        f0MarginHz: clamp(partial.f0MarginHz ?? prev.f0MarginHz, F0_MARGIN_MIN_HZ, F0_MARGIN_MAX_HZ),
+        energyHeadroom: clamp(partial.energyHeadroom ?? prev.energyHeadroom, ENERGY_HEADROOM_MIN, ENERGY_HEADROOM_MAX),
+      };
+      saveSettings(childId, next);
+      return next;
+    });
+  }, [childId]);
+
+  const resetSettings = useCallback(() => {
+    const next = { ...DEFAULT_GATE_SETTINGS };
+    saveSettings(childId, next);
+    setSettings(next);
   }, [childId]);
 
   return {
@@ -345,5 +416,9 @@ export function useSpeakerProfile(
     cancelEnrollment,
     scoreFrame,
     clearProfile,
+    settings,
+    updateSettings,
+    resetSettings,
   };
 }
+
