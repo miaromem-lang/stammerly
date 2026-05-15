@@ -1152,15 +1152,36 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
         .filter(s => s.length > 0);
       const chunks = sentences.length > 0 ? sentences : [transcript];
 
-      const matchesBySentence: { sentence: string; keywords: string[] }[] = [];
+      // For every keyword hit, capture a ±40-character excerpt around the
+      // first occurrence so reviewers can verify context at a glance.
+      const EXCERPT_RADIUS = 40;
+      const buildExcerpt = (text: string, idx: number, len: number) => {
+        const start = Math.max(0, idx - EXCERPT_RADIUS);
+        const end = Math.min(text.length, idx + len + EXCERPT_RADIUS);
+        const prefix = start > 0 ? '…' : '';
+        const suffix = end < text.length ? '…' : '';
+        return `${prefix}${text.slice(start, end).replace(/\s+/g, ' ').trim()}${suffix}`;
+      };
+
+      type SafeguardingHit = { keyword: string; sentence: string; excerpt: string };
+      const matchesBySentence: { sentence: string; hits: SafeguardingHit[] }[] = [];
       const matchedSet = new Set<string>();
+
       for (const sentence of chunks) {
-        const hits = keywordPatterns
-          .filter(({ pattern }) => pattern.test(sentence))
-          .map(({ keyword }) => keyword);
-        if (hits.length > 0) {
-          matchesBySentence.push({ sentence, keywords: hits });
-          hits.forEach(k => matchedSet.add(k));
+        const sentenceHits: SafeguardingHit[] = [];
+        for (const { keyword, pattern } of keywordPatterns) {
+          const m = pattern.exec(sentence);
+          if (m && m.index !== undefined) {
+            sentenceHits.push({
+              keyword,
+              sentence,
+              excerpt: buildExcerpt(sentence, m.index, m[0].length),
+            });
+            matchedSet.add(keyword);
+          }
+        }
+        if (sentenceHits.length > 0) {
+          matchesBySentence.push({ sentence, hits: sentenceHits });
         }
       }
       const matchedKeywords = Array.from(matchedSet);
@@ -1173,15 +1194,15 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
           );
 
           const reasonDetail = matchesBySentence
-            .map(({ sentence, keywords }) =>
-              `[${keywords.map(k => `"${k}"`).join(', ')}] in "${sentence.slice(0, 200)}"`
+            .flatMap(({ hits }) =>
+              hits.map(h => `"${h.keyword}" → ${h.excerpt}`)
             )
             .join(' | ');
 
           await serviceClient.from('safeguarding_alerts').insert({
             user_id: userId,
             alert_type: 'keyword_detected',
-            reason: `Keywords detected per sentence: ${reasonDetail}`,
+            reason: `Keywords detected (with context): ${reasonDetail}`,
             status: 'pending',
           });
 
