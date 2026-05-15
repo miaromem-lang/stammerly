@@ -1,6 +1,11 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+// `syllable` (npm) uses a CMU-pronouncing-dictionary-derived algorithm
+// (Frank Liang's hyphenation patterns + curated overrides) and is far more
+// accurate than vowel-group heuristics, especially for irregular English
+// words ("queue" = 1, "fire" = 1, "every" = 2, "people" = 2).
+import { syllable as syllableLib } from 'https://esm.sh/syllable@5.0.1';
 
 // Allowed origins for CORS
 const allowedOrigins = [
@@ -201,15 +206,21 @@ function calculateNaturalnessScore(
 }
 
 
-// Naive single-word syllable estimator (English heuristics).
+// CMU-dict-backed single-word syllable count (via the `syllable` npm package).
+// Falls back to a vowel-group heuristic only if the library throws on a token.
 function syllableCount(word: string): number {
-  const w = word.toLowerCase().replace(/[^a-z]/g, '');
+  const w = word.toLowerCase().replace(/[^a-z']/g, '');
   if (!w) return 0;
-  const vowels = w.match(/[aeiouy]+/g);
-  let n = vowels ? vowels.length : 1;
-  if (w.endsWith('e') && n > 1) n--;
-  if (w.endsWith('le') && w.length > 2) n++;
-  return Math.max(1, n);
+  try {
+    const n = syllableLib(w);
+    return Number.isFinite(n) && n > 0 ? n : 1;
+  } catch {
+    const vowels = w.match(/[aeiouy]+/g);
+    let n = vowels ? vowels.length : 1;
+    if (w.endsWith('e') && n > 1) n--;
+    if (w.endsWith('le') && w.length > 2) n++;
+    return Math.max(1, n);
+  }
 }
 
 /**
@@ -548,24 +559,11 @@ function detectWordAvoidances(transcript: string, targetPhrase: string): string[
   return avoidances;
 }
 
-// Calculate syllable count from text
+// Calculate total syllable count from text using the CMU-dict-backed counter.
 function estimateSyllables(text: string): number {
-  const words = text.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/).filter(w => w);
+  const words = text.toLowerCase().replace(/[^a-z'\s]/g, '').split(/\s+/).filter(w => w);
   let count = 0;
-  
-  for (const word of words) {
-    // Simple syllable estimation
-    const vowels = word.match(/[aeiouy]+/g);
-    let syllables = vowels ? vowels.length : 1;
-    
-    // Adjustments
-    if (word.endsWith('e') && syllables > 1) syllables--;
-    if (word.endsWith('le') && word.length > 2) syllables++;
-    if (syllables === 0) syllables = 1;
-    
-    count += syllables;
-  }
-  
+  for (const word of words) count += syllableCount(word);
   return count;
 }
 
