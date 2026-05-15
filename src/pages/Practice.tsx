@@ -858,62 +858,93 @@ const Practice = () => {
               </div>
             )}
             <details className="mt-4 group">
-              <summary className="cursor-pointer text-xs font-medium text-foreground/80 hover:text-foreground select-none list-none flex items-center gap-1">
-                <span className="inline-block transition-transform group-open:rotate-90">▸</span>
+              <summary
+                className="cursor-pointer text-xs font-medium text-foreground/80 hover:text-foreground select-none list-none flex items-center gap-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                aria-label="Toggle advanced speaker-gate settings"
+              >
+                <span aria-hidden="true" className="inline-block transition-transform group-open:rotate-90">▸</span>
                 Advanced gate settings
               </summary>
-              <div className="mt-3 space-y-4 pl-4 border-l-2 border-border">
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label htmlFor="f0-margin" className="text-xs font-medium text-foreground">
+              <fieldset
+                className="mt-3 space-y-5 pl-4 border-l-2 border-border"
+                aria-describedby="gate-settings-intro"
+              >
+                <legend className="sr-only">Speaker-gate strictness for this child</legend>
+                <p id="gate-settings-intro" className="sr-only">
+                  Use the sliders to tune which sounds reach the stammer detector. Use Left and Right arrow keys to adjust, Home and End to jump to the limits, and Page Up and Page Down for larger steps.
+                </p>
+
+                <div role="group" aria-labelledby="f0-margin-label" aria-describedby="f0-margin-help f0-margin-value">
+                  <div className="flex items-center justify-between mb-2">
+                    <span id="f0-margin-label" className="text-xs font-medium text-foreground">
                       Pitch band margin
-                    </label>
-                    <span className="text-xs font-mono text-muted-foreground">±{speaker.settings.f0MarginHz} Hz</span>
+                    </span>
+                    <span
+                      id="f0-margin-value"
+                      className="text-xs font-mono text-muted-foreground"
+                      aria-live="polite"
+                      aria-atomic="true"
+                    >
+                      ±{speaker.settings.f0MarginHz} Hz
+                    </span>
                   </div>
-                  <input
-                    id="f0-margin"
-                    type="range"
+                  <Slider
                     min={0}
                     max={120}
                     step={1}
-                    value={speaker.settings.f0MarginHz}
-                    onChange={(e) => speaker.updateSettings({ f0MarginHz: Number(e.target.value) })}
-                    className="w-full accent-primary"
+                    value={[speaker.settings.f0MarginHz]}
+                    onValueChange={([v]) => speaker.updateSettings({ f0MarginHz: v })}
+                    aria-labelledby="f0-margin-label"
                     aria-describedby="f0-margin-help"
+                    aria-valuetext={`Plus or minus ${speaker.settings.f0MarginHz} hertz around the child's pitch band`}
                   />
-                  <p id="f0-margin-help" className="text-[11px] text-muted-foreground mt-1">
-                    Lower = stricter (only voices very close to your child's pitch pass). Higher = more permissive.
+                  <p id="f0-margin-help" className="text-[11px] text-muted-foreground mt-2">
+                    Lower values are stricter (only voices very close to your child's pitch pass). Higher values are more permissive. Range 0 to 120 hertz.
                   </p>
                 </div>
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label htmlFor="energy-headroom" className="text-xs font-medium text-foreground">
+
+                <div role="group" aria-labelledby="energy-headroom-label" aria-describedby="energy-headroom-help energy-headroom-value">
+                  <div className="flex items-center justify-between mb-2">
+                    <span id="energy-headroom-label" className="text-xs font-medium text-foreground">
                       Background-noise tolerance
-                    </label>
-                    <span className="text-xs font-mono text-muted-foreground">×{speaker.settings.energyHeadroom.toFixed(2)}</span>
+                    </span>
+                    <span
+                      id="energy-headroom-value"
+                      className="text-xs font-mono text-muted-foreground"
+                      aria-live="polite"
+                      aria-atomic="true"
+                    >
+                      ×{speaker.settings.energyHeadroom.toFixed(2)}
+                    </span>
                   </div>
-                  <input
-                    id="energy-headroom"
-                    type="range"
+                  <Slider
                     min={1.0}
                     max={4.0}
                     step={0.05}
-                    value={speaker.settings.energyHeadroom}
-                    onChange={(e) => speaker.updateSettings({ energyHeadroom: Number(e.target.value) })}
-                    className="w-full accent-primary"
+                    value={[speaker.settings.energyHeadroom]}
+                    onValueChange={([v]) => speaker.updateSettings({ energyHeadroom: v })}
+                    aria-labelledby="energy-headroom-label"
                     aria-describedby="energy-headroom-help"
+                    aria-valuetext={`${speaker.settings.energyHeadroom.toFixed(2)} times the enrolled energy threshold`}
                   />
-                  <p id="energy-headroom-help" className="text-[11px] text-muted-foreground mt-1">
-                    Lower = stricter (rejects more ambient noise). Higher = lets quieter unvoiced sound through.
+                  <p id="energy-headroom-help" className="text-[11px] text-muted-foreground mt-2">
+                    Lower values are stricter (rejects more ambient noise). Higher values let quieter unvoiced sound through. Range 1.0 to 4.0.
                   </p>
                 </div>
-                <div className="flex items-center justify-between">
+
+                <div className="flex items-center justify-between gap-3">
                   <p className="text-[11px] text-muted-foreground">Defaults: ±30 Hz · ×1.50</p>
-                  <Button variant="ghost" size="sm" onClick={speaker.resetSettings} className="h-7 text-xs">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={speaker.resetSettings}
+                    className="h-8 min-w-11 text-xs"
+                    aria-label="Reset speaker-gate settings to defaults (±30 hertz pitch margin, 1.5 times energy headroom)"
+                  >
                     Reset to defaults
                   </Button>
                 </div>
-              </div>
+              </fieldset>
             </details>
             <div className="mt-3 flex justify-end">
               <button
