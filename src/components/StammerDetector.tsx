@@ -124,6 +124,7 @@ export function StammerDetector({
   }
 
   const handleStop = async () => {
+    if (saveStatus.state === 'saving') return
     const counts = detector.events.reduce(
       (acc, e) => ({ ...acc, [e.type]: (acc[e.type] ?? 0) + 1 }),
       {} as Partial<Record<MarkerType, number>>
