@@ -150,7 +150,7 @@ const Practice = () => {
       }
       return accept;
     },
-    [speaker.fingerprint],
+    [speaker.fingerprint, speaker.settings.f0MarginHz, speaker.settings.energyHeadroom],
   );
 
   const exerciseDetector = useStammerDetector({
