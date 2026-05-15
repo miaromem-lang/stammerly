@@ -20,6 +20,7 @@ import TeacherHub from "./pages/TeacherHub";
 import TherapistHub from "./pages/TherapistHub";
 import TherapistAnalyticsHub from "./pages/TherapistAnalyticsHub";
 import Practice from "./pages/Practice";
+import Demo from "./pages/Demo";
 import Analytics from "./pages/Analytics";
 import About from "./pages/About";
 import OurStory from "./pages/OurStory";
@@ -78,6 +79,7 @@ const App = () => (
             <Route path="/waitlist-thank-you" element={<WaitlistThankYou />} />
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/select-role" element={<SelectRole />} />
+            <Route path="/demo" element={<Demo />} />
 
             {/* Public pages with shared SiteNavigation + Footer */}
             <Route element={<PublicLayout />}>

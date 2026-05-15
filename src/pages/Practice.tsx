@@ -18,6 +18,7 @@ import { HubNavigation } from "@/components/HubNavigation";
 import { loadSavedName, loadSavedProfile } from "@/pages/Settings";
 import { useAuth } from "@/hooks/useAuth";
 import { WSSExplainabilityPanel } from "@/components/clinical/WSSExplainabilityPanel";
+import { AcousticTimeline, type AcousticEventRow, type WordTimingLite } from "@/components/clinical/AcousticTimeline";
 import { limitAcousticEvents } from "@/lib/acousticEvents";
 
 type LiveRole = "parent" | "therapist" | "child";
@@ -96,7 +97,12 @@ const Practice = () => {
       setLiveAcousticEventCount(acousticEventsRef.current.length);
     },
   });
-  
+
+  // Snapshots used by the clinician-only AcousticTimeline in the results card.
+  const [lastWordTimings, setLastWordTimings] = useState<WordTimingLite[]>([]);
+  const [lastTranscript, setLastTranscript] = useState<string>("");
+  const [lastAcousticRows, setLastAcousticRows] = useState<AcousticEventRow[]>([]);
+
   // Large collection of practice phrases organized by difficulty
   const allPhrases = {
     beginner: [
@@ -216,6 +222,9 @@ const Practice = () => {
       const wordTimings = transcriptionData?.words || [];
       const segmentTimings = transcriptionData?.segments || [];
       setTranscript(transcribedText);
+      // Snapshot timings for the clinician-only acoustic timeline.
+      setLastWordTimings(wordTimings.map((w: any) => ({ word: w.word, start: w.start, end: w.end })));
+      setLastTranscript(transcribedText);
       console.log('Transcription:', transcribedText);
 
       // Step 2: Analyze with AI including word + segment timings (segments
@@ -232,6 +241,24 @@ const Practice = () => {
           `Captured ${limited.total} acoustic events — sending top ${limited.kept} for analysis.`,
         );
       }
+      // Snapshot acoustic events as DB-shaped rows so the clinician timeline
+      // can render the just-finished take without an extra round-trip.
+      const startedAt = recordingStartedAtRef.current || Date.now();
+      setLastAcousticRows(
+        limited.events.map((ev, i) => ({
+          id: ev.id ?? `live-${i}`,
+          session_id: 'in-memory',
+          user_id: 'in-memory',
+          event_type: ev.type,
+          duration_ms: Math.max(0, Math.round(ev.durationMs || 0)),
+          confidence: Math.max(0, Math.min(1, ev.confidence ?? 0)),
+          occurred_at_ms: Math.max(
+            0,
+            (ev.timestamp instanceof Date ? ev.timestamp.getTime() : Date.now()) - startedAt,
+          ),
+          detail: ev.detail ?? null,
+        })),
+      );
       const { data, error } = await supabase.functions.invoke('analyze-speech', {
         body: {
           transcript: transcribedText,
@@ -885,10 +912,21 @@ const Practice = () => {
                 </div>
               )}
 
-              {/* Clinician-only WSS explainability */}
+              {/* Clinician-only WSS explainability + acoustic timeline */}
               {isClinician && analysis.wssExplain && (
                 <div className="mb-6">
                   <WSSExplainabilityPanel explain={analysis.wssExplain} />
+                </div>
+              )}
+              {isClinician && lastAcousticRows.length > 0 && (
+                <div className="mb-6">
+                  <AcousticTimeline
+                    events={lastAcousticRows}
+                    words={lastWordTimings}
+                    transcript={lastTranscript}
+                    durationSeconds={recordingTime}
+                    title="Acoustic events × transcript timing (this take)"
+                  />
                 </div>
               )}
 
