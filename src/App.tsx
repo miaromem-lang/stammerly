@@ -79,6 +79,7 @@ const App = () => (
             <Route path="/waitlist-thank-you" element={<WaitlistThankYou />} />
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/select-role" element={<SelectRole />} />
+            <Route path="/demo" element={<Demo />} />
 
             {/* Public pages with shared SiteNavigation + Footer */}
             <Route element={<PublicLayout />}>
