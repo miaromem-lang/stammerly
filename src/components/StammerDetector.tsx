@@ -182,6 +182,7 @@ export function StammerDetector({
         {/* Record button */}
         <RecordButton
           isRecording={detector.isRecording}
+          isSaving={saveStatus.state === 'saving'}
           onStart={detector.startRecording}
           onStop={handleStop}
         />
