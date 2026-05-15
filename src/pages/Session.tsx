@@ -5,13 +5,15 @@ import { HubNavigation } from "@/components/HubNavigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { loadSavedName, loadSavedProfile } from "@/pages/Settings";
 
 type Role = "parent" | "therapist" | "child";
 
 const Session = () => {
-  const [childName, setChildName] = useState("");
+  const [childName, setChildName] = useState(() => loadSavedName());
   const [role, setRole] = useState<Role>("parent");
   const [started, setStarted] = useState(false);
+  const [audioProfile] = useState(() => loadSavedProfile());
 
   const handleStart = (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,6 +86,7 @@ const Session = () => {
                 childName={childName}
                 childId="child_001"
                 defaultView={role}
+                defaultProfile={audioProfile}
               />
             </>
           )}
