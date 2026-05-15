@@ -26,6 +26,7 @@ interface SessionRow {
 interface DisplaySession {
   id: string;
   date: string;
+  isoDate: string;
   durationMin: number;
   totalEvents: number;
   dominantMarker: MarkerType;
