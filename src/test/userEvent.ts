@@ -46,15 +46,17 @@ export function setupUser(options: SetupUserOptions = {}): UserEvent {
  * userEvent into `vi.advanceTimersByTime` so awaits resolve.
  *
  * Usage:
+ *   import { vi } from "vitest";
  *   vi.useFakeTimers();
- *   const user = setupUserWithFakeTimers();
+ *   const user = setupUserWithFakeTimers(vi);
  */
-export function setupUserWithFakeTimers(): UserEvent {
-  // Lazy-require vitest so this file stays import-safe outside test runs.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { vi } = require("vitest") as typeof import("vitest");
+export function setupUserWithFakeTimers(
+  vi: { advanceTimersByTime: (ms: number) => void },
+): UserEvent {
   return setupUser({
-    advanceTimers: (ms) => vi.advanceTimersByTime(ms),
+    advanceTimers: (ms) => {
+      vi.advanceTimersByTime(ms);
+    },
   });
 }
 
