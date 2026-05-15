@@ -113,6 +113,12 @@ export interface DetectorOptions {
   audioProfile?: AudioProfile | 'auto'
   /** Called when the auto-detector switches profiles. */
   onProfileChange?: (profile: AudioProfile) => void
+  /**
+   * Optional speaker-gate predicate. Return false to ignore this audio
+   * frame (e.g. it belongs to another speaker). Typically supplied by
+   * useSpeakerProfile().scoreFrame. When omitted the gate is open.
+   */
+  scoreFrame?: (timeBuf: Float32Array, f0Hz: number) => boolean
 }
 
 // ── Internal constants ────────────────────────────────────────────────────────
