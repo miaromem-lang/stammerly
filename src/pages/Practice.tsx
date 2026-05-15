@@ -76,6 +76,7 @@ const Practice = () => {
   // useStammerDetector run in parallel with the MediaRecorder so we can ship
   // ground-truth disfluency markers to analyze-speech alongside the transcript.
   const acousticEventsRef = useRef<StammerEvent[]>([]);
+  const recordingStartedAtRef = useRef<number>(0);
   const exerciseDetector = useStammerDetector({
     audioProfile: loadSavedProfile(),
     onEvent: (ev) => { acousticEventsRef.current.push(ev); },
