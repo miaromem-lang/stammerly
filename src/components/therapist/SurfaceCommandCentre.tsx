@@ -6,7 +6,11 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 
 interface SurfaceMetrics {
   weightedStutteringSeverity: number | null;
+  weightedStutteringSeverityCI?: { low: number; high: number } | null;
   percentSyllablesStuttered: number | null;
+  percentSyllablesStutteredCI?: { low: number; high: number } | null;
+  totalSyllables?: number | null;
+  sampleAdequacy?: 'low' | 'moderate' | 'adequate' | null;
   sldCount: number;
   odCount: number;
   syllablesPerMinute: number | null;
