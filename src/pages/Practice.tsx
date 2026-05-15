@@ -18,6 +18,7 @@ import { HubNavigation } from "@/components/HubNavigation";
 import { loadSavedName, loadSavedProfile } from "@/pages/Settings";
 import { useAuth } from "@/hooks/useAuth";
 import { WSSExplainabilityPanel } from "@/components/clinical/WSSExplainabilityPanel";
+import { AcousticTimeline, type AcousticEventRow, type WordTimingLite } from "@/components/clinical/AcousticTimeline";
 import { limitAcousticEvents } from "@/lib/acousticEvents";
 
 type LiveRole = "parent" | "therapist" | "child";
