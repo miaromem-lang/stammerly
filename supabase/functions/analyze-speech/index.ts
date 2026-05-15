@@ -131,6 +131,30 @@ function getInitialPhoneme(word: string): string {
   return lower[0] || '';
 }
 
+// Wilson score interval for a binomial proportion. More accurate than the
+// normal approximation when n is small or p is near 0/1, which is exactly
+// the regime %SS lives in for short practice clips.
+function wilsonInterval(successes: number, n: number, z = 1.96): { low: number; high: number } {
+  if (n <= 0) return { low: 0, high: 0 };
+  const p = successes / n;
+  const z2 = z * z;
+  const denom = 1 + z2 / n;
+  const centre = p + z2 / (2 * n);
+  const margin = z * Math.sqrt((p * (1 - p) + z2 / (4 * n)) / n);
+  return {
+    low: Math.max(0, (centre - margin) / denom),
+    high: Math.min(1, (centre + margin) / denom),
+  };
+}
+
+// SSI-4 norms recommend ≥200 syllables for stable severity scoring.
+// Below ~100 syllables, %SS and WSS should be treated as indicative only.
+function classifySampleAdequacy(totalSyllables: number): 'low' | 'moderate' | 'adequate' {
+  if (totalSyllables < 100) return 'low';
+  if (totalSyllables < 200) return 'moderate';
+  return 'adequate';
+}
+
 // Calculate Weighted Stuttering Severity (WSS) based on SSI-4 standards
 function calculateWSS(
   blocksCount: number,
@@ -145,7 +169,12 @@ function calculateWSS(
   // Frequency score: percentage of stuttered syllables
   const stutteredSyllables = blocksCount + prolongationsCount + repetitionsCount;
   const percentStuttered = (stutteredSyllables / totalSyllables) * 100;
-  
+  return calculateWSSFromPercent(percentStuttered, longestBlocks);
+}
+
+// WSS from a precomputed %-stuttered, so we can recompute at the bounds of
+// the Wilson CI for the proportion.
+function calculateWSSFromPercent(percentStuttered: number, longestBlocks: number[]): number {
   // Duration score: average of three longest blocks
   const avgLongestBlocks = longestBlocks.length > 0 
     ? longestBlocks.reduce((a, b) => a + b, 0) / longestBlocks.length 
@@ -169,6 +198,7 @@ function calculateWSS(
   const rawScore = frequencyScore * 10 + durationScore * 15;
   return Math.min(100, rawScore);
 }
+
 
 // Calculate initiation lag (time from prompt end to first vocalization)
 function calculateInitiationLag(words: WordTiming[]): number | null {
