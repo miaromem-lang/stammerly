@@ -35,6 +35,11 @@ interface SpeechAnalysis {
 
 const Practice = () => {
   const navigate = useNavigate();
+  const { role } = useAuth();
+  const isClinician =
+    role === "therapist" ||
+    role === "admin" ||
+    (typeof window !== "undefined" && sessionStorage.getItem("dev_admin_bypass") === "true");
   const [searchParams, setSearchParams] = useSearchParams();
   const initialMode: "exercise" | "live" = searchParams.get("mode") === "live" ? "live" : "exercise";
   const [mode, setMode] = useState<"exercise" | "live">(initialMode);
