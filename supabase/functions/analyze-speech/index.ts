@@ -1,6 +1,11 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+// `syllable` (npm) uses a CMU-pronouncing-dictionary-derived algorithm
+// (Frank Liang's hyphenation patterns + curated overrides) and is far more
+// accurate than vowel-group heuristics, especially for irregular English
+// words ("queue" = 1, "fire" = 1, "every" = 2, "people" = 2).
+import { syllable as syllableLib } from 'https://esm.sh/syllable@5.0.1';
 
 // Allowed origins for CORS
 const allowedOrigins = [
