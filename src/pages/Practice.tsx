@@ -241,6 +241,24 @@ const Practice = () => {
           `Captured ${limited.total} acoustic events — sending top ${limited.kept} for analysis.`,
         );
       }
+      // Snapshot acoustic events as DB-shaped rows so the clinician timeline
+      // can render the just-finished take without an extra round-trip.
+      const startedAt = recordingStartedAtRef.current || Date.now();
+      setLastAcousticRows(
+        limited.events.map((ev, i) => ({
+          id: ev.id ?? `live-${i}`,
+          session_id: 'in-memory',
+          user_id: 'in-memory',
+          event_type: ev.type,
+          duration_ms: Math.max(0, Math.round(ev.durationMs || 0)),
+          confidence: Math.max(0, Math.min(1, ev.confidence ?? 0)),
+          occurred_at_ms: Math.max(
+            0,
+            (ev.timestamp instanceof Date ? ev.timestamp.getTime() : Date.now()) - startedAt,
+          ),
+          detail: ev.detail ?? null,
+        })),
+      );
       const { data, error } = await supabase.functions.invoke('analyze-speech', {
         body: {
           transcript: transcribedText,
