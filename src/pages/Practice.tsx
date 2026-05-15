@@ -105,6 +105,37 @@ const Practice = () => {
   const [showGateDebug, setShowGateDebug] = useState(
     () => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("debugGate") === "1",
   );
+  const importFileRef = useRef<HTMLInputElement | null>(null);
+
+  const handleExportSettings = useCallback(() => {
+    const json = speaker.exportSettings();
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const safeChild = (speakerChildId || "child").replace(/[^a-z0-9_-]/gi, "_");
+    a.href = url;
+    a.download = `stammerly-gate-${safeChild}-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("Gate settings exported.");
+  }, [speaker, speakerChildId]);
+
+  const handleImportFile = useCallback(async (file: File) => {
+    try {
+      const text = await file.text();
+      const result = speaker.importSettings(text);
+      if (result.ok === true) {
+        toast.success(`Imported gate settings: ±${result.settings.f0MarginHz} Hz · ×${result.settings.energyHeadroom.toFixed(2)}`);
+      } else {
+        toast.error(`Import failed: ${(result as { error: string }).error}`);
+      }
+    } catch (err) {
+      toast.error(`Could not read file: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }, [speaker]);
+
   type GateReason = "no-profile" | "voiced-in-band" | "voiced-out-of-band" | "unvoiced-quiet" | "unvoiced-loud";
   const gateStatsRef = useRef({
     accepted: 0,
@@ -932,17 +963,50 @@ const Practice = () => {
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <p className="text-[11px] text-muted-foreground">Defaults: ±30 Hz · ×1.50</p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={speaker.resetSettings}
-                    className="h-8 min-w-11 text-xs"
-                    aria-label="Reset speaker-gate settings to defaults (±30 hertz pitch margin, 1.5 times energy headroom)"
-                  >
-                    Reset to defaults
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleExportSettings}
+                      className="h-8 min-w-11 text-xs"
+                      aria-label="Export this child's gate settings as a JSON file"
+                    >
+                      Export JSON
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => importFileRef.current?.click()}
+                      className="h-8 min-w-11 text-xs"
+                      aria-label="Import gate settings from a JSON file"
+                    >
+                      Import JSON
+                    </Button>
+                    <input
+                      ref={importFileRef}
+                      type="file"
+                      accept="application/json,.json"
+                      className="sr-only"
+                      aria-hidden="true"
+                      tabIndex={-1}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) void handleImportFile(file);
+                        e.target.value = ""; // allow re-importing same file
+                      }}
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={speaker.resetSettings}
+                      className="h-8 min-w-11 text-xs"
+                      aria-label="Reset speaker-gate settings to defaults (±30 hertz pitch margin, 1.5 times energy headroom)"
+                    >
+                      Reset
+                    </Button>
+                  </div>
                 </div>
               </fieldset>
             </details>

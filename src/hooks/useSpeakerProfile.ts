@@ -81,6 +81,26 @@ export interface UseSpeakerProfileReturn {
   settings: SpeakerGateSettings;
   updateSettings: (partial: Partial<SpeakerGateSettings>) => void;
   resetSettings: () => void;
+  /** Serialise current settings to a portable JSON string. */
+  exportSettings: () => string;
+  /**
+   * Parse a settings JSON payload (string or object) and apply it to the
+   * current child. Values are clamped to the allowed range. Returns the
+   * applied settings on success, or an error describing why import failed.
+   */
+  importSettings: (payload: string | unknown) => { ok: true; settings: SpeakerGateSettings } | { ok: false; error: string };
+}
+
+/** Stable identifier for the export envelope so future versions can migrate. */
+export const SETTINGS_EXPORT_TYPE    = "stammerly.speakerGateSettings";
+export const SETTINGS_EXPORT_VERSION = 1;
+
+export interface SpeakerGateSettingsExport {
+  type: typeof SETTINGS_EXPORT_TYPE;
+  version: number;
+  childId: string;
+  exportedAt: string;
+  settings: SpeakerGateSettings;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -407,6 +427,51 @@ export function useSpeakerProfile(
     setSettings(next);
   }, [childId]);
 
+  const exportSettings = useCallback((): string => {
+    const payload: SpeakerGateSettingsExport = {
+      type: SETTINGS_EXPORT_TYPE,
+      version: SETTINGS_EXPORT_VERSION,
+      childId,
+      exportedAt: new Date().toISOString(),
+      settings: settingsRef.current,
+    };
+    return JSON.stringify(payload, null, 2);
+  }, [childId]);
+
+  const importSettings = useCallback(
+    (payload: string | unknown): { ok: true; settings: SpeakerGateSettings } | { ok: false; error: string } => {
+      let parsed: unknown = payload;
+      if (typeof payload === "string") {
+        try { parsed = JSON.parse(payload); }
+        catch { return { ok: false, error: "File is not valid JSON." }; }
+      }
+      if (!parsed || typeof parsed !== "object") {
+        return { ok: false, error: "Payload is not an object." };
+      }
+      const obj = parsed as Partial<SpeakerGateSettingsExport> & { settings?: Partial<SpeakerGateSettings> };
+      if (obj.type && obj.type !== SETTINGS_EXPORT_TYPE) {
+        return { ok: false, error: `Unsupported file type: ${obj.type}` };
+      }
+      if (obj.version && obj.version > SETTINGS_EXPORT_VERSION) {
+        return { ok: false, error: `Unsupported export version: ${obj.version}` };
+      }
+      const raw = obj.settings ?? (obj as Partial<SpeakerGateSettings>);
+      const f0    = Number((raw as Partial<SpeakerGateSettings>).f0MarginHz);
+      const head  = Number((raw as Partial<SpeakerGateSettings>).energyHeadroom);
+      if (!Number.isFinite(f0) || !Number.isFinite(head)) {
+        return { ok: false, error: "Missing f0MarginHz or energyHeadroom." };
+      }
+      const next: SpeakerGateSettings = {
+        f0MarginHz: clamp(f0, F0_MARGIN_MIN_HZ, F0_MARGIN_MAX_HZ),
+        energyHeadroom: clamp(head, ENERGY_HEADROOM_MIN, ENERGY_HEADROOM_MAX),
+      };
+      saveSettings(childId, next);
+      setSettings(next);
+      return { ok: true, settings: next };
+    },
+    [childId],
+  );
+
   return {
     isEnrolled: fingerprint !== null,
     enrollProgress,
@@ -419,6 +484,8 @@ export function useSpeakerProfile(
     settings,
     updateSettings,
     resetSettings,
+    exportSettings,
+    importSettings,
   };
 }
 
