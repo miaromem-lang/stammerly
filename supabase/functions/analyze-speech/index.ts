@@ -1114,32 +1114,8 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
       // Use proper word-boundary regex matching so "hurt" doesn't fire on
       // "hurtle", "hit" on "hitch", "die" on "diet"/"died"/"studied", etc.
       // Multi-word phrases anchor with \b on the outer tokens only.
-      const safeguardingKeywords = [
-        // hurt variants
-        'hurt', 'hurts', 'hurting', 'hurted',
-        // hit variants
-        'hit', 'hits', 'hitting',
-        // scared variants
-        'scared', 'scary', 'scaring', 'terrified',
-        // explicit help / boundary phrases
-        'help me', "don't touch", "dont touch", 'stop it', 'go away', 'leave me alone',
-        // kill variants
-        'kill', 'kills', 'killed', 'killing',
-        // die variants (incl. common misspelling "dieing")
-        'die', 'dies', 'died', 'dying', 'dieing', 'dead',
-        // self-directed harm phrases
-        'hate myself', 'hate me', 'hurt myself', 'hurting myself',
-        // abuse-adjacent
-        'abuse', 'abused', 'abusing',
-      ];
-      const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const keywordPatterns = safeguardingKeywords.map(kw => ({
-        keyword: kw,
-        // \b works around the alphanumeric tokens; internal spaces/apostrophes
-        // are matched literally (apostrophes are non-word chars so we don't
-        // need a boundary around them).
-        pattern: new RegExp(`\\b${escapeRegex(kw)}\\b`, 'i'),
-      }));
+      const safeguardingKeywords = SAFEGUARDING_KEYWORDS;
+      const keywordPatterns = buildSafeguardingPatterns(safeguardingKeywords);
 
       // Split transcript into sentence-level chunks so a phrase like
       // "I had to kill some time before dinner" is evaluated independently
