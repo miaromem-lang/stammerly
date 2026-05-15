@@ -13,7 +13,7 @@
  * Uses Tailwind CSS classes and is compatible with shadcn/ui.
  */
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import {
   useStammerDetector,
   type MarkerType,
