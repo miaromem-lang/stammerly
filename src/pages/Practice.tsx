@@ -856,6 +856,64 @@ const Practice = () => {
                 </p>
               </div>
             )}
+            <details className="mt-4 group">
+              <summary className="cursor-pointer text-xs font-medium text-foreground/80 hover:text-foreground select-none list-none flex items-center gap-1">
+                <span className="inline-block transition-transform group-open:rotate-90">▸</span>
+                Advanced gate settings
+              </summary>
+              <div className="mt-3 space-y-4 pl-4 border-l-2 border-border">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label htmlFor="f0-margin" className="text-xs font-medium text-foreground">
+                      Pitch band margin
+                    </label>
+                    <span className="text-xs font-mono text-muted-foreground">±{speaker.settings.f0MarginHz} Hz</span>
+                  </div>
+                  <input
+                    id="f0-margin"
+                    type="range"
+                    min={0}
+                    max={120}
+                    step={1}
+                    value={speaker.settings.f0MarginHz}
+                    onChange={(e) => speaker.updateSettings({ f0MarginHz: Number(e.target.value) })}
+                    className="w-full accent-primary"
+                    aria-describedby="f0-margin-help"
+                  />
+                  <p id="f0-margin-help" className="text-[11px] text-muted-foreground mt-1">
+                    Lower = stricter (only voices very close to your child's pitch pass). Higher = more permissive.
+                  </p>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label htmlFor="energy-headroom" className="text-xs font-medium text-foreground">
+                      Background-noise tolerance
+                    </label>
+                    <span className="text-xs font-mono text-muted-foreground">×{speaker.settings.energyHeadroom.toFixed(2)}</span>
+                  </div>
+                  <input
+                    id="energy-headroom"
+                    type="range"
+                    min={1.0}
+                    max={4.0}
+                    step={0.05}
+                    value={speaker.settings.energyHeadroom}
+                    onChange={(e) => speaker.updateSettings({ energyHeadroom: Number(e.target.value) })}
+                    className="w-full accent-primary"
+                    aria-describedby="energy-headroom-help"
+                  />
+                  <p id="energy-headroom-help" className="text-[11px] text-muted-foreground mt-1">
+                    Lower = stricter (rejects more ambient noise). Higher = lets quieter unvoiced sound through.
+                  </p>
+                </div>
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] text-muted-foreground">Defaults: ±30 Hz · ×1.50</p>
+                  <Button variant="ghost" size="sm" onClick={speaker.resetSettings} className="h-7 text-xs">
+                    Reset to defaults
+                  </Button>
+                </div>
+              </div>
+            </details>
             <div className="mt-3 flex justify-end">
               <button
                 type="button"
