@@ -580,27 +580,40 @@ serve(async (req) => {
         }, 0) / (words.length - 1))
       : 100;
     
+    // Convert browser acoustic events into disfluency logs and merge them in.
+    // These are higher-quality signals than transcript-derived patterns because
+    // they capture intra-word blocks and prolongations Whisper cannot see.
+    const acousticEventDisfluencies = acousticEvents.map(acousticEventToDisfluency);
+
     // Count SLD vs OD
-    const allDisfluencies = [...acousticAnalysis.patterns, ...textDisfluencies];
+    const allDisfluencies = [...acousticAnalysis.patterns, ...textDisfluencies, ...acousticEventDisfluencies];
     const sldCount = allDisfluencies.filter(d => d.category === 'SLD').length;
     const odCount = allDisfluencies.filter(d => d.category === 'OD').length;
-    
+
     // Count specific disfluency types
     const soundRepsCount = allDisfluencies.filter(d => d.type === 'SoundRepetition' || d.type === 'PartWordRepetition').length;
     const syllableRepsCount = allDisfluencies.filter(d => d.type === 'SyllableRepetition').length;
     const wordRepsCount = allDisfluencies.filter(d => d.type === 'WordRepetition').length;
     const phraseRepsCount = allDisfluencies.filter(d => d.type === 'PhraseRepetition').length;
     const revisionsCount = allDisfluencies.filter(d => d.type === 'Revision').length;
-    const blocksCount = acousticAnalysis.patterns.filter(p => p.type === 'Block').length;
-    const prolongationsCount = acousticAnalysis.patterns.filter(p => p.type === 'Prolongation').length;
+    const blocksCount = allDisfluencies.filter(d => d.type === 'Block').length;
+    const prolongationsCount = allDisfluencies.filter(d => d.type === 'Prolongation').length;
     const interjectionsCount = allDisfluencies.filter(d => d.type === 'Interjection').length;
-    
-    // Calculate WSS
+
+    // Merge acoustic block durations into the longest-blocks pool used by WSS,
+    // so silent intra-word blocks contribute to severity scoring.
+    const combinedBlockDurations = [
+      ...acousticAnalysis.longestBlocks,
+      ...acousticEvents.filter(e => e.type === 'BLOCK' || e.type === 'PROLONGATION').map(e => e.durationMs),
+    ].sort((a, b) => b - a);
+    const longestBlocks = combinedBlockDurations.slice(0, 3);
+
+    // Calculate WSS using the merged block pool
     const wss = calculateWSS(
       blocksCount,
       prolongationsCount,
       soundRepsCount + syllableRepsCount,
-      acousticAnalysis.longestBlocks,
+      longestBlocks,
       totalSyllables
     );
     
