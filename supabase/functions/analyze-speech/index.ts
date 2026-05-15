@@ -520,6 +520,7 @@ serve(async (req) => {
     }
 
     const { transcript, targetPhrase, words, sessionContext, environmentType } = rawBody;
+    const acousticEvents = sanitiseAcousticEvents(rawBody?.acousticEvents);
     
     if (!transcript || typeof transcript !== 'string') {
       return new Response(JSON.stringify({ error: 'Invalid request' }), {
