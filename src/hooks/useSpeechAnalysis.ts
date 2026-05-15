@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { StammerEvent } from '@/hooks/useStammerDetector';
+import { limitAcousticEvents } from '@/lib/acousticEvents';
 
 interface WordTiming {
   word: string;
@@ -232,13 +233,22 @@ export function useSpeechAnalysis() {
 
               // Step 2: Analyze with word timings
               console.log('Analyzing speech...');
+              // Cap + chunk acoustic events so we never exceed the
+              // analyze-speech server-side limit (most clinically
+              // significant events are kept first).
+              const limited = limitAcousticEvents(acousticEvents);
+              if (limited.truncated) {
+                console.warn(
+                  `Trimmed acoustic events for analyze-speech: kept ${limited.kept}/${limited.total} (dropped ${limited.dropped}).`,
+                );
+              }
               const { data: analysisData, error: analysisError } = await supabase.functions.invoke('analyze-speech', {
                 body: {
                   transcript: transcription.text,
                   targetPhrase,
                   words: transcription.words,
                   segments: transcription.segments ?? [],
-                  acousticEvents,
+                  acousticEvents: limited.events,
                 }
               });
 
