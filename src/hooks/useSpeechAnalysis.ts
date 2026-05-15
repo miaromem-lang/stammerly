@@ -85,6 +85,7 @@ interface AnalysisResult {
 interface TranscriptionResult {
   text: string;
   words: WordTiming[];
+  segments?: Array<{ id?: number | null; start: number; end: number; text?: string }>;
   duration: number;
   audioFilePath?: string | null;
 }
@@ -200,6 +201,7 @@ export function useSpeechAnalysis() {
                   transcript: transcription.text,
                   targetPhrase,
                   words: transcription.words,
+                  segments: transcription.segments ?? [],
                   acousticEvents,
                 }
               });

@@ -27,6 +27,13 @@ interface WordTiming {
   duration: number;
 }
 
+interface Segment {
+  id?: number | null;
+  start: number;
+  end: number;
+  text?: string;
+}
+
 interface DisfluencyLog {
   type: string;
   category: 'SLD' | 'OD';
@@ -191,6 +198,95 @@ function calculateNaturalnessScore(
   else if (pauseVariance > 200) score -= 1; // Natural variation
   
   return Math.max(1, Math.min(9, score));
+}
+
+
+// Naive single-word syllable estimator (English heuristics).
+function syllableCount(word: string): number {
+  const w = word.toLowerCase().replace(/[^a-z]/g, '');
+  if (!w) return 0;
+  const vowels = w.match(/[aeiouy]+/g);
+  let n = vowels ? vowels.length : 1;
+  if (w.endsWith('e') && n > 1) n--;
+  if (w.endsWith('le') && w.length > 2) n++;
+  return Math.max(1, n);
+}
+
+/**
+ * Detect intra-word blocks: silences that occur *within* a single Whisper
+ * word token. Whisper collapses silence into the surrounding word's duration,
+ * so a 600ms block in the middle of "ball" makes the word's duration much
+ * larger than physically articulating "ball" should ever take.
+ *
+ * Strategy: compare each word's actual duration to its expected articulation
+ * duration (syllables × per-sample average articulation rate, with a floor).
+ * Words that overshoot by a meaningful margin are flagged as intra-word
+ * blocks, with the excess duration treated as the block length.
+ *
+ * Segment timestamps refine the signal: within a single Whisper segment,
+ * abnormally long words are far more likely to contain a real silent block
+ * than a slow but fluent articulation, because segment boundaries usually
+ * correspond to true phrase boundaries (where stretching is natural).
+ */
+function detectIntraWordBlocks(
+  words: WordTiming[],
+  segments: Segment[]
+): DisfluencyLog[] {
+  if (!words || words.length === 0) return [];
+
+  // Per-sample average articulation seconds per syllable.
+  // Use the median word's seconds-per-syllable to resist outliers.
+  const ratesPerSyl: number[] = [];
+  for (const w of words) {
+    const syl = syllableCount(w.word);
+    if (syl > 0 && w.duration > 0.04) ratesPerSyl.push(w.duration / syl);
+  }
+  ratesPerSyl.sort((a, b) => a - b);
+  const sampleSecPerSyl = ratesPerSyl.length
+    ? ratesPerSyl[Math.floor(ratesPerSyl.length / 2)]
+    : 0.18;
+  // Clamp so a very stuttered sample doesn't make the baseline absurd.
+  const baselineSecPerSyl = Math.max(0.12, Math.min(0.30, sampleSecPerSyl));
+
+  // Build word -> segment lookup so we can prefer in-segment evidence.
+  const segmentForTime = (t: number): Segment | null =>
+    segments.find(s => t >= s.start && t <= s.end) || null;
+
+  const out: DisfluencyLog[] = [];
+  for (const w of words) {
+    const syl = syllableCount(w.word);
+    if (syl === 0) continue;
+
+    const expected = Math.max(0.18, syl * baselineSecPerSyl); // seconds
+    const actual = w.duration;
+    const excess = actual - expected;
+
+    // Only flag when:
+    //  - the word over-runs its expected duration by ≥ 250ms (real block size)
+    //  - and the ratio is meaningful (≥ 1.6×) so we ignore mild lengthening
+    //  - and the word lives inside a segment (i.e. not a lone phrase) — being
+    //    in a segment with neighbouring words means the stretch isn't a
+    //    natural end-of-phrase prolongation.
+    if (excess < 0.25 || actual < expected * 1.6) continue;
+
+    const seg = segmentForTime(w.start + w.duration / 2);
+    const insideMultiWordSegment = seg ? (seg.end - seg.start) > actual * 1.05 : false;
+    if (!insideMultiWordSegment) continue;
+
+    const excessMs = excess * 1000;
+    out.push({
+      type: 'IntraWordBlock',
+      category: 'SLD',
+      word: w.word,
+      phoneme: getInitialPhoneme(w.word),
+      severity: excessMs > 800 ? 'severe' : excessMs > 400 ? 'moderate' : 'mild',
+      durationMs: excessMs,
+      positionInWord: 'medial',
+      timestampInSession: w.start,
+      suggestion: 'Long silent pause inside this word — try gentle airflow through the syllable',
+    });
+  }
+  return out;
 }
 
 // Analyze word timings for comprehensive acoustic patterns
@@ -519,7 +615,19 @@ serve(async (req) => {
       });
     }
 
-    const { transcript, targetPhrase, words, sessionContext, environmentType } = rawBody;
+    const { transcript, targetPhrase, words, segments: rawSegments, sessionContext, environmentType } = rawBody;
+    const segments: Segment[] = Array.isArray(rawSegments)
+      ? rawSegments
+          .filter((s: unknown) => s && typeof s === 'object'
+            && typeof (s as Segment).start === 'number'
+            && typeof (s as Segment).end === 'number')
+          .map((s: Segment) => ({
+            id: s.id ?? null,
+            start: s.start,
+            end: s.end,
+            text: typeof s.text === 'string' ? s.text : '',
+          }))
+      : [];
     const acousticEvents = sanitiseAcousticEvents(rawBody?.acousticEvents);
     
     if (!transcript || typeof transcript !== 'string') {
@@ -565,6 +673,10 @@ serve(async (req) => {
 
     // Pre-analyze acoustic patterns from word timings
     const acousticAnalysis = analyzeAcousticPatterns(words || []);
+    // Detect blocks that occur *within* a single Whisper word using
+    // segment-level timestamps. These are silences the existing inter-word
+    // gap analysis cannot see.
+    const intraWordBlocks = detectIntraWordBlocks(words || [], segments);
     const textDisfluencies = detectTextDisfluencies(transcript);
     const wordAvoidances = detectWordAvoidances(transcript, targetPhrase || '');
     
@@ -586,7 +698,7 @@ serve(async (req) => {
     const acousticEventDisfluencies = acousticEvents.map(acousticEventToDisfluency);
 
     // Count SLD vs OD
-    const allDisfluencies = [...acousticAnalysis.patterns, ...textDisfluencies, ...acousticEventDisfluencies];
+    const allDisfluencies = [...acousticAnalysis.patterns, ...textDisfluencies, ...acousticEventDisfluencies, ...intraWordBlocks];
     const sldCount = allDisfluencies.filter(d => d.category === 'SLD').length;
     const odCount = allDisfluencies.filter(d => d.category === 'OD').length;
 
@@ -596,15 +708,17 @@ serve(async (req) => {
     const wordRepsCount = allDisfluencies.filter(d => d.type === 'WordRepetition').length;
     const phraseRepsCount = allDisfluencies.filter(d => d.type === 'PhraseRepetition').length;
     const revisionsCount = allDisfluencies.filter(d => d.type === 'Revision').length;
-    const blocksCount = allDisfluencies.filter(d => d.type === 'Block').length;
+    const blocksCount = allDisfluencies.filter(d => d.type === 'Block' || d.type === 'IntraWordBlock').length;
     const prolongationsCount = allDisfluencies.filter(d => d.type === 'Prolongation').length;
     const interjectionsCount = allDisfluencies.filter(d => d.type === 'Interjection').length;
+    const intraWordBlocksCount = intraWordBlocks.length;
 
     // Merge acoustic block durations into the longest-blocks pool used by WSS,
     // so silent intra-word blocks contribute to severity scoring.
     const combinedBlockDurations = [
       ...acousticAnalysis.longestBlocks,
       ...acousticEvents.filter(e => e.type === 'BLOCK' || e.type === 'PROLONGATION').map(e => e.durationMs),
+      ...intraWordBlocks.map(b => b.durationMs ?? 0),
     ].sort((a, b) => b - a);
     const longestBlocks = combinedBlockDurations.slice(0, 3);
 
@@ -644,6 +758,11 @@ LIVE BROWSER ACOUSTIC EVENTS (real-time microphone analyser, ground-truth signal
 ${acousticEvents.length > 0
   ? acousticEvents.map(e => `- ${e.type} ${e.durationMs.toFixed(0)}ms (confidence ${(e.confidence * 100).toFixed(0)}%): ${e.detail}`).join('\n')
   : 'No live acoustic events captured (detector inactive or clean speech)'}
+
+INTRA-WORD BLOCKS (silences inside a Whisper word, derived from segment-level timing):
+${intraWordBlocks.length > 0
+  ? intraWordBlocks.map(b => `- "${b.word}" (${b.severity}, ~${(b.durationMs ?? 0).toFixed(0)}ms hidden silence)`).join('\n')
+  : 'None detected'}
 
 PHONEME TRIGGERS IDENTIFIED:
 ${acousticAnalysis.phonemeTriggers.length > 0 ? acousticAnalysis.phonemeTriggers.map(p => `- /${p.phoneme}/: ${p.count} occurrences (avg ${p.avgDurationMs.toFixed(0)}ms) - words: ${p.words.join(', ')}`).join('\n') : 'No significant phoneme triggers'}
@@ -805,11 +924,12 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
     if (toolCall?.function?.arguments) {
       const analysis = JSON.parse(toolCall.function.arguments);
       
-      // Merge pre-detected disfluencies (transcript-derived + live acoustic) with AI analysis
+      // Merge pre-detected disfluencies (transcript-derived + live acoustic + intra-word) with AI analysis
       const mergedDisfluencies = [
         ...acousticAnalysis.patterns,
         ...textDisfluencies,
         ...acousticEventDisfluencies,
+        ...intraWordBlocks,
         ...(analysis.disfluencies || [])
       ];
       
@@ -870,6 +990,7 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
 
         // Echo back the live acoustic events used in this analysis
         acousticEventsCount: acousticEvents.length,
+        intraWordBlocksCount,
         
         // All disfluencies with full detail
         disfluencies: uniqueDisfluencies,

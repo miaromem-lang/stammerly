@@ -198,17 +198,19 @@ const Practice = () => {
 
       const transcribedText = transcriptionData?.text || '';
       const wordTimings = transcriptionData?.words || [];
+      const segmentTimings = transcriptionData?.segments || [];
       setTranscript(transcribedText);
       console.log('Transcription:', transcribedText);
 
-      // Step 2: Analyze with AI including word timings for acoustic analysis
+      // Step 2: Analyze with AI including word + segment timings (segments
+      // enable intra-word block detection) and live acoustic events.
       console.log('Analyzing speech...');
       const { data, error } = await supabase.functions.invoke('analyze-speech', {
         body: {
           transcript: transcribedText,
           targetPhrase,
           words: wordTimings,
-          // Ground-truth acoustic events captured live by useStammerDetector
+          segments: segmentTimings,
           acousticEvents: acousticEventsRef.current,
         }
       });
