@@ -422,6 +422,11 @@ const Practice = () => {
       
       mediaRecorderRef.current.start(100);
       setIsRecording(true);
+      // Reset and start the headless stammer detector for this take
+      acousticEventsRef.current = [];
+      exerciseDetector.startRecording().catch((err) => {
+        console.warn('Stammer detector failed to start (continuing without acoustic events):', err);
+      });
       setRecordingTime(0);
       setActiveWord(0);
       setShowResults(false);
