@@ -8,6 +8,7 @@ import { AccessibilityToggle } from "@/components/AccessibilityToggle";
 import { toast } from "sonner";
 
 const navLinks = [
+  { to: "/session", label: "Live Session" },
   { to: "/about", label: "About" },
   { to: "/our-story", label: "Our Story" },
   { to: "/mission", label: "Mission" },
