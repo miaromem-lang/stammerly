@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { HubNavigation } from "@/components/HubNavigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Clock, Activity, Calendar, MapPin } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Clock, Activity, Calendar, MapPin, Search, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type MarkerType = "Block" | "Repetition" | "Prolongation" | "Interjection";
