@@ -640,6 +640,11 @@ ${acousticAnalysis.patterns.length > 0 ? acousticAnalysis.patterns.map(p => `- $
 TEXT PATTERN ANALYSIS DETECTED:
 ${textDisfluencies.length > 0 ? textDisfluencies.map(d => `- ${d.type} (${d.category}): "${d.word}"`).join('\n') : 'No text-based disfluencies detected'}
 
+LIVE BROWSER ACOUSTIC EVENTS (real-time microphone analyser, ground-truth signal):
+${acousticEvents.length > 0
+  ? acousticEvents.map(e => `- ${e.type} ${e.durationMs.toFixed(0)}ms (confidence ${(e.confidence * 100).toFixed(0)}%): ${e.detail}`).join('\n')
+  : 'No live acoustic events captured (detector inactive or clean speech)'}
+
 PHONEME TRIGGERS IDENTIFIED:
 ${acousticAnalysis.phonemeTriggers.length > 0 ? acousticAnalysis.phonemeTriggers.map(p => `- /${p.phoneme}/: ${p.count} occurrences (avg ${p.avgDurationMs.toFixed(0)}ms) - words: ${p.words.join(', ')}`).join('\n') : 'No significant phoneme triggers'}
 
@@ -651,7 +656,9 @@ CLINICAL METRICS CALCULATED:
 - Articulation Rate: ${articulationRate.toFixed(0)} SPM
 - Initiation Lag: ${initiationLagMs ? initiationLagMs.toFixed(0) + 'ms' : 'N/A'}
 - Naturalness Score: ${naturalnessScore}/9 (1=most natural)
-- Longest Blocks: ${acousticAnalysis.longestBlocks.map(b => b.toFixed(0) + 'ms').join(', ') || 'None'}
+- Longest Blocks (merged transcript + acoustic): ${longestBlocks.map(b => b.toFixed(0) + 'ms').join(', ') || 'None'}
+
+IMPORTANT: When LIVE BROWSER ACOUSTIC EVENTS are present, treat them as the primary signal — they capture intra-word blocks and prolongations the transcript alone cannot show. Cross-reference them with the transcript timing rather than discounting them.
 
 SCORING FRAMEWORK:
 - Base fluency score: 100
