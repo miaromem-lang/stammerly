@@ -912,10 +912,21 @@ const Practice = () => {
                 </div>
               )}
 
-              {/* Clinician-only WSS explainability */}
+              {/* Clinician-only WSS explainability + acoustic timeline */}
               {isClinician && analysis.wssExplain && (
                 <div className="mb-6">
                   <WSSExplainabilityPanel explain={analysis.wssExplain} />
+                </div>
+              )}
+              {isClinician && lastAcousticRows.length > 0 && (
+                <div className="mb-6">
+                  <AcousticTimeline
+                    events={lastAcousticRows}
+                    words={lastWordTimings}
+                    transcript={lastTranscript}
+                    durationSeconds={recordingTime}
+                    title="Acoustic events × transcript timing (this take)"
+                  />
                 </div>
               )}
 
