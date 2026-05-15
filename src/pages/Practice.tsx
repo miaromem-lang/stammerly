@@ -125,14 +125,14 @@ const Practice = () => {
         reason = "no-profile";
         accept = true;
       } else if (f0Hz > 0) {
-        const inBand = f0Hz >= fp.f0P10 - 30 && f0Hz <= fp.f0P90 + 30;
+        const inBand = f0Hz >= fp.f0P10 - speaker.settings.f0MarginHz && f0Hz <= fp.f0P90 + speaker.settings.f0MarginHz;
         reason = inBand ? "voiced-in-band" : "voiced-out-of-band";
         accept = inBand;
       } else {
         let s = 0;
         for (let i = 0; i < timeBuf.length; i++) s += timeBuf[i] * timeBuf[i];
         rmsVal = Math.sqrt(s / timeBuf.length);
-        const quiet = rmsVal <= fp.energyP75 * 1.5;
+        const quiet = rmsVal <= fp.energyP75 * speaker.settings.energyHeadroom;
         reason = quiet ? "unvoiced-quiet" : "unvoiced-loud";
         accept = quiet;
       }
