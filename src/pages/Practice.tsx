@@ -957,11 +957,12 @@ const Practice = () => {
               <div className="space-y-1 text-muted-foreground">
                 <div className="flex justify-between"><span>Profile:</span><span className={fp ? "text-success" : "text-destructive"}>{fp ? "enrolled" : "none (fail-open)"}</span></div>
                 {fp && (
-                  <div className="flex justify-between"><span>Pitch band:</span><span className="text-foreground">{Math.round(fp.f0P10)}–{Math.round(fp.f0P90)} Hz</span></div>
+                  <div className="flex justify-between"><span>Pitch band:</span><span className="text-foreground">{Math.round(fp.f0P10 - speaker.settings.f0MarginHz)}–{Math.round(fp.f0P90 + speaker.settings.f0MarginHz)} Hz</span></div>
                 )}
                 {fp && (
-                  <div className="flex justify-between"><span>Energy P75:</span><span className="text-foreground">{fp.energyP75.toFixed(3)}</span></div>
+                  <div className="flex justify-between"><span>Energy cutoff:</span><span className="text-foreground">{(fp.energyP75 * speaker.settings.energyHeadroom).toFixed(3)}</span></div>
                 )}
+                <div className="flex justify-between"><span>Settings:</span><span className="text-foreground">±{speaker.settings.f0MarginHz} Hz · ×{speaker.settings.energyHeadroom.toFixed(2)}</span></div>
                 <div className="flex justify-between"><span>Accepted:</span><span className="text-success">{gateStats.accepted}</span></div>
                 <div className="flex justify-between"><span>Rejected:</span><span className="text-destructive">{gateStats.rejected}</span></div>
                 <div className="flex justify-between"><span>Accept rate:</span><span className="text-foreground">{acceptPct}%</span></div>
