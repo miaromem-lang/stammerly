@@ -708,15 +708,17 @@ serve(async (req) => {
     const wordRepsCount = allDisfluencies.filter(d => d.type === 'WordRepetition').length;
     const phraseRepsCount = allDisfluencies.filter(d => d.type === 'PhraseRepetition').length;
     const revisionsCount = allDisfluencies.filter(d => d.type === 'Revision').length;
-    const blocksCount = allDisfluencies.filter(d => d.type === 'Block').length;
+    const blocksCount = allDisfluencies.filter(d => d.type === 'Block' || d.type === 'IntraWordBlock').length;
     const prolongationsCount = allDisfluencies.filter(d => d.type === 'Prolongation').length;
     const interjectionsCount = allDisfluencies.filter(d => d.type === 'Interjection').length;
+    const intraWordBlocksCount = intraWordBlocks.length;
 
     // Merge acoustic block durations into the longest-blocks pool used by WSS,
     // so silent intra-word blocks contribute to severity scoring.
     const combinedBlockDurations = [
       ...acousticAnalysis.longestBlocks,
       ...acousticEvents.filter(e => e.type === 'BLOCK' || e.type === 'PROLONGATION').map(e => e.durationMs),
+      ...intraWordBlocks.map(b => b.durationMs ?? 0),
     ].sort((a, b) => b - a);
     const longestBlocks = combinedBlockDurations.slice(0, 3);
 
