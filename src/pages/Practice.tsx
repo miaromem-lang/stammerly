@@ -1,14 +1,22 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Mic, MicOff, Volume2, RefreshCw, Star, Trophy, Loader2, ThumbsUp, AlertCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ArrowLeft, Mic, MicOff, Volume2, RefreshCw, Star, Trophy, Loader2, ThumbsUp, AlertCircle, Radio, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveQuest } from "@/hooks/useActiveQuest";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useAchievements } from "@/hooks/useAchievements";
 import PageBackground from "@/components/PageBackground";
+import { StammerDetector } from "@/components/StammerDetector";
+import { HubNavigation } from "@/components/HubNavigation";
+import { loadSavedName, loadSavedProfile } from "@/pages/Settings";
+
+type LiveRole = "parent" | "therapist" | "child";
 
 interface SpeechAnalysis {
   fluencyScore: number;
@@ -23,6 +31,23 @@ interface SpeechAnalysis {
 
 const Practice = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialMode: "exercise" | "live" = searchParams.get("mode") === "live" ? "live" : "exercise";
+  const [mode, setMode] = useState<"exercise" | "live">(initialMode);
+
+  // Live Session state (merged from former /session page)
+  const [liveChildName, setLiveChildName] = useState(() => loadSavedName());
+  const [liveRole, setLiveRole] = useState<LiveRole>("parent");
+  const [liveStarted, setLiveStarted] = useState(false);
+  const [liveAudioProfile] = useState(() => loadSavedProfile());
+
+  const switchMode = (next: "exercise" | "live") => {
+    setMode(next);
+    const sp = new URLSearchParams(searchParams);
+    if (next === "live") sp.set("mode", "live"); else sp.delete("mode");
+    setSearchParams(sp, { replace: true });
+  };
+
   const { getActiveQuest, clearActiveQuest } = useActiveQuest();
   const { addGemsAndStars, progress } = useUserProgress();
   const { checkAndAwardAchievements } = useAchievements();
@@ -443,6 +468,90 @@ const Practice = () => {
     return 1;
   };
 
+  // Live Session mode (merged from former /session) ----------------------
+  if (mode === "live") {
+    const handleLiveStart = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!liveChildName.trim()) return;
+      setLiveStarted(true);
+    };
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/15 via-primary/5 to-background">
+        <Helmet>
+          <title>Live Session | Stammerly</title>
+          <meta name="description" content="Real-time stammer detection session with Stammerly." />
+          <link rel="canonical" href="/practice?mode=live" />
+        </Helmet>
+        <HubNavigation />
+        <main className="container mx-auto px-2 sm:px-4 py-6 sm:py-10 pb-24 sm:pb-10 flex justify-center">
+          <div className="w-full max-w-5xl bg-white rounded-none sm:rounded-2xl shadow-none sm:shadow-xl p-4 sm:p-6 md:p-10">
+            <div className="flex justify-end mb-4">
+              <Button variant="outline" size="sm" onClick={() => switchMode("exercise")}>
+                <BookOpen className="w-4 h-4 mr-2" /> Switch to Exercise
+              </Button>
+            </div>
+            {!liveStarted ? (
+              <form onSubmit={handleLiveStart} className="max-w-md mx-auto space-y-6">
+                <div className="space-y-2 text-center">
+                  <h1 className="text-3xl font-display font-bold text-primary">Live Session</h1>
+                  <p className="text-sm text-muted-foreground">
+                    Tell us a little about who's using Stammerly today.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="liveChildName">Child's name</Label>
+                  <Input
+                    id="liveChildName"
+                    value={liveChildName}
+                    onChange={(e) => setLiveChildName(e.target.value)}
+                    placeholder="e.g. Leo"
+                    required
+                    autoFocus
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>I am a…</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["parent", "therapist", "child"] as LiveRole[]).map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => setLiveRole(r)}
+                        className={`px-3 py-2 rounded-lg border text-sm capitalize transition-colors ${
+                          liveRole === r
+                            ? "border-primary bg-primary/10 text-primary font-medium"
+                            : "border-border bg-card text-muted-foreground hover:text-foreground"
+                        }`}
+                        aria-pressed={liveRole === r}
+                      >
+                        {r}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <Button type="submit" className="w-full" disabled={!liveChildName.trim()}>
+                  Continue
+                </Button>
+              </form>
+            ) : (
+              <>
+                <h1 className="sr-only">Live Stammer Detection Session</h1>
+                <StammerDetector
+                  childName={liveChildName}
+                  childId="child_001"
+                  defaultView={liveRole}
+                  defaultProfile={liveAudioProfile}
+                  environmentType={typeof liveAudioProfile === 'string' ? liveAudioProfile : 'quiet'}
+                />
+              </>
+            )}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Exercise mode (default) ----------------------------------------------
   return (
     <div className="min-h-screen relative">
       <PageBackground />
@@ -457,9 +566,14 @@ const Practice = () => {
               <span>Back</span>
             </button>
             <h1 className="font-display font-bold text-xl text-foreground">Easy Onset Quest 🌊</h1>
-            <div className="flex items-center gap-2 bg-gold/20 px-3 py-1 rounded-full">
-              <Star className="w-4 h-4 text-gold fill-gold" />
-              <span className="font-bold text-sm">+10</span>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => switchMode("live")}>
+                <Radio className="w-4 h-4 mr-1" /> Live Session
+              </Button>
+              <div className="flex items-center gap-2 bg-gold/20 px-3 py-1 rounded-full">
+                <Star className="w-4 h-4 text-gold fill-gold" />
+                <span className="font-bold text-sm">+10</span>
+              </div>
             </div>
           </div>
         </div>

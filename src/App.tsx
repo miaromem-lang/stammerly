@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DevRoleSwitcher } from "@/components/DevRoleSwitcher";
@@ -51,7 +51,7 @@ import FundingSupport from "./pages/FundingSupport";
 import TechnicalIntegration from "./pages/TechnicalIntegration";
 import AdminHub from "./pages/AdminHub";
 
-import Session from "./pages/Session";
+
 import History from "./pages/History";
 import Settings from "./pages/Settings";
 import { BottomTabBar } from "@/components/BottomTabBar";
@@ -121,7 +121,7 @@ const App = () => (
             <Route path="/therapist-analytics" element={<ProtectedRoute allowedRoles={['therapist', 'admin']}><TherapistAnalyticsHub /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminHub /></ProtectedRoute>} />
             
-            <Route path="/session" element={<ProtectedRoute><Session /></ProtectedRoute>} />
+            <Route path="/session" element={<Navigate to="/practice?mode=live" replace />} />
             <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             
