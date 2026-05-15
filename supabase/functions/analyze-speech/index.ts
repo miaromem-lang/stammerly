@@ -206,15 +206,21 @@ function calculateNaturalnessScore(
 }
 
 
-// Naive single-word syllable estimator (English heuristics).
+// CMU-dict-backed single-word syllable count (via the `syllable` npm package).
+// Falls back to a vowel-group heuristic only if the library throws on a token.
 function syllableCount(word: string): number {
-  const w = word.toLowerCase().replace(/[^a-z]/g, '');
+  const w = word.toLowerCase().replace(/[^a-z']/g, '');
   if (!w) return 0;
-  const vowels = w.match(/[aeiouy]+/g);
-  let n = vowels ? vowels.length : 1;
-  if (w.endsWith('e') && n > 1) n--;
-  if (w.endsWith('le') && w.length > 2) n++;
-  return Math.max(1, n);
+  try {
+    const n = syllableLib(w);
+    return Number.isFinite(n) && n > 0 ? n : 1;
+  } catch {
+    const vowels = w.match(/[aeiouy]+/g);
+    let n = vowels ? vowels.length : 1;
+    if (w.endsWith('e') && n > 1) n--;
+    if (w.endsWith('le') && w.length > 2) n++;
+    return Math.max(1, n);
+  }
 }
 
 /**
