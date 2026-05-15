@@ -22,7 +22,7 @@ const Session = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
+    <div className="min-h-screen bg-gradient-to-br from-primary/15 via-primary/5 to-background">
       <Helmet>
         <title>Live Session | Stammerly</title>
         <meta name="description" content="Real-time stammer detection session with Stammerly." />
@@ -34,8 +34,8 @@ const Session = () => {
           {!started ? (
             <form onSubmit={handleStart} className="max-w-md mx-auto space-y-6">
               <div className="space-y-2 text-center">
-                <h1 className="text-2xl font-display font-bold text-foreground">
-                  Start a Session
+                <h1 className="text-3xl font-display font-bold text-primary">
+                  Stammerly
                 </h1>
                 <p className="text-sm text-muted-foreground">
                   Tell us a little about who's using Stammerly today.

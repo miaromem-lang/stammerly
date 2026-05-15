@@ -7,8 +7,8 @@
 
 @layer base {
   :root {
-    /* Core Navy Blue - Authority & Trust */
-    --primary: 232 67% 30%;
+    /* Stammerly Indigo - Brand Primary (#4F46E5) */
+    --primary: 243 75% 59%;
     --primary-foreground: 0 0% 100%;
     
     /* Vibrant Orange - Kids Energy */
@@ -304,7 +304,7 @@
   --muted-foreground: 0 0% 20%;
   --border: 0 0% 30%;
   --input: 0 0% 30%;
-  --primary: 232 100% 25%;
+  --primary: 243 80% 50%;
   --primary-foreground: 0 0% 100%;
   --secondary: 0 0% 92%;
   --secondary-foreground: 0 0% 0%;
