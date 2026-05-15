@@ -856,8 +856,69 @@ const Practice = () => {
                 </p>
               </div>
             )}
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowGateDebug((v) => !v)}
+                className="text-[11px] text-muted-foreground hover:text-foreground underline underline-offset-2"
+              >
+                {showGateDebug ? "Hide" : "Show"} gate debug
+              </button>
+            </div>
           </CardContent>
         </Card>
+
+        {showGateDebug && (() => {
+          const total = gateStats.accepted + gateStats.rejected;
+          const acceptPct = total > 0 ? Math.round((gateStats.accepted / total) * 100) : 0;
+          const fp = speaker.fingerprint;
+          const reasonLabel: Record<typeof gateStats.lastReason, string> = {
+            "no-profile": "No profile (fail-open)",
+            "voiced-in-band": "Voiced · in pitch band ✓",
+            "voiced-out-of-band": "Voiced · OUT of pitch band ✗",
+            "unvoiced-quiet": "Unvoiced · quiet ✓",
+            "unvoiced-loud": "Unvoiced · LOUD ✗",
+          };
+          const isAccept = gateStats.lastReason === "no-profile" || gateStats.lastReason === "voiced-in-band" || gateStats.lastReason === "unvoiced-quiet";
+          return (
+            <div
+              className="fixed bottom-4 right-4 z-50 w-72 rounded-lg border border-border bg-card/95 backdrop-blur-md shadow-xl p-3 text-xs font-mono"
+              role="status"
+              aria-live="polite"
+              aria-label="Speaker gate debug overlay"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-semibold text-foreground">Speaker gate</span>
+                <div className="flex items-center gap-1">
+                  <button onClick={resetGateStats} className="text-muted-foreground hover:text-foreground underline">reset</button>
+                  <button onClick={() => setShowGateDebug(false)} aria-label="Close debug overlay" className="ml-1 text-muted-foreground hover:text-foreground">
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-1 text-muted-foreground">
+                <div className="flex justify-between"><span>Profile:</span><span className={fp ? "text-success" : "text-destructive"}>{fp ? "enrolled" : "none (fail-open)"}</span></div>
+                {fp && (
+                  <div className="flex justify-between"><span>Pitch band:</span><span className="text-foreground">{Math.round(fp.f0P10)}–{Math.round(fp.f0P90)} Hz</span></div>
+                )}
+                {fp && (
+                  <div className="flex justify-between"><span>Energy P75:</span><span className="text-foreground">{fp.energyP75.toFixed(3)}</span></div>
+                )}
+                <div className="flex justify-between"><span>Accepted:</span><span className="text-success">{gateStats.accepted}</span></div>
+                <div className="flex justify-between"><span>Rejected:</span><span className="text-destructive">{gateStats.rejected}</span></div>
+                <div className="flex justify-between"><span>Accept rate:</span><span className="text-foreground">{acceptPct}%</span></div>
+                <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                  <div className="h-full bg-success" style={{ width: `${acceptPct}%` }} />
+                </div>
+                <div className="pt-1 border-t border-border mt-2">
+                  <div className="flex justify-between"><span>Last F0:</span><span className="text-foreground">{gateStats.lastF0 > 0 ? `${gateStats.lastF0.toFixed(0)} Hz` : "—"}</span></div>
+                  <div className="flex justify-between"><span>Last RMS:</span><span className="text-foreground">{gateStats.lastRms > 0 ? gateStats.lastRms.toFixed(3) : "—"}</span></div>
+                  <div className={`mt-1 ${isAccept ? "text-success" : "text-destructive"}`}>{reasonLabel[gateStats.lastReason]}</div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         <Card className="rounded-kids overflow-hidden bg-card/90 backdrop-blur-sm border-2 border-accent-orange/30">
           <CardContent className="p-8">
