@@ -112,7 +112,7 @@ const Practice = () => {
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    const safeChild = (childId || "child").replace(/[^a-z0-9_-]/gi, "_");
+    const safeChild = (speakerChildId || "child").replace(/[^a-z0-9_-]/gi, "_");
     a.href = url;
     a.download = `stammerly-gate-${safeChild}-${new Date().toISOString().slice(0, 10)}.json`;
     document.body.appendChild(a);
@@ -120,7 +120,7 @@ const Practice = () => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     toast.success("Gate settings exported.");
-  }, [speaker, childId]);
+  }, [speaker, speakerChildId]);
 
   const handleImportFile = useCallback(async (file: File) => {
     try {
