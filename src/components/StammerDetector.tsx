@@ -230,13 +230,23 @@ export function StammerDetector({
             )}
           </div>
           {saveStatus.state !== 'saving' && (
-            <button
-              onClick={dismissStatus}
-              className="text-xs opacity-60 hover:opacity-100 px-1"
-              aria-label="Dismiss"
-            >
-              ✕
-            </button>
+            <div className="flex items-center gap-1">
+              {saveStatus.state === 'error' && lastPayloadRef.current && (
+                <button
+                  onClick={handleRetry}
+                  className="text-xs font-medium px-2 py-1 rounded border border-red-300 text-red-700 hover:bg-red-100"
+                >
+                  Retry
+                </button>
+              )}
+              <button
+                onClick={dismissStatus}
+                className="text-xs opacity-60 hover:opacity-100 px-1"
+                aria-label="Dismiss"
+              >
+                ✕
+              </button>
+            </div>
           )}
         </div>
       )}
