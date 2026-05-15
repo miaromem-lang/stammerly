@@ -87,6 +87,13 @@ export function StammerDetector({
     | { state: 'error'; message: string }
   >({ state: 'idle' })
 
+  const lastPayloadRef = useRef<{
+    counts: Partial<Record<MarkerType, number>>
+    sessionStart: Date
+    environmentType: string
+    total: number
+  } | null>(null)
+
   const detector = useStammerDetector({
     childId,
     audioProfile: defaultProfile,
@@ -94,6 +101,27 @@ export function StammerDetector({
       console.log('[Stammerly event]', e.type, e.detail, `conf=${e.confidence.toFixed(2)}`)
     },
   })
+
+  const performSave = async (payload: NonNullable<typeof lastPayloadRef.current>) => {
+    setSaveStatus({ state: 'saving' })
+    try {
+      const result = await saveSession({
+        counts: payload.counts,
+        sessionStart: payload.sessionStart,
+        environmentType: payload.environmentType,
+      })
+      if (result.saved && result.id) {
+        setSaveStatus({ state: 'saved', id: result.id, total: payload.total })
+        onSessionSaved?.(result.id)
+      } else if (result.reason === 'not_authenticated') {
+        setSaveStatus({ state: 'skipped', reason: 'Sign in to sync this session to therapist analytics.' })
+      } else {
+        setSaveStatus({ state: 'error', message: result.reason ?? 'Unknown error saving session.' })
+      }
+    } catch (err) {
+      setSaveStatus({ state: 'error', message: err instanceof Error ? err.message : 'Unexpected error.' })
+    }
+  }
 
   const handleStop = async () => {
     const counts = detector.events.reduce(
@@ -104,27 +132,22 @@ export function StammerDetector({
     const sessionStart = detector.sessionStart
     detector.stopRecording()
     if (!sessionStart) {
+      lastPayloadRef.current = null
       setSaveStatus({ state: 'skipped', reason: 'No session start recorded.' })
       return
     }
-    setSaveStatus({ state: 'saving' })
-    try {
-      const result = await saveSession({
-        counts,
-        sessionStart,
-        environmentType: environmentType ?? (typeof defaultProfile === 'string' ? defaultProfile : 'quiet'),
-      })
-      if (result.saved && result.id) {
-        setSaveStatus({ state: 'saved', id: result.id, total })
-        onSessionSaved?.(result.id)
-      } else if (result.reason === 'not_authenticated') {
-        setSaveStatus({ state: 'skipped', reason: 'Sign in to sync this session to therapist analytics.' })
-      } else {
-        setSaveStatus({ state: 'error', message: result.reason ?? 'Unknown error saving session.' })
-      }
-    } catch (err) {
-      setSaveStatus({ state: 'error', message: err instanceof Error ? err.message : 'Unexpected error.' })
+    const payload = {
+      counts,
+      sessionStart,
+      environmentType: environmentType ?? (typeof defaultProfile === 'string' ? defaultProfile : 'quiet'),
+      total,
     }
+    lastPayloadRef.current = payload
+    await performSave(payload)
+  }
+
+  const handleRetry = () => {
+    if (lastPayloadRef.current) void performSave(lastPayloadRef.current)
   }
 
   const dismissStatus = () => setSaveStatus({ state: 'idle' })
