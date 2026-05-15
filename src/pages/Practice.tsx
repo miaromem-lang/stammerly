@@ -657,6 +657,41 @@ const Practice = () => {
               ● REC {formatTime(recordingTime)}
             </span>
           )}
+          {detectorStatus !== 'idle' && (
+            <span
+              className={
+                "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium " +
+                (detectorStatus === 'running'
+                  ? "border-success/40 bg-success/10 text-success"
+                  : detectorStatus === 'starting'
+                  ? "border-muted-foreground/30 bg-muted text-muted-foreground"
+                  : "border-destructive/40 bg-destructive/10 text-destructive")
+              }
+              role="status"
+              aria-live="polite"
+              title={
+                detectorStatus === 'skipped' && detectorSkipReason
+                  ? `Acoustic events skipped: ${detectorSkipReason}`
+                  : undefined
+              }
+            >
+              <span
+                className={
+                  "h-1.5 w-1.5 rounded-full " +
+                  (detectorStatus === 'running'
+                    ? "bg-success animate-pulse"
+                    : detectorStatus === 'starting'
+                    ? "bg-muted-foreground"
+                    : "bg-destructive")
+                }
+              />
+              {detectorStatus === 'running' && (
+                <>Detector live · {liveAcousticEventCount} event{liveAcousticEventCount === 1 ? '' : 's'} captured</>
+              )}
+              {detectorStatus === 'starting' && <>Detector starting…</>}
+              {detectorStatus === 'skipped' && <>Acoustic events skipped</>}
+            </span>
+          )}
         </div>
 
         <Card className="rounded-kids overflow-hidden bg-card/90 backdrop-blur-sm border-2 border-accent-orange/30">
