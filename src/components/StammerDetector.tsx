@@ -94,12 +94,12 @@ export function StammerDetector({
         </span>
 
         {/* View tabs */}
-        <div className="flex gap-1.5 flex-1">
+        <div className="flex gap-1.5 flex-1 overflow-x-auto sm:overflow-visible -mx-1 px-1 sm:mx-0 sm:px-0 snap-x">
           {(['child', 'parent', 'therapist'] as ViewMode[]).map(v => (
             <button
               key={v}
               onClick={() => setView(v)}
-              className={`px-3 py-1 text-sm rounded-lg border transition-colors ${
+              className={`shrink-0 snap-start px-3 py-1 text-sm rounded-lg border transition-colors ${
                 view === v
                   ? 'bg-gray-100 border-gray-300 text-gray-900 font-medium'
                   : 'border-gray-200 text-gray-500 hover:bg-gray-50'
