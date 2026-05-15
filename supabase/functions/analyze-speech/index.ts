@@ -1006,31 +1006,41 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
       };
       
       // --- Safeguarding Check ---
-      const safeguardingKeywords = ['hurt', 'hit', 'scared', 'help me', 'don\'t touch', 'stop it', 'go away', 'kill', 'die', 'hate myself'];
-      const lowerTranscript = transcript.toLowerCase();
-      const safeguardingTriggered = safeguardingKeywords.some(kw => lowerTranscript.includes(kw));
-      
-      if (safeguardingTriggered) {
+      // Use proper word-boundary regex matching so "hurt" doesn't fire on
+      // "hurtle", "hit" on "hitch", "die" on "diet"/"died"/"studied", etc.
+      // Multi-word phrases anchor with \b on the outer tokens only.
+      const safeguardingKeywords = ['hurt', 'hit', 'scared', 'help me', "don't touch", 'stop it', 'go away', 'kill', 'die', 'hate myself'];
+      const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const keywordPatterns = safeguardingKeywords.map(kw => ({
+        keyword: kw,
+        // \b works around the alphanumeric tokens; internal spaces/apostrophes
+        // are matched literally (apostrophes are non-word chars so we don't
+        // need a boundary around them).
+        pattern: new RegExp(`\\b${escapeRegex(kw)}\\b`, 'i'),
+      }));
+
+      const matched = keywordPatterns.find(({ pattern }) => pattern.test(transcript));
+
+      if (matched) {
         try {
           const serviceClient = createClient(
             Deno.env.get('SUPABASE_URL')!,
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
           );
-          
-          const matchedKeyword = safeguardingKeywords.find(kw => lowerTranscript.includes(kw)) || 'unknown';
-          
+
           await serviceClient.from('safeguarding_alerts').insert({
             user_id: userId,
             alert_type: 'keyword_detected',
-            reason: `Keyword detected in transcript: "${matchedKeyword}"`,
+            reason: `Keyword detected in transcript: "${matched.keyword}"`,
             status: 'pending',
           });
-          
-          console.log('Safeguarding alert created for user:', userId, 'keyword:', matchedKeyword);
+
+          console.log('Safeguarding alert created for user:', userId, 'keyword:', matched.keyword);
         } catch (safeguardingError) {
           console.error('Failed to create safeguarding alert:', safeguardingError);
         }
       }
+
       
       // --- Log API Usage ---
       try {
