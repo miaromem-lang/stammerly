@@ -204,10 +204,12 @@ const Practice = () => {
       // Step 2: Analyze with AI including word timings for acoustic analysis
       console.log('Analyzing speech...');
       const { data, error } = await supabase.functions.invoke('analyze-speech', {
-        body: { 
-          transcript: transcribedText, 
+        body: {
+          transcript: transcribedText,
           targetPhrase,
-          words: wordTimings 
+          words: wordTimings,
+          // Ground-truth acoustic events captured live by useStammerDetector
+          acousticEvents: acousticEventsRef.current,
         }
       });
 
