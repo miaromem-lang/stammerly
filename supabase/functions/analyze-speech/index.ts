@@ -763,15 +763,30 @@ serve(async (req) => {
     const percentSS = totalSyllables > 0 
       ? (sldCount / totalSyllables) * 100 
       : 0;
+
+    // 95% Wilson confidence interval for %SS, plus a propagated CI for WSS
+    // by recomputing the score at the lower/upper proportion bounds.
+    const ssInterval = wilsonInterval(sldCount, totalSyllables);
+    const percentSSCI = {
+      low: ssInterval.low * 100,
+      high: ssInterval.high * 100,
+    };
+    const wssCI = {
+      low: calculateWSSFromPercent(ssInterval.low * 100, longestBlocks),
+      high: calculateWSSFromPercent(ssInterval.high * 100, longestBlocks),
+    };
+    const sampleAdequacy = classifySampleAdequacy(totalSyllables);
     
     // Calculate naturalness score
     const naturalnessScore = calculateNaturalnessScore(words || [], syllablesPerMinute, pauseVariance);
     
     console.log('Pre-analysis complete:', { 
       sldCount, odCount, blocksCount, prolongationsCount,
-      wss, percentSS, naturalnessScore,
+      wss, percentSS, percentSSCI, wssCI, sampleAdequacy, totalSyllables,
+      naturalnessScore,
       phonemeTriggers: acousticAnalysis.phonemeTriggers.length
     });
+
 
     // Enhanced system prompt with comprehensive clinical analysis
     const systemPrompt = `You are an expert speech-language pathologist specializing in fluency disorders in children ages 4-12. You use evidence-based assessment methods including SSI-4 standards.
