@@ -171,6 +171,53 @@ export function StammerDetector({
         </div>
       )}
 
+      {/* ── Save status banner ── */}
+      {saveStatus.state !== 'idle' && (
+        <div
+          role="status"
+          aria-live="polite"
+          className={`mb-4 p-3 rounded-lg border text-sm flex items-start gap-2 ${
+            saveStatus.state === 'saving'
+              ? 'bg-blue-50 border-blue-200 text-blue-700'
+              : saveStatus.state === 'saved'
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+              : saveStatus.state === 'skipped'
+              ? 'bg-amber-50 border-amber-200 text-amber-700'
+              : 'bg-red-50 border-red-200 text-red-700'
+          }`}
+        >
+          <span className="mt-0.5">
+            {saveStatus.state === 'saving' && (
+              <span className="inline-block w-3.5 h-3.5 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
+            )}
+            {saveStatus.state === 'saved' && '✓'}
+            {saveStatus.state === 'skipped' && 'ⓘ'}
+            {saveStatus.state === 'error' && '⚠'}
+          </span>
+          <div className="flex-1">
+            {saveStatus.state === 'saving' && <span>Saving session to therapist analytics…</span>}
+            {saveStatus.state === 'saved' && (
+              <span>
+                Session saved — {saveStatus.total} event{saveStatus.total === 1 ? '' : 's'} synced to therapist analytics.
+              </span>
+            )}
+            {saveStatus.state === 'skipped' && <span>{saveStatus.reason}</span>}
+            {saveStatus.state === 'error' && (
+              <span>Couldn't save to analytics: {saveStatus.message}</span>
+            )}
+          </div>
+          {saveStatus.state !== 'saving' && (
+            <button
+              onClick={dismissStatus}
+              className="text-xs opacity-60 hover:opacity-100 px-1"
+              aria-label="Dismiss"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      )}
+
       {/* ── Views ── */}
       {view === 'child'     && <ChildView     name={childName} detector={detector} />}
       {view === 'parent'    && <ParentView    name={childName} detector={detector} />}
