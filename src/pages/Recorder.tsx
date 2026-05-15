@@ -192,7 +192,7 @@ const Recorder = () => {
           </CardContent>
         </Card>
       </main>
-    </PageBackground>
+    </>
   );
 };
 
