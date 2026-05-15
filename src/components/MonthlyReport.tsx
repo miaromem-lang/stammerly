@@ -306,30 +306,50 @@ export const MonthlyReport = ({ recipientType, childName = "Child" }: MonthlyRep
     }
   };
 
-  const handleEmail = async () => {
-    if (!email.trim()) {
-      toast.error("Please enter an email address");
-      return;
-    }
-
+  const handleShareWithTherapist = async () => {
     setLoading(true);
     try {
-      const data = await fetchReportData();
-      const pdf = await generatePDF(data);
-      const pdfBase64 = pdf.output("datauristring").split(",")[1];
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user) {
+        toast.error("Please sign in to share reports");
+        return;
+      }
 
-      // For now, just download since email requires Resend setup
-      // You can integrate Resend here later
-      toast.info("Email feature requires setup. Downloading instead...");
-      const [year, month] = selectedMonth.split("-");
-      pdf.save(`speech-report-${year}-${month}.pdf`);
+      const [year, month] = selectedMonth.split("-").map(Number);
+      const monthLabel = new Date(year, month - 1).toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+
+      const { data: link } = await (supabase as any)
+        .from("parent_child_links")
+        .select("child_user_id")
+        .eq("parent_user_id", userData.user.id)
+        .eq("is_active", true)
+        .limit(1)
+        .maybeSingle();
+
+      if (!link?.child_user_id) {
+        toast.error("No linked child found to share a report for");
+        return;
+      }
+
+      const { error } = await (supabase as any).from("context_notes").insert({
+        parent_user_id: userData.user.id,
+        child_user_id: link.child_user_id,
+        note_text: `📄 Monthly report request for ${monthLabel} — please review and share back if needed.`,
+        note_date: new Date().toISOString().split("T")[0],
+      });
+
+      if (error) throw error;
+      toast.success("Shared with your therapist");
+      setOpen(false);
     } catch (err) {
-      console.error("Error:", err);
-      toast.error("Failed to send report");
+      console.error("Error sharing report:", err);
+      toast.error("Failed to share with therapist");
     } finally {
       setLoading(false);
     }
   };
+
+  const canDownload = recipientType === "therapist";
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -343,12 +363,11 @@ export const MonthlyReport = ({ recipientType, childName = "Child" }: MonthlyRep
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="w-5 h-5 text-primary" />
-            Generate Monthly Report
+            {canDownload ? "Generate Monthly Report" : "Share Monthly Report"}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 mt-4">
-          {/* Month Selector */}
           <div>
             <label className="text-sm font-medium mb-2 block">Select Month</label>
             <Select value={selectedMonth} onValueChange={setSelectedMonth}>
@@ -368,7 +387,6 @@ export const MonthlyReport = ({ recipientType, childName = "Child" }: MonthlyRep
             </Select>
           </div>
 
-          {/* Report Preview */}
           <Card className="bg-secondary/50">
             <CardContent className="p-4">
               <p className="text-sm text-muted-foreground mb-2">Report includes:</p>
@@ -393,35 +411,30 @@ export const MonthlyReport = ({ recipientType, childName = "Child" }: MonthlyRep
             </CardContent>
           </Card>
 
-          {/* Download Button */}
-          <Button onClick={handleDownload} disabled={loading} className="w-full">
-            {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-            ) : (
-              <Download className="w-4 h-4 mr-2" />
-            )}
-            Download PDF
-          </Button>
-
-          {/* Email Option */}
-          <div className="border-t pt-4">
-            <label className="text-sm font-medium mb-2 block">Or send via email</label>
-            <div className="flex gap-2">
-              <Input
-                type="email"
-                placeholder="Enter email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1"
-              />
-              <Button variant="outline" onClick={handleEmail} disabled={loading}>
-                <Mail className="w-4 h-4" />
+          {canDownload ? (
+            <Button onClick={handleDownload} disabled={loading} className="w-full">
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Download className="w-4 h-4 mr-2" />
+              )}
+              Download PDF
+            </Button>
+          ) : (
+            <>
+              <div className="rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+                Clinical PDF reports are only downloadable by your child's therapist. You can request a copy and your therapist will share it with you directly.
+              </div>
+              <Button onClick={handleShareWithTherapist} disabled={loading} className="w-full">
+                {loading ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : (
+                  <Mail className="w-4 h-4 mr-2" />
+                )}
+                Share with therapist
               </Button>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Email feature requires additional setup
-            </p>
-          </div>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
