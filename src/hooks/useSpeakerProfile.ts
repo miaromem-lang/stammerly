@@ -186,7 +186,8 @@ function percentile(sorted: number[], p: number): number {
   return sorted[idx];
 }
 
-const storageKey = (childId: string) => `${STORAGE_KEY_PREFIX}${childId}`;
+const storageKey  = (childId: string) => `${STORAGE_KEY_PREFIX}${childId}`;
+const settingsKey = (childId: string) => `${SETTINGS_KEY_PREFIX}${childId}`;
 
 function loadFingerprint(childId: string): SpeakerFingerprint | null {
   try {
@@ -201,6 +202,28 @@ function saveFingerprint(fp: SpeakerFingerprint): void {
   try {
     localStorage.setItem(storageKey(fp.childId), JSON.stringify(fp));
   } catch { /* localStorage unavailable */ }
+}
+
+function clamp(v: number, lo: number, hi: number): number {
+  return Number.isFinite(v) ? Math.max(lo, Math.min(hi, v)) : lo;
+}
+
+function loadSettings(childId: string): SpeakerGateSettings {
+  try {
+    const raw = localStorage.getItem(settingsKey(childId));
+    if (!raw) return { ...DEFAULT_GATE_SETTINGS };
+    const parsed = JSON.parse(raw) as Partial<SpeakerGateSettings>;
+    return {
+      f0MarginHz: clamp(parsed.f0MarginHz ?? DEFAULT_GATE_SETTINGS.f0MarginHz, F0_MARGIN_MIN_HZ, F0_MARGIN_MAX_HZ),
+      energyHeadroom: clamp(parsed.energyHeadroom ?? DEFAULT_GATE_SETTINGS.energyHeadroom, ENERGY_HEADROOM_MIN, ENERGY_HEADROOM_MAX),
+    };
+  } catch {
+    return { ...DEFAULT_GATE_SETTINGS };
+  }
+}
+
+function saveSettings(childId: string, s: SpeakerGateSettings): void {
+  try { localStorage.setItem(settingsKey(childId), JSON.stringify(s)); } catch { /* ignore */ }
 }
 
 // ── Hook ─────────────────────────────────────────────────────────────────────
