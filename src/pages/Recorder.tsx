@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
 import PageBackground from "@/components/PageBackground";
-import HubNavigation from "@/components/HubNavigation";
+import { HubNavigation } from "@/components/HubNavigation";
 
 const formatTime = (s: number) => {
   const m = Math.floor(s / 60).toString().padStart(2, "0");
@@ -122,7 +122,8 @@ const Recorder = () => {
   };
 
   return (
-    <PageBackground>
+    <>
+      <PageBackground />
       <Helmet>
         <title>Recorder | Stammerly</title>
         <meta name="description" content="Record and review your speech practice with Stammerly's audio recorder." />
