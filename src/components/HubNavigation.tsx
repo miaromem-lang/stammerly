@@ -9,6 +9,7 @@ import { toast } from "sonner";
 
 const navLinks = [
   { to: "/session", label: "Live Session" },
+  { to: "/history", label: "History" },
   { to: "/about", label: "About" },
   { to: "/our-story", label: "Our Story" },
   { to: "/mission", label: "Mission" },

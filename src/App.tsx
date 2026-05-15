@@ -52,6 +52,7 @@ import TechnicalIntegration from "./pages/TechnicalIntegration";
 import AdminHub from "./pages/AdminHub";
 import Recorder from "./pages/Recorder";
 import Session from "./pages/Session";
+import History from "./pages/History";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -118,6 +119,7 @@ const App = () => (
             <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminHub /></ProtectedRoute>} />
             <Route path="/recorder" element={<ProtectedRoute><Recorder /></ProtectedRoute>} />
             <Route path="/session" element={<ProtectedRoute><Session /></ProtectedRoute>} />
+            <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
