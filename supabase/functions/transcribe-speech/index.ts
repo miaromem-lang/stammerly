@@ -181,6 +181,14 @@ serve(async (req) => {
     console.log('Transcription complete for user:', userId);
 
     const words = result.words || [];
+    const segments = (result.segments || []).map(
+      (s: { id?: number; start: number; end: number; text?: string }) => ({
+        id: s.id ?? null,
+        start: s.start,
+        end: s.end,
+        text: s.text ?? '',
+      })
+    );
     const rawText = result.text || '';
     const rawWords = words.map((w: { word: string; start: number; end: number }) => ({
       word: w.word,
