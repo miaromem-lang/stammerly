@@ -6,7 +6,11 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 
 interface SurfaceMetrics {
   weightedStutteringSeverity: number | null;
+  weightedStutteringSeverityCI?: { low: number; high: number } | null;
   percentSyllablesStuttered: number | null;
+  percentSyllablesStutteredCI?: { low: number; high: number } | null;
+  totalSyllables?: number | null;
+  sampleAdequacy?: 'low' | 'moderate' | 'adequate' | null;
   sldCount: number;
   odCount: number;
   syllablesPerMinute: number | null;
@@ -162,6 +166,17 @@ export const SurfaceCommandCentre = ({
 }: SurfaceCommandCentreProps) => {
   const wss = metrics.weightedStutteringSeverity ?? 0;
   const prevWss = previousMetrics?.weightedStutteringSeverity ?? null;
+  const wssCI = metrics.weightedStutteringSeverityCI ?? null;
+  const ssCI = metrics.percentSyllablesStutteredCI ?? null;
+  const adequacy = metrics.sampleAdequacy ?? null;
+  const totalSyllables = metrics.totalSyllables ?? null;
+
+  const adequacyMeta: Record<'low' | 'moderate' | 'adequate', { label: string; cls: string; tip: string }> = {
+    low: { label: 'Low confidence', cls: 'bg-destructive/15 text-destructive', tip: `Only ${totalSyllables ?? '<100'} syllables — well below SSI-4 norm of 200. Treat scores as indicative only.` },
+    moderate: { label: 'Moderate confidence', cls: 'bg-gold/20 text-gold', tip: `${totalSyllables ?? '~150'} syllables — below SSI-4 norm of 200. Some uncertainty in the score.` },
+    adequate: { label: 'Adequate sample', cls: 'bg-success/20 text-success', tip: `${totalSyllables ?? '≥200'} syllables — meets SSI-4 norm.` },
+  };
+  const adequacyChip = adequacy ? adequacyMeta[adequacy] : null;
   
   // Determine severity level
   const getSeverityLevel = (wss: number): { label: string; color: string; bgColor: string } => {
@@ -214,8 +229,20 @@ export const SurfaceCommandCentre = ({
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">%SS</span>
-            <span className="font-medium text-sm">{(metrics.percentSyllablesStuttered ?? 0).toFixed(1)}%</span>
+            <span className="font-medium text-sm">
+              {(metrics.percentSyllablesStuttered ?? 0).toFixed(1)}%
+              {ssCI && (
+                <span className="ml-1 text-[10px] text-muted-foreground">
+                  (CI {ssCI.low.toFixed(1)}–{ssCI.high.toFixed(1)})
+                </span>
+              )}
+            </span>
           </div>
+          {adequacyChip && (
+            <div className={cn("text-[10px] px-2 py-0.5 rounded-full inline-block", adequacyChip.cls)} title={adequacyChip.tip}>
+              {adequacyChip.label}
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">SLD/OD</span>
             <span className="font-medium text-sm">{metrics.sldCount}/{metrics.odCount}</span>
@@ -260,7 +287,22 @@ export const SurfaceCommandCentre = ({
           <div className="flex items-end gap-4">
             <span className={cn("text-4xl font-bold", severity.color)}>{wss.toFixed(1)}</span>
             <span className="text-muted-foreground text-sm mb-1">/100 (lower is better)</span>
+            {adequacyChip && (
+              <span
+                className={cn("ml-auto mb-1 text-[10px] px-2 py-0.5 rounded-full", adequacyChip.cls)}
+                title={adequacyChip.tip}
+              >
+                {adequacyChip.label}
+              </span>
+            )}
           </div>
+          {wssCI && (
+            <p className="text-xs text-muted-foreground mt-1">
+              95% CI {wssCI.low.toFixed(1)}–{wssCI.high.toFixed(1)}
+              {totalSyllables ? ` · n=${totalSyllables} syllables` : ''}
+              {adequacy && adequacy !== 'adequate' && ' · interpret with caution'}
+            </p>
+          )}
           <Progress value={100 - wss} className="h-2 mt-3" />
         </div>
         
@@ -270,6 +312,11 @@ export const SurfaceCommandCentre = ({
           <div className="p-3 bg-secondary/30 rounded-lg text-center">
             <p className="text-2xl font-bold text-primary">{(metrics.percentSyllablesStuttered ?? 0).toFixed(1)}%</p>
             <p className="text-xs text-muted-foreground">Syllables Stuttered</p>
+            {ssCI && (
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                95% CI {ssCI.low.toFixed(1)}–{ssCI.high.toFixed(1)}%
+              </p>
+            )}
           </div>
           
           {/* SPM */}

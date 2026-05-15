@@ -131,6 +131,30 @@ function getInitialPhoneme(word: string): string {
   return lower[0] || '';
 }
 
+// Wilson score interval for a binomial proportion. More accurate than the
+// normal approximation when n is small or p is near 0/1, which is exactly
+// the regime %SS lives in for short practice clips.
+function wilsonInterval(successes: number, n: number, z = 1.96): { low: number; high: number } {
+  if (n <= 0) return { low: 0, high: 0 };
+  const p = successes / n;
+  const z2 = z * z;
+  const denom = 1 + z2 / n;
+  const centre = p + z2 / (2 * n);
+  const margin = z * Math.sqrt((p * (1 - p) + z2 / (4 * n)) / n);
+  return {
+    low: Math.max(0, (centre - margin) / denom),
+    high: Math.min(1, (centre + margin) / denom),
+  };
+}
+
+// SSI-4 norms recommend ≥200 syllables for stable severity scoring.
+// Below ~100 syllables, %SS and WSS should be treated as indicative only.
+function classifySampleAdequacy(totalSyllables: number): 'low' | 'moderate' | 'adequate' {
+  if (totalSyllables < 100) return 'low';
+  if (totalSyllables < 200) return 'moderate';
+  return 'adequate';
+}
+
 // Calculate Weighted Stuttering Severity (WSS) based on SSI-4 standards
 function calculateWSS(
   blocksCount: number,
@@ -145,7 +169,12 @@ function calculateWSS(
   // Frequency score: percentage of stuttered syllables
   const stutteredSyllables = blocksCount + prolongationsCount + repetitionsCount;
   const percentStuttered = (stutteredSyllables / totalSyllables) * 100;
-  
+  return calculateWSSFromPercent(percentStuttered, longestBlocks);
+}
+
+// WSS from a precomputed %-stuttered, so we can recompute at the bounds of
+// the Wilson CI for the proportion.
+function calculateWSSFromPercent(percentStuttered: number, longestBlocks: number[]): number {
   // Duration score: average of three longest blocks
   const avgLongestBlocks = longestBlocks.length > 0 
     ? longestBlocks.reduce((a, b) => a + b, 0) / longestBlocks.length 
@@ -169,6 +198,7 @@ function calculateWSS(
   const rawScore = frequencyScore * 10 + durationScore * 15;
   return Math.min(100, rawScore);
 }
+
 
 // Calculate initiation lag (time from prompt end to first vocalization)
 function calculateInitiationLag(words: WordTiming[]): number | null {
@@ -733,15 +763,30 @@ serve(async (req) => {
     const percentSS = totalSyllables > 0 
       ? (sldCount / totalSyllables) * 100 
       : 0;
+
+    // 95% Wilson confidence interval for %SS, plus a propagated CI for WSS
+    // by recomputing the score at the lower/upper proportion bounds.
+    const ssInterval = wilsonInterval(sldCount, totalSyllables);
+    const percentSSCI = {
+      low: ssInterval.low * 100,
+      high: ssInterval.high * 100,
+    };
+    const wssCI = {
+      low: calculateWSSFromPercent(ssInterval.low * 100, longestBlocks),
+      high: calculateWSSFromPercent(ssInterval.high * 100, longestBlocks),
+    };
+    const sampleAdequacy = classifySampleAdequacy(totalSyllables);
     
     // Calculate naturalness score
     const naturalnessScore = calculateNaturalnessScore(words || [], syllablesPerMinute, pauseVariance);
     
     console.log('Pre-analysis complete:', { 
       sldCount, odCount, blocksCount, prolongationsCount,
-      wss, percentSS, naturalnessScore,
+      wss, percentSS, percentSSCI, wssCI, sampleAdequacy, totalSyllables,
+      naturalnessScore,
       phonemeTriggers: acousticAnalysis.phonemeTriggers.length
     });
+
 
     // Enhanced system prompt with comprehensive clinical analysis
     const systemPrompt = `You are an expert speech-language pathologist specializing in fluency disorders in children ages 4-12. You use evidence-based assessment methods including SSI-4 standards.
@@ -766,8 +811,9 @@ PHONEME TRIGGERS IDENTIFIED:
 ${acousticAnalysis.phonemeTriggers.length > 0 ? acousticAnalysis.phonemeTriggers.map(p => `- /${p.phoneme}/: ${p.count} occurrences (avg ${p.avgDurationMs.toFixed(0)}ms) - words: ${p.words.join(', ')}`).join('\n') : 'No significant phoneme triggers'}
 
 CLINICAL METRICS CALCULATED:
-- Weighted Stuttering Severity (WSS): ${wss.toFixed(1)}/100
-- Percent Syllables Stuttered (%SS): ${percentSS.toFixed(1)}%
+- Weighted Stuttering Severity (WSS): ${wss.toFixed(1)}/100 (95% CI ${wssCI.low.toFixed(1)}–${wssCI.high.toFixed(1)})
+- Percent Syllables Stuttered (%SS): ${percentSS.toFixed(1)}% (95% CI ${percentSSCI.low.toFixed(1)}–${percentSSCI.high.toFixed(1)}%)
+- Sample size: ${totalSyllables} syllables (adequacy: ${sampleAdequacy}; SSI-4 norm ≥200). Treat scores as ${sampleAdequacy === 'adequate' ? 'stable' : 'indicative only — wide CI reflects small sample'}.
 - SLD Count: ${sldCount}, OD Count: ${odCount}
 - Syllables Per Minute: ${syllablesPerMinute.toFixed(0)}
 - Articulation Rate: ${articulationRate.toFixed(0)} SPM
@@ -945,7 +991,11 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
         
         // Clinical metrics (Surface Command Centre)
         weightedStutteringSeverity: wss,
+        weightedStutteringSeverityCI: wssCI,
         percentSyllablesStuttered: percentSS,
+        percentSyllablesStutteredCI: percentSSCI,
+        totalSyllables,
+        sampleAdequacy,
         syllablesPerMinute: syllablesPerMinute,
         articulationRate: articulationRate,
         sldCount,

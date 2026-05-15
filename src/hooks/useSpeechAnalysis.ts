@@ -40,6 +40,10 @@ interface AnalysisResult {
   
   // Clinical metrics - Surface Command Centre
   weightedStutteringSeverity?: number;
+  weightedStutteringSeverityCI?: { low: number; high: number };
+  percentSyllablesStutteredCI?: { low: number; high: number };
+  totalSyllables?: number;
+  sampleAdequacy?: 'low' | 'moderate' | 'adequate';
   articulationRate?: number;
   sldCount?: number;
   odCount?: number;
