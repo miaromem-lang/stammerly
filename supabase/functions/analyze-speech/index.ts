@@ -27,6 +27,13 @@ interface WordTiming {
   duration: number;
 }
 
+interface Segment {
+  id?: number | null;
+  start: number;
+  end: number;
+  text?: string;
+}
+
 interface DisfluencyLog {
   type: string;
   category: 'SLD' | 'OD';
