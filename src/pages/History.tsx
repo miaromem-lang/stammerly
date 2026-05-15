@@ -146,6 +146,54 @@ const History = () => {
             </p>
           </header>
 
+          <Card className="bg-white shadow-sm mb-4">
+            <CardContent className="p-4 grid gap-3 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end">
+              <div className="space-y-1.5">
+                <Label htmlFor="search" className="text-xs">Search</Label>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="search"
+                    placeholder="Environment, marker, date…"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-8"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="from" className="text-xs">From</Label>
+                <Input
+                  id="from"
+                  type="date"
+                  value={fromDate}
+                  max={toDate || undefined}
+                  onChange={(e) => setFromDate(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="to" className="text-xs">To</Label>
+                <Input
+                  id="to"
+                  type="date"
+                  value={toDate}
+                  min={fromDate || undefined}
+                  onChange={(e) => setToDate(e.target.value)}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                disabled={!hasFilters}
+                className="justify-self-end"
+              >
+                <X className="w-4 h-4 mr-1" /> Clear
+              </Button>
+            </CardContent>
+          </Card>
+
           {loading ? (
             <ul className="space-y-3">
               {[0, 1, 2].map((i) => (
@@ -166,41 +214,52 @@ const History = () => {
                 No sessions yet — start one from the Session tab to see it here.
               </CardContent>
             </Card>
+          ) : filtered.length === 0 ? (
+            <Card className="bg-white">
+              <CardContent className="p-6 text-sm text-muted-foreground text-center">
+                No sessions match your filters.
+              </CardContent>
+            </Card>
           ) : (
-            <ul className="space-y-3">
-              {sessions.map((s) => (
-                <li key={s.id}>
-                  <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
-                    <CardContent className="p-5 flex items-center justify-between gap-4">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 flex-1 min-w-0">
-                        <div className="flex items-center gap-2 text-foreground font-medium">
-                          <Calendar className="w-4 h-4 text-muted-foreground" />
-                          {s.date}
+            <>
+              <p className="text-xs text-muted-foreground mb-2">
+                Showing {filtered.length} of {sessions.length} sessions
+              </p>
+              <ul className="space-y-3">
+                {filtered.map((s) => (
+                  <li key={s.id}>
+                    <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
+                      <CardContent className="p-5 flex items-center justify-between gap-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 flex-1 min-w-0">
+                          <div className="flex items-center gap-2 text-foreground font-medium">
+                            <Calendar className="w-4 h-4 text-muted-foreground" />
+                            {s.date}
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Clock className="w-4 h-4" />
+                            {s.durationMin} min
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Activity className="w-4 h-4" />
+                            {s.totalEvents} events
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground capitalize">
+                            <MapPin className="w-3.5 h-3.5" />
+                            {s.environment}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Clock className="w-4 h-4" />
-                          {s.durationMin} min
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Activity className="w-4 h-4" />
-                          {s.totalEvents} events
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground capitalize">
-                          <MapPin className="w-3.5 h-3.5" />
-                          {s.environment}
-                        </div>
-                      </div>
-                      <Badge
-                        variant="outline"
-                        className={`${markerStyles[s.dominantMarker]} font-medium`}
-                      >
-                        {s.dominantMarker}
-                      </Badge>
-                    </CardContent>
-                  </Card>
-                </li>
-              ))}
-            </ul>
+                        <Badge
+                          variant="outline"
+                          className={`${markerStyles[s.dominantMarker]} font-medium`}
+                        >
+                          {s.dominantMarker}
+                        </Badge>
+                      </CardContent>
+                    </Card>
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </div>
       </main>
