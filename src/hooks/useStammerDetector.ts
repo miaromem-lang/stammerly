@@ -224,9 +224,14 @@ export function useStammerDetector(options: DetectorOptions = {}) {
     maxBlockMs   = 850,
     audioProfile: initialProfile = 'quiet',
     onProfileChange,
+    scoreFrame,
   } = options
 
   const autoMode = initialProfile === 'auto'
+
+  // Stable ref so the hot loop always reads the latest gate without recreating
+  const scoreFrameRef = useRef(scoreFrame)
+  useEffect(() => { scoreFrameRef.current = scoreFrame }, [scoreFrame])
 
   // ── React state (only what drives re-renders) ─────────────────────────────
   const [isRecording,   setIsRecording]   = useState(false)
