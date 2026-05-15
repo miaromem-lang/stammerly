@@ -99,14 +99,74 @@ const Practice = () => {
     onEnrolled: () => toast.success("Voice enrolment complete — detector will now focus on this speaker."),
     onEnrollError: (reason) => toast.error(reason),
   });
+
+  // Speaker-gate debug overlay (toggle with `?debugGate=1` or via the button).
+  const [showGateDebug, setShowGateDebug] = useState(
+    () => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("debugGate") === "1",
+  );
+  type GateReason = "no-profile" | "voiced-in-band" | "voiced-out-of-band" | "unvoiced-quiet" | "unvoiced-loud";
+  const gateStatsRef = useRef({
+    accepted: 0,
+    rejected: 0,
+    lastReason: "no-profile" as GateReason,
+    lastF0: 0,
+    lastRms: 0,
+  });
+  const [gateStats, setGateStats] = useState(gateStatsRef.current);
+  const gateFlushRef = useRef<number>(0);
+
+  const wrappedScoreFrame = useCallback(
+    (timeBuf: Float32Array, f0Hz: number) => {
+      const fp = speaker.fingerprint;
+      let reason: GateReason;
+      let accept: boolean;
+      let rmsVal = 0;
+      if (!fp) {
+        reason = "no-profile";
+        accept = true;
+      } else if (f0Hz > 0) {
+        const inBand = f0Hz >= fp.f0P10 - 30 && f0Hz <= fp.f0P90 + 30;
+        reason = inBand ? "voiced-in-band" : "voiced-out-of-band";
+        accept = inBand;
+      } else {
+        let s = 0;
+        for (let i = 0; i < timeBuf.length; i++) s += timeBuf[i] * timeBuf[i];
+        rmsVal = Math.sqrt(s / timeBuf.length);
+        const quiet = rmsVal <= fp.energyP75 * 1.5;
+        reason = quiet ? "unvoiced-quiet" : "unvoiced-loud";
+        accept = quiet;
+      }
+      const stats = gateStatsRef.current;
+      if (accept) stats.accepted++;
+      else stats.rejected++;
+      stats.lastReason = reason;
+      stats.lastF0 = f0Hz;
+      stats.lastRms = rmsVal;
+      // Throttle React updates to ~10 fps to keep the hot loop cheap.
+      const now = performance.now();
+      if (now - gateFlushRef.current > 100) {
+        gateFlushRef.current = now;
+        setGateStats({ ...stats });
+      }
+      return accept;
+    },
+    [speaker.fingerprint],
+  );
+
   const exerciseDetector = useStammerDetector({
     audioProfile: loadSavedProfile(),
-    scoreFrame: speaker.scoreFrame,
+    scoreFrame: wrappedScoreFrame,
     onEvent: (ev) => {
       acousticEventsRef.current.push(ev);
       setLiveAcousticEventCount(acousticEventsRef.current.length);
     },
   });
+
+  const resetGateStats = () => {
+    gateStatsRef.current = { accepted: 0, rejected: 0, lastReason: "no-profile", lastF0: 0, lastRms: 0 };
+    setGateStats({ ...gateStatsRef.current });
+  };
+
 
   // Snapshots used by the clinician-only AcousticTimeline in the results card.
   const [lastWordTimings, setLastWordTimings] = useState<WordTimingLite[]>([]);
