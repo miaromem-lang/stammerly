@@ -79,13 +79,13 @@ describe("useSpeakerProfile settings — per-child gate strictness", () => {
     expect(result.current.settings.energyHeadroom).toBe(ENERGY_HEADROOM_MIN);
   });
 
-  it("resetSettings restores defaults and persists them", () => {
+  it("resetSettings clears the per-child override and snaps to global defaults", () => {
     const { result } = renderHook(() => useSpeakerProfile({ childId: "k5", sampleRate: SR }));
     act(() => { result.current.updateSettings({ f0MarginHz: 80, energyHeadroom: 3 }); });
     act(() => { result.current.resetSettings(); });
     expect(result.current.settings).toEqual(DEFAULT_GATE_SETTINGS);
-    expect(JSON.parse(localStorage.getItem("stammerly_speaker_settings_k5")!))
-      .toEqual(DEFAULT_GATE_SETTINGS);
+    // The per-child row is removed so future loads inherit globals
+    expect(localStorage.getItem("stammerly_speaker_settings_k5")).toBeNull();
   });
 
   it("scoreFrame fails open regardless of settings when un-enrolled", () => {
