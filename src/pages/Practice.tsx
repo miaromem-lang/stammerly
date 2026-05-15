@@ -823,6 +823,13 @@ const Practice = () => {
                 </div>
               )}
 
+              {/* Clinician-only WSS explainability */}
+              {isClinician && analysis.wssExplain && (
+                <div className="mb-6">
+                  <WSSExplainabilityPanel explain={analysis.wssExplain} />
+                </div>
+              )}
+
               {/* Encouragement */}
               <div className="bg-primary/10 rounded-xl p-4 mb-6 text-center">
                 <p className="text-foreground font-medium">🦦 Echo says: "{analysis.encouragement}"</p>
