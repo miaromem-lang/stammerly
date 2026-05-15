@@ -144,7 +144,7 @@ export function useSpeechAnalysis() {
     }
   }, []);
 
-  const stopRecording = useCallback(async (targetPhrase: string) => {
+  const stopRecording = useCallback(async (targetPhrase: string, acousticEvents: StammerEvent[] = []) => {
     if (!mediaRecorderRef.current) return;
 
     return new Promise<void>((resolve) => {
