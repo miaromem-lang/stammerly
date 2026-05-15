@@ -2,14 +2,14 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Smile, Users, GraduationCap, Stethoscope, Settings, X } from "lucide-react";
+import { Smile, Users, GraduationCap, Stethoscope, Settings, X, BarChart3 } from "lucide-react";
 import { useAuth, AppRole } from "@/hooks/useAuth";
 
 const roles = [
-  { id: "kid" as AppRole, label: "Kid Hub", icon: Smile, path: "/hub/kid", color: "bg-orange-500" },
-  { id: "parent" as AppRole, label: "Parent Hub", icon: Users, path: "/hub/parent", color: "bg-blue-500" },
-  { id: "teacher" as AppRole, label: "Teacher Hub", icon: GraduationCap, path: "/hub/teacher", color: "bg-green-500" },
-  { id: "therapist" as AppRole, label: "Therapist Hub", icon: Stethoscope, path: "/hub/therapist", color: "bg-purple-500" },
+  { id: "kid" as AppRole, label: "Kid Hub", icon: Smile, path: "/hub/kid", analyticsPath: "/analytics/kid", color: "bg-orange-500" },
+  { id: "parent" as AppRole, label: "Parent Hub", icon: Users, path: "/hub/parent", analyticsPath: "/analytics/parent", color: "bg-blue-500" },
+  { id: "teacher" as AppRole, label: "Teacher Hub", icon: GraduationCap, path: "/hub/teacher", analyticsPath: "/analytics/teacher", color: "bg-green-500" },
+  { id: "therapist" as AppRole, label: "Therapist Hub", icon: Stethoscope, path: "/hub/therapist", analyticsPath: "/analytics/therapist", color: "bg-purple-500" },
 ];
 
 export function DevRoleSwitcher() {
@@ -24,6 +24,12 @@ export function DevRoleSwitcher() {
     // Store the "viewing as" role in sessionStorage for dev purposes
     sessionStorage.setItem("dev_viewing_as_role", targetRole);
     navigate(path);
+    setIsOpen(false);
+  };
+
+  const handleAnalyticsJump = (targetRole: AppRole, analyticsPath: string) => {
+    sessionStorage.setItem("dev_viewing_as_role", targetRole);
+    navigate(analyticsPath);
     setIsOpen(false);
   };
 
@@ -55,17 +61,28 @@ export function DevRoleSwitcher() {
               const isActive = devRole === r.id || (!devRole && role === r.id);
               
               return (
-                <Button
-                  key={r.id}
-                  variant={isActive ? "default" : "outline"}
-                  className="w-full justify-start gap-2"
-                  onClick={() => handleRoleSwitch(r.id, r.path)}
-                >
-                  <div className={`p-1 rounded ${r.color}`}>
-                    <Icon className="w-3 h-3 text-white" />
-                  </div>
-                  <span className="text-sm">{r.label}</span>
-                </Button>
+                <div key={r.id} className="flex items-stretch gap-1">
+                  <Button
+                    variant={isActive ? "default" : "outline"}
+                    className="flex-1 justify-start gap-2"
+                    onClick={() => handleRoleSwitch(r.id, r.path)}
+                  >
+                    <div className={`p-1 rounded ${r.color}`}>
+                      <Icon className="w-3 h-3 text-white" />
+                    </div>
+                    <span className="text-sm">{r.label}</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0"
+                    onClick={() => handleAnalyticsJump(r.id, r.analyticsPath)}
+                    title={`${r.label} analytics`}
+                    aria-label={`Open ${r.label} analytics`}
+                  >
+                    <BarChart3 className="w-4 h-4" />
+                  </Button>
+                </div>
               );
             })}
           </div>
@@ -74,7 +91,7 @@ export function DevRoleSwitcher() {
               variant="ghost"
               size="sm"
               className="w-full text-xs"
-              onClick={() => navigate("/therapist-analytics")}
+              onClick={() => { navigate("/therapist-analytics"); setIsOpen(false); }}
             >
               📊 Clinical Analytics Hub
             </Button>
