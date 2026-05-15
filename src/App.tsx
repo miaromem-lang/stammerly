@@ -51,7 +51,7 @@ import FundingSupport from "./pages/FundingSupport";
 import TechnicalIntegration from "./pages/TechnicalIntegration";
 import AdminHub from "./pages/AdminHub";
 
-import Session from "./pages/Session";
+
 import History from "./pages/History";
 import Settings from "./pages/Settings";
 import { BottomTabBar } from "@/components/BottomTabBar";
