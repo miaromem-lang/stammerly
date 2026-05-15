@@ -360,6 +360,16 @@ export function useStammerDetector(options: DetectorOptions = {}) {
     const now       = Date.now()
     const profCfg   = profileConfigRef.current
 
+    // ── SPEAKER GATE ───────────────────────────────────────────────────────
+    // If a speaker fingerprint is enrolled, drop frames that don't plausibly
+    // come from the enrolled child (other voices in the room, loud ambient).
+    // Estimating F0 here is cheap and reused below for prolongation tracking.
+    const gate = scoreFrameRef.current
+    if (gate) {
+      const f0ForGate = isSpeech ? estimateF0(timeBuf, ctx.sampleRate) : 0
+      if (!gate(timeBuf, f0ForGate)) return
+    }
+
     // ── AUTO PROFILE DETECTION ─────────────────────────────────────────────
     // Maintains a rolling window of RMS energy. If the median ambient energy
     // in silence periods exceeds the expected range for the current profile,
