@@ -46,6 +46,66 @@ interface PhonemeTrigger {
   words: string[];
 }
 
+// Mirror of the browser-side StammerEvent emitted by useStammerDetector.
+// `timestamp` may arrive as ISO string after JSON serialisation.
+type AcousticMarkerType = 'PROLONGATION' | 'BLOCK' | 'REPETITION' | 'INTERJECTION';
+interface AcousticEvent {
+  id: string;
+  type: AcousticMarkerType;
+  confidence: number;   // 0–1
+  durationMs: number;
+  timestamp: string | number | Date;
+  detail: string;
+}
+
+// Sanitise the events array coming from the client. Anything malformed is
+// dropped silently — the LLM and downstream metrics should never see junk.
+function sanitiseAcousticEvents(raw: unknown): AcousticEvent[] {
+  if (!Array.isArray(raw)) return [];
+  const allowed: AcousticMarkerType[] = ['PROLONGATION', 'BLOCK', 'REPETITION', 'INTERJECTION'];
+  const out: AcousticEvent[] = [];
+  for (const item of raw.slice(0, 500)) {
+    if (!item || typeof item !== 'object') continue;
+    const e = item as Record<string, unknown>;
+    if (typeof e.type !== 'string' || !allowed.includes(e.type as AcousticMarkerType)) continue;
+    const durationMs = typeof e.durationMs === 'number' && isFinite(e.durationMs)
+      ? Math.max(0, Math.min(60_000, e.durationMs)) : 0;
+    const confidence = typeof e.confidence === 'number' && isFinite(e.confidence)
+      ? Math.max(0, Math.min(1, e.confidence)) : 0.5;
+    out.push({
+      id: typeof e.id === 'string' ? e.id : crypto.randomUUID(),
+      type: e.type as AcousticMarkerType,
+      confidence,
+      durationMs,
+      timestamp: (e.timestamp as string | number | Date) ?? new Date().toISOString(),
+      detail: typeof e.detail === 'string' ? e.detail.slice(0, 240) : '',
+    });
+  }
+  return out;
+}
+
+// Map a browser acoustic event to a DisfluencyLog so it appears in the
+// merged disfluency timeline alongside transcript-derived patterns.
+function acousticEventToDisfluency(ev: AcousticEvent): DisfluencyLog {
+  const typeMap: Record<AcousticMarkerType, { type: string; category: 'SLD' | 'OD' }> = {
+    BLOCK:        { type: 'Block',        category: 'SLD' },
+    PROLONGATION: { type: 'Prolongation', category: 'SLD' },
+    REPETITION:   { type: 'SoundRepetition', category: 'SLD' },
+    INTERJECTION: { type: 'Interjection', category: 'OD' },
+  };
+  const { type, category } = typeMap[ev.type];
+  const severity = ev.durationMs > 1000 ? 'severe'
+    : ev.durationMs > 500 ? 'moderate' : 'mild';
+  return {
+    type,
+    category,
+    word: ev.detail || `(acoustic ${ev.type.toLowerCase()})`,
+    severity,
+    durationMs: ev.durationMs,
+    suggestion: 'Detected acoustically by the live microphone analyser',
+  };
+}
+
 // Extract initial phoneme from a word
 function getInitialPhoneme(word: string): string {
   const lower = word.toLowerCase().replace(/[^a-z]/g, '');
@@ -460,6 +520,7 @@ serve(async (req) => {
     }
 
     const { transcript, targetPhrase, words, sessionContext, environmentType } = rawBody;
+    const acousticEvents = sanitiseAcousticEvents(rawBody?.acousticEvents);
     
     if (!transcript || typeof transcript !== 'string') {
       return new Response(JSON.stringify({ error: 'Invalid request' }), {
@@ -519,27 +580,40 @@ serve(async (req) => {
         }, 0) / (words.length - 1))
       : 100;
     
+    // Convert browser acoustic events into disfluency logs and merge them in.
+    // These are higher-quality signals than transcript-derived patterns because
+    // they capture intra-word blocks and prolongations Whisper cannot see.
+    const acousticEventDisfluencies = acousticEvents.map(acousticEventToDisfluency);
+
     // Count SLD vs OD
-    const allDisfluencies = [...acousticAnalysis.patterns, ...textDisfluencies];
+    const allDisfluencies = [...acousticAnalysis.patterns, ...textDisfluencies, ...acousticEventDisfluencies];
     const sldCount = allDisfluencies.filter(d => d.category === 'SLD').length;
     const odCount = allDisfluencies.filter(d => d.category === 'OD').length;
-    
+
     // Count specific disfluency types
     const soundRepsCount = allDisfluencies.filter(d => d.type === 'SoundRepetition' || d.type === 'PartWordRepetition').length;
     const syllableRepsCount = allDisfluencies.filter(d => d.type === 'SyllableRepetition').length;
     const wordRepsCount = allDisfluencies.filter(d => d.type === 'WordRepetition').length;
     const phraseRepsCount = allDisfluencies.filter(d => d.type === 'PhraseRepetition').length;
     const revisionsCount = allDisfluencies.filter(d => d.type === 'Revision').length;
-    const blocksCount = acousticAnalysis.patterns.filter(p => p.type === 'Block').length;
-    const prolongationsCount = acousticAnalysis.patterns.filter(p => p.type === 'Prolongation').length;
+    const blocksCount = allDisfluencies.filter(d => d.type === 'Block').length;
+    const prolongationsCount = allDisfluencies.filter(d => d.type === 'Prolongation').length;
     const interjectionsCount = allDisfluencies.filter(d => d.type === 'Interjection').length;
-    
-    // Calculate WSS
+
+    // Merge acoustic block durations into the longest-blocks pool used by WSS,
+    // so silent intra-word blocks contribute to severity scoring.
+    const combinedBlockDurations = [
+      ...acousticAnalysis.longestBlocks,
+      ...acousticEvents.filter(e => e.type === 'BLOCK' || e.type === 'PROLONGATION').map(e => e.durationMs),
+    ].sort((a, b) => b - a);
+    const longestBlocks = combinedBlockDurations.slice(0, 3);
+
+    // Calculate WSS using the merged block pool
     const wss = calculateWSS(
       blocksCount,
       prolongationsCount,
       soundRepsCount + syllableRepsCount,
-      acousticAnalysis.longestBlocks,
+      longestBlocks,
       totalSyllables
     );
     
@@ -566,6 +640,11 @@ ${acousticAnalysis.patterns.length > 0 ? acousticAnalysis.patterns.map(p => `- $
 TEXT PATTERN ANALYSIS DETECTED:
 ${textDisfluencies.length > 0 ? textDisfluencies.map(d => `- ${d.type} (${d.category}): "${d.word}"`).join('\n') : 'No text-based disfluencies detected'}
 
+LIVE BROWSER ACOUSTIC EVENTS (real-time microphone analyser, ground-truth signal):
+${acousticEvents.length > 0
+  ? acousticEvents.map(e => `- ${e.type} ${e.durationMs.toFixed(0)}ms (confidence ${(e.confidence * 100).toFixed(0)}%): ${e.detail}`).join('\n')
+  : 'No live acoustic events captured (detector inactive or clean speech)'}
+
 PHONEME TRIGGERS IDENTIFIED:
 ${acousticAnalysis.phonemeTriggers.length > 0 ? acousticAnalysis.phonemeTriggers.map(p => `- /${p.phoneme}/: ${p.count} occurrences (avg ${p.avgDurationMs.toFixed(0)}ms) - words: ${p.words.join(', ')}`).join('\n') : 'No significant phoneme triggers'}
 
@@ -577,7 +656,9 @@ CLINICAL METRICS CALCULATED:
 - Articulation Rate: ${articulationRate.toFixed(0)} SPM
 - Initiation Lag: ${initiationLagMs ? initiationLagMs.toFixed(0) + 'ms' : 'N/A'}
 - Naturalness Score: ${naturalnessScore}/9 (1=most natural)
-- Longest Blocks: ${acousticAnalysis.longestBlocks.map(b => b.toFixed(0) + 'ms').join(', ') || 'None'}
+- Longest Blocks (merged transcript + acoustic): ${longestBlocks.map(b => b.toFixed(0) + 'ms').join(', ') || 'None'}
+
+IMPORTANT: When LIVE BROWSER ACOUSTIC EVENTS are present, treat them as the primary signal — they capture intra-word blocks and prolongations the transcript alone cannot show. Cross-reference them with the transcript timing rather than discounting them.
 
 SCORING FRAMEWORK:
 - Base fluency score: 100
@@ -724,10 +805,11 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
     if (toolCall?.function?.arguments) {
       const analysis = JSON.parse(toolCall.function.arguments);
       
-      // Merge pre-detected disfluencies with AI analysis
+      // Merge pre-detected disfluencies (transcript-derived + live acoustic) with AI analysis
       const mergedDisfluencies = [
         ...acousticAnalysis.patterns,
         ...textDisfluencies,
+        ...acousticEventDisfluencies,
         ...(analysis.disfluencies || [])
       ];
       
@@ -781,10 +863,13 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
         // Word avoidances
         wordAvoidances,
         
-        // Longest blocks (for WSS)
-        longestBlockMs: acousticAnalysis.longestBlocks[0] ?? null,
-        secondLongestBlockMs: acousticAnalysis.longestBlocks[1] ?? null,
-        thirdLongestBlockMs: acousticAnalysis.longestBlocks[2] ?? null,
+        // Longest blocks (for WSS) — merged transcript gaps + live acoustic blocks
+        longestBlockMs: longestBlocks[0] ?? null,
+        secondLongestBlockMs: longestBlocks[1] ?? null,
+        thirdLongestBlockMs: longestBlocks[2] ?? null,
+
+        // Echo back the live acoustic events used in this analysis
+        acousticEventsCount: acousticEvents.length,
         
         // All disfluencies with full detail
         disfluencies: uniqueDisfluencies,

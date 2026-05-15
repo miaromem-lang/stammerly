@@ -13,6 +13,7 @@ import { useUserProgress } from "@/hooks/useUserProgress";
 import { useAchievements } from "@/hooks/useAchievements";
 import PageBackground from "@/components/PageBackground";
 import { StammerDetector } from "@/components/StammerDetector";
+import { useStammerDetector, type StammerEvent } from "@/hooks/useStammerDetector";
 import { HubNavigation } from "@/components/HubNavigation";
 import { loadSavedName, loadSavedProfile } from "@/pages/Settings";
 
@@ -70,6 +71,15 @@ const Practice = () => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recognitionRef = useRef<any>(null);
+
+  // Live acoustic-event capture for the exercise mode. Events emitted by
+  // useStammerDetector run in parallel with the MediaRecorder so we can ship
+  // ground-truth disfluency markers to analyze-speech alongside the transcript.
+  const acousticEventsRef = useRef<StammerEvent[]>([]);
+  const exerciseDetector = useStammerDetector({
+    audioProfile: loadSavedProfile(),
+    onEvent: (ev) => { acousticEventsRef.current.push(ev); },
+  });
   
   // Large collection of practice phrases organized by difficulty
   const allPhrases = {
@@ -194,10 +204,12 @@ const Practice = () => {
       // Step 2: Analyze with AI including word timings for acoustic analysis
       console.log('Analyzing speech...');
       const { data, error } = await supabase.functions.invoke('analyze-speech', {
-        body: { 
-          transcript: transcribedText, 
+        body: {
+          transcript: transcribedText,
           targetPhrase,
-          words: wordTimings 
+          words: wordTimings,
+          // Ground-truth acoustic events captured live by useStammerDetector
+          acousticEvents: acousticEventsRef.current,
         }
       });
 
@@ -412,6 +424,11 @@ const Practice = () => {
       
       mediaRecorderRef.current.start(100);
       setIsRecording(true);
+      // Reset and start the headless stammer detector for this take
+      acousticEventsRef.current = [];
+      exerciseDetector.startRecording().catch((err) => {
+        console.warn('Stammer detector failed to start (continuing without acoustic events):', err);
+      });
       setRecordingTime(0);
       setActiveWord(0);
       setShowResults(false);
@@ -443,6 +460,7 @@ const Practice = () => {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
       if (audioContextRef.current) { audioContextRef.current.close(); audioContextRef.current = null; }
       if (timerRef.current) clearInterval(timerRef.current);
+      try { exerciseDetector.stopRecording(); } catch { /* noop */ }
     }
   };
 
