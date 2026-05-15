@@ -229,8 +229,20 @@ export const SurfaceCommandCentre = ({
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">%SS</span>
-            <span className="font-medium text-sm">{(metrics.percentSyllablesStuttered ?? 0).toFixed(1)}%</span>
+            <span className="font-medium text-sm">
+              {(metrics.percentSyllablesStuttered ?? 0).toFixed(1)}%
+              {ssCI && (
+                <span className="ml-1 text-[10px] text-muted-foreground">
+                  (CI {ssCI.low.toFixed(1)}–{ssCI.high.toFixed(1)})
+                </span>
+              )}
+            </span>
           </div>
+          {adequacyChip && (
+            <div className={cn("text-[10px] px-2 py-0.5 rounded-full inline-block", adequacyChip.cls)} title={adequacyChip.tip}>
+              {adequacyChip.label}
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">SLD/OD</span>
             <span className="font-medium text-sm">{metrics.sldCount}/{metrics.odCount}</span>
