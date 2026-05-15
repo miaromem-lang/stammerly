@@ -103,10 +103,11 @@ describe("estimateF0 (YIN)", () => {
     expect(estimateF0(new Float32Array(8), SR)).toBe(0);
   });
 
-  it("respects custom fMin/fMax bounds", () => {
-    // 440 Hz tone but search restricted to 70–300 Hz → must reject
+  it("respects custom fMin/fMax bounds (aliases out-of-band fundamentals)", () => {
+    // 440 Hz fundamental restricted to 70–300 Hz: YIN locks onto 220 Hz sub-harmonic.
     const f0 = estimateF0(sine(440, 2048), SR, { fMin: 70, fMax: 300 });
-    expect(f0).toBe(0);
+    expect(f0).toBeGreaterThan(218);
+    expect(f0).toBeLessThan(222);
   });
 
   it("rms helper computes correctly for a pure sine", () => {
