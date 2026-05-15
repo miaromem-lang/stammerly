@@ -92,8 +92,16 @@ const Practice = () => {
   const [detectorStatus, setDetectorStatus] = useState<'idle' | 'starting' | 'running' | 'skipped'>('idle');
   const [detectorSkipReason, setDetectorSkipReason] = useState<string | null>(null);
   const [liveAcousticEventCount, setLiveAcousticEventCount] = useState(0);
+  const speakerChildId = user?.id ?? "anonymous";
+  const speaker = useSpeakerProfile({
+    childId: speakerChildId,
+    sampleRate: 44100,
+    onEnrolled: () => toast.success("Voice enrolment complete — detector will now focus on this speaker."),
+    onEnrollError: (reason) => toast.error(reason),
+  });
   const exerciseDetector = useStammerDetector({
     audioProfile: loadSavedProfile(),
+    scoreFrame: speaker.scoreFrame,
     onEvent: (ev) => {
       acousticEventsRef.current.push(ev);
       setLiveAcousticEventCount(acousticEventsRef.current.length);
