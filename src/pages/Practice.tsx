@@ -963,9 +963,38 @@ const Practice = () => {
                   </p>
                 </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <p className="text-[11px] text-muted-foreground">Defaults: ±30 Hz · ×1.50</p>
-                  <div className="flex items-center gap-2">
+                <div className="space-y-3">
+                  <p className="text-[11px] text-muted-foreground" aria-live="polite">
+                    Global defaults for new children: <span className="font-mono">±{speaker.globalSettings.f0MarginHz} Hz · ×{speaker.globalSettings.energyHeadroom.toFixed(2)}</span>
+                    {speaker.hasCustomSettings
+                      ? <span className="ml-1 text-foreground/70">· this child has custom values</span>
+                      : <span className="ml-1 text-foreground/70">· this child uses globals</span>}
+                  </p>
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        speaker.saveCurrentAsGlobalDefaults();
+                        toast.success(`Saved as global defaults: ±${speaker.settings.f0MarginHz} Hz · ×${speaker.settings.energyHeadroom.toFixed(2)}`);
+                      }}
+                      className="h-8 min-w-11 text-xs"
+                      aria-label="Save the current values as the global default for new children"
+                    >
+                      Save as global defaults
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        speaker.resetGlobalDefaults();
+                        toast.success("Global defaults restored to ±30 Hz · ×1.50.");
+                      }}
+                      className="h-8 min-w-11 text-xs"
+                      aria-label="Restore the built-in factory global defaults (±30 hertz, 1.5 times)"
+                    >
+                      Reset globals
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -994,17 +1023,20 @@ const Practice = () => {
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) void handleImportFile(file);
-                        e.target.value = ""; // allow re-importing same file
+                        e.target.value = "";
                       }}
                     />
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={speaker.resetSettings}
+                      onClick={() => {
+                        speaker.resetSettings();
+                        toast.success("This child now follows the global defaults.");
+                      }}
                       className="h-8 min-w-11 text-xs"
-                      aria-label="Reset speaker-gate settings to defaults (±30 hertz pitch margin, 1.5 times energy headroom)"
+                      aria-label="Reset this child to follow the current global defaults"
                     >
-                      Reset
+                      Use globals
                     </Button>
                   </div>
                 </div>
