@@ -44,7 +44,7 @@ export const HubNavigation = () => {
             className="flex items-center gap-2"
           >
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-accent-orange flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-primary-foreground" />
+              <Mic className="w-4 h-4 text-primary-foreground" />
             </div>
             <span className="font-display font-bold text-lg text-foreground">Stammerly</span>
           </Link>
@@ -86,7 +86,7 @@ export const HubNavigation = () => {
               <div className="flex flex-col gap-6 mt-8">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-accent-orange flex items-center justify-center">
-                    <Sparkles className="w-4 h-4 text-primary-foreground" />
+                    <Mic className="w-4 h-4 text-primary-foreground" />
                   </div>
                   <span className="font-display font-bold text-lg text-foreground">Stammerly</span>
                 </div>
