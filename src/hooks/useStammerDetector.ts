@@ -113,6 +113,12 @@ export interface DetectorOptions {
   audioProfile?: AudioProfile | 'auto'
   /** Called when the auto-detector switches profiles. */
   onProfileChange?: (profile: AudioProfile) => void
+  /**
+   * Optional speaker-gate predicate. Return false to ignore this audio
+   * frame (e.g. it belongs to another speaker). Typically supplied by
+   * useSpeakerProfile().scoreFrame. When omitted the gate is open.
+   */
+  scoreFrame?: (timeBuf: Float32Array, f0Hz: number) => boolean
 }
 
 // ── Internal constants ────────────────────────────────────────────────────────
@@ -218,9 +224,14 @@ export function useStammerDetector(options: DetectorOptions = {}) {
     maxBlockMs   = 850,
     audioProfile: initialProfile = 'quiet',
     onProfileChange,
+    scoreFrame,
   } = options
 
   const autoMode = initialProfile === 'auto'
+
+  // Stable ref so the hot loop always reads the latest gate without recreating
+  const scoreFrameRef = useRef(scoreFrame)
+  useEffect(() => { scoreFrameRef.current = scoreFrame }, [scoreFrame])
 
   // ── React state (only what drives re-renders) ─────────────────────────────
   const [isRecording,   setIsRecording]   = useState(false)
@@ -348,6 +359,16 @@ export function useStammerDetector(options: DetectorOptions = {}) {
     const isSpeech  = energy > threshold
     const now       = Date.now()
     const profCfg   = profileConfigRef.current
+
+    // ── SPEAKER GATE ───────────────────────────────────────────────────────
+    // If a speaker fingerprint is enrolled, drop frames that don't plausibly
+    // come from the enrolled child (other voices in the room, loud ambient).
+    // Estimating F0 here is cheap and reused below for prolongation tracking.
+    const gate = scoreFrameRef.current
+    if (gate) {
+      const f0ForGate = isSpeech ? estimateF0(timeBuf, ctx.sampleRate) : 0
+      if (!gate(timeBuf, f0ForGate)) return
+    }
 
     // ── AUTO PROFILE DETECTION ─────────────────────────────────────────────
     // Maintains a rolling window of RMS energy. If the median ambient energy
