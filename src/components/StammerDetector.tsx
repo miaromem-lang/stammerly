@@ -268,21 +268,32 @@ export function StammerDetector({
 
 // ── Record button ─────────────────────────────────────────────────────────────
 
-function RecordButton({ isRecording, onStart, onStop }: {
+function RecordButton({ isRecording, isSaving = false, onStart, onStop }: {
   isRecording: boolean
+  isSaving?: boolean
   onStart: () => void
   onStop:  () => void
 }) {
+  const disabled = isSaving
   return (
     <button
       onClick={isRecording ? onStop : onStart}
-      className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg border transition-all ${
-        isRecording
+      disabled={disabled}
+      aria-busy={isSaving}
+      className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg border transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
+        isSaving
+          ? 'border-blue-300 text-blue-700 bg-blue-50'
+          : isRecording
           ? 'border-red-400 text-red-600 hover:bg-red-50'
           : 'border-gray-300 text-gray-700 hover:bg-gray-50'
       }`}
     >
-      {isRecording ? (
+      {isSaving ? (
+        <>
+          <span className="inline-block w-3 h-3 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
+          Saving…
+        </>
+      ) : isRecording ? (
         <>
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
           Stop session
