@@ -121,7 +121,7 @@ const App = () => (
             <Route path="/therapist-analytics" element={<ProtectedRoute allowedRoles={['therapist', 'admin']}><TherapistAnalyticsHub /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminHub /></ProtectedRoute>} />
             
-            <Route path="/session" element={<ProtectedRoute><Session /></ProtectedRoute>} />
+            <Route path="/session" element={<Navigate to="/practice?mode=live" replace />} />
             <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             
