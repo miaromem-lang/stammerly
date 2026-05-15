@@ -376,17 +376,35 @@ export function useSpeakerProfile(
     const fp = fingerprintRef.current;
     if (!fp) return true; // fail-open when not enrolled
 
+    const { f0MarginHz, energyHeadroom } = settingsRef.current;
     if (f0Hz > 0) {
       // Voiced frame — must fall in the child's habitual pitch band
-      return f0Hz >= fp.f0P10 - F0_MARGIN_HZ && f0Hz <= fp.f0P90 + F0_MARGIN_HZ;
+      return f0Hz >= fp.f0P10 - f0MarginHz && f0Hz <= fp.f0P90 + f0MarginHz;
     }
     // Unvoiced frame — pass quiet ambient, block loud non-child voices
-    return rms(timeBuf) <= fp.energyP75 * ENERGY_HEADROOM;
+    return rms(timeBuf) <= fp.energyP75 * energyHeadroom;
   }, []);
 
   const clearProfile = useCallback(() => {
     try { localStorage.removeItem(storageKey(childId)); } catch { /* ignore */ }
     setFingerprint(null);
+  }, [childId]);
+
+  const updateSettings = useCallback((partial: Partial<SpeakerGateSettings>) => {
+    setSettings(prev => {
+      const next: SpeakerGateSettings = {
+        f0MarginHz: clamp(partial.f0MarginHz ?? prev.f0MarginHz, F0_MARGIN_MIN_HZ, F0_MARGIN_MAX_HZ),
+        energyHeadroom: clamp(partial.energyHeadroom ?? prev.energyHeadroom, ENERGY_HEADROOM_MIN, ENERGY_HEADROOM_MAX),
+      };
+      saveSettings(childId, next);
+      return next;
+    });
+  }, [childId]);
+
+  const resetSettings = useCallback(() => {
+    const next = { ...DEFAULT_GATE_SETTINGS };
+    saveSettings(childId, next);
+    setSettings(next);
   }, [childId]);
 
   return {
@@ -398,5 +416,9 @@ export function useSpeakerProfile(
     cancelEnrollment,
     scoreFrame,
     clearProfile,
+    settings,
+    updateSettings,
+    resetSettings,
   };
 }
+
