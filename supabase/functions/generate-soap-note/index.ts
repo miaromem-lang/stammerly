@@ -37,8 +37,48 @@ serve(async (req) => {
   }
 
   try {
+    // --- JWT validation ---
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const token = authHeader.replace('Bearer ', '');
+    const authClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: userData, error: userErr } = await authClient.auth.getUser(token);
+    if (userErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const serviceClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
+    // Restrict to therapists/admins only
+    const { data: roles } = await serviceClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userData.user.id);
+    const allowed = (roles || []).some((r: { role: string }) => r.role === 'therapist' || r.role === 'admin');
+    if (!allowed) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { clinicalData } = await req.json() as { clinicalData: ClinicalData };
-    
+
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       console.error('LOVABLE_API_KEY is not configured');
@@ -48,12 +88,11 @@ serve(async (req) => {
       });
     }
 
-    // --- Rate Limit Check ---
-    const serviceClient = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
-    const { data: rlCheck } = await serviceClient.rpc('check_rate_limit', { _function_name: 'generate-soap-note' });
+    // --- Rate Limit Check (per-user) ---
+    const { data: rlCheck } = await serviceClient.rpc('check_rate_limit', {
+      _function_name: 'generate-soap-note',
+      _user_id: userData.user.id,
+    });
     if (rlCheck && !rlCheck.allowed) {
       console.warn('Rate limit hit for generate-soap-note:', rlCheck.reason);
       return new Response(JSON.stringify({ error: `Rate limit exceeded: ${rlCheck.reason}` }), {
