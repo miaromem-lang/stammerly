@@ -46,6 +46,66 @@ interface PhonemeTrigger {
   words: string[];
 }
 
+// Mirror of the browser-side StammerEvent emitted by useStammerDetector.
+// `timestamp` may arrive as ISO string after JSON serialisation.
+type AcousticMarkerType = 'PROLONGATION' | 'BLOCK' | 'REPETITION' | 'INTERJECTION';
+interface AcousticEvent {
+  id: string;
+  type: AcousticMarkerType;
+  confidence: number;   // 0–1
+  durationMs: number;
+  timestamp: string | number | Date;
+  detail: string;
+}
+
+// Sanitise the events array coming from the client. Anything malformed is
+// dropped silently — the LLM and downstream metrics should never see junk.
+function sanitiseAcousticEvents(raw: unknown): AcousticEvent[] {
+  if (!Array.isArray(raw)) return [];
+  const allowed: AcousticMarkerType[] = ['PROLONGATION', 'BLOCK', 'REPETITION', 'INTERJECTION'];
+  const out: AcousticEvent[] = [];
+  for (const item of raw.slice(0, 500)) {
+    if (!item || typeof item !== 'object') continue;
+    const e = item as Record<string, unknown>;
+    if (typeof e.type !== 'string' || !allowed.includes(e.type as AcousticMarkerType)) continue;
+    const durationMs = typeof e.durationMs === 'number' && isFinite(e.durationMs)
+      ? Math.max(0, Math.min(60_000, e.durationMs)) : 0;
+    const confidence = typeof e.confidence === 'number' && isFinite(e.confidence)
+      ? Math.max(0, Math.min(1, e.confidence)) : 0.5;
+    out.push({
+      id: typeof e.id === 'string' ? e.id : crypto.randomUUID(),
+      type: e.type as AcousticMarkerType,
+      confidence,
+      durationMs,
+      timestamp: (e.timestamp as string | number | Date) ?? new Date().toISOString(),
+      detail: typeof e.detail === 'string' ? e.detail.slice(0, 240) : '',
+    });
+  }
+  return out;
+}
+
+// Map a browser acoustic event to a DisfluencyLog so it appears in the
+// merged disfluency timeline alongside transcript-derived patterns.
+function acousticEventToDisfluency(ev: AcousticEvent): DisfluencyLog {
+  const typeMap: Record<AcousticMarkerType, { type: string; category: 'SLD' | 'OD' }> = {
+    BLOCK:        { type: 'Block',        category: 'SLD' },
+    PROLONGATION: { type: 'Prolongation', category: 'SLD' },
+    REPETITION:   { type: 'SoundRepetition', category: 'SLD' },
+    INTERJECTION: { type: 'Interjection', category: 'OD' },
+  };
+  const { type, category } = typeMap[ev.type];
+  const severity = ev.durationMs > 1000 ? 'severe'
+    : ev.durationMs > 500 ? 'moderate' : 'mild';
+  return {
+    type,
+    category,
+    word: ev.detail || `(acoustic ${ev.type.toLowerCase()})`,
+    severity,
+    durationMs: ev.durationMs,
+    suggestion: 'Detected acoustically by the live microphone analyser',
+  };
+}
+
 // Extract initial phoneme from a word
 function getInitialPhoneme(word: string): string {
   const lower = word.toLowerCase().replace(/[^a-z]/g, '');
