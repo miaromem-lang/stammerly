@@ -287,7 +287,22 @@ export const SurfaceCommandCentre = ({
           <div className="flex items-end gap-4">
             <span className={cn("text-4xl font-bold", severity.color)}>{wss.toFixed(1)}</span>
             <span className="text-muted-foreground text-sm mb-1">/100 (lower is better)</span>
+            {adequacyChip && (
+              <span
+                className={cn("ml-auto mb-1 text-[10px] px-2 py-0.5 rounded-full", adequacyChip.cls)}
+                title={adequacyChip.tip}
+              >
+                {adequacyChip.label}
+              </span>
+            )}
           </div>
+          {wssCI && (
+            <p className="text-xs text-muted-foreground mt-1">
+              95% CI {wssCI.low.toFixed(1)}–{wssCI.high.toFixed(1)}
+              {totalSyllables ? ` · n=${totalSyllables} syllables` : ''}
+              {adequacy && adequacy !== 'adequate' && ' · interpret with caution'}
+            </p>
+          )}
           <Progress value={100 - wss} className="h-2 mt-3" />
         </div>
         
@@ -297,6 +312,11 @@ export const SurfaceCommandCentre = ({
           <div className="p-3 bg-secondary/30 rounded-lg text-center">
             <p className="text-2xl font-bold text-primary">{(metrics.percentSyllablesStuttered ?? 0).toFixed(1)}%</p>
             <p className="text-xs text-muted-foreground">Syllables Stuttered</p>
+            {ssCI && (
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                95% CI {ssCI.low.toFixed(1)}–{ssCI.high.toFixed(1)}%
+              </p>
+            )}
           </div>
           
           {/* SPM */}
