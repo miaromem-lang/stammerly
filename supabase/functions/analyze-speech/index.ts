@@ -759,6 +759,11 @@ ${acousticEvents.length > 0
   ? acousticEvents.map(e => `- ${e.type} ${e.durationMs.toFixed(0)}ms (confidence ${(e.confidence * 100).toFixed(0)}%): ${e.detail}`).join('\n')
   : 'No live acoustic events captured (detector inactive or clean speech)'}
 
+INTRA-WORD BLOCKS (silences inside a Whisper word, derived from segment-level timing):
+${intraWordBlocks.length > 0
+  ? intraWordBlocks.map(b => `- "${b.word}" (${b.severity}, ~${(b.durationMs ?? 0).toFixed(0)}ms hidden silence)`).join('\n')
+  : 'None detected'}
+
 PHONEME TRIGGERS IDENTIFIED:
 ${acousticAnalysis.phonemeTriggers.length > 0 ? acousticAnalysis.phonemeTriggers.map(p => `- /${p.phoneme}/: ${p.count} occurrences (avg ${p.avgDurationMs.toFixed(0)}ms) - words: ${p.words.join(', ')}`).join('\n') : 'No significant phoneme triggers'}
 
