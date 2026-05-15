@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Mic, MicOff, Volume2, RefreshCw, Star, Trophy, Loader2, ThumbsUp, AlertCircle, Radio, BookOpen } from "lucide-react";
+import { ArrowLeft, Mic, MicOff, Volume2, RefreshCw, Star, Trophy, Loader2, ThumbsUp, AlertCircle, Radio, BookOpen, UserCheck, X } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { useSpeakerProfile } from "@/hooks/useSpeakerProfile";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveQuest } from "@/hooks/useActiveQuest";
@@ -37,7 +39,7 @@ interface SpeechAnalysis {
 
 const Practice = () => {
   const navigate = useNavigate();
-  const { role } = useAuth();
+  const { role, user } = useAuth();
   const isClinician =
     role === "therapist" ||
     role === "admin" ||
@@ -90,8 +92,16 @@ const Practice = () => {
   const [detectorStatus, setDetectorStatus] = useState<'idle' | 'starting' | 'running' | 'skipped'>('idle');
   const [detectorSkipReason, setDetectorSkipReason] = useState<string | null>(null);
   const [liveAcousticEventCount, setLiveAcousticEventCount] = useState(0);
+  const speakerChildId = user?.id ?? "anonymous";
+  const speaker = useSpeakerProfile({
+    childId: speakerChildId,
+    sampleRate: 44100,
+    onEnrolled: () => toast.success("Voice enrolment complete — detector will now focus on this speaker."),
+    onEnrollError: (reason) => toast.error(reason),
+  });
   const exerciseDetector = useStammerDetector({
     audioProfile: loadSavedProfile(),
+    scoreFrame: speaker.scoreFrame,
     onEvent: (ev) => {
       acousticEventsRef.current.push(ev);
       setLiveAcousticEventCount(acousticEventsRef.current.length);
@@ -732,6 +742,62 @@ const Practice = () => {
             </span>
           )}
         </div>
+
+        <Card className="rounded-kids bg-card/80 backdrop-blur-sm border border-border mb-6">
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex items-start sm:items-center justify-between gap-4 flex-col sm:flex-row">
+              <div className="flex items-start gap-3">
+                <div className={`p-2 rounded-lg ${speaker.isEnrolled ? "bg-success/10 text-success" : "bg-primary/10 text-primary"}`}>
+                  <UserCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="font-display font-semibold text-sm text-foreground">
+                    Voice enrolment {speaker.isEnrolled && <span className="text-success">· Active</span>}
+                  </h2>
+                  <p className="text-xs text-muted-foreground max-w-md">
+                    {speaker.isEnrolling
+                      ? "Keep speaking naturally for 10 seconds — try counting or describing your day."
+                      : speaker.isEnrolled
+                      ? "Your child's voice fingerprint is saved. The detector will ignore other voices nearby."
+                      : "Record a 10-second sample so the detector can focus on your child and ignore background voices."}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 self-end sm:self-auto">
+                {speaker.isEnrolling ? (
+                  <Button variant="outline" size="sm" onClick={speaker.cancelEnrollment}>
+                    <X className="w-4 h-4 mr-1" /> Cancel
+                  </Button>
+                ) : (
+                  <>
+                    {speaker.isEnrolled && (
+                      <Button variant="ghost" size="sm" onClick={speaker.clearProfile}>
+                        Clear
+                      </Button>
+                    )}
+                    <Button
+                      variant={speaker.isEnrolled ? "outline" : "default"}
+                      size="sm"
+                      onClick={() => { void speaker.startEnrollment(); }}
+                      disabled={isRecording || isAnalyzing}
+                    >
+                      <Mic className="w-4 h-4 mr-1" />
+                      {speaker.isEnrolled ? "Re-enrol voice" : "Start 10s enrolment"}
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+            {speaker.isEnrolling && speaker.enrollProgress !== null && (
+              <div className="mt-4 space-y-1">
+                <Progress value={Math.round(speaker.enrollProgress * 100)} className="h-2" />
+                <p className="text-xs text-muted-foreground text-right">
+                  {Math.round(speaker.enrollProgress * 100)}% — {Math.max(0, Math.ceil(10 - speaker.enrollProgress * 10))}s left
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <Card className="rounded-kids overflow-hidden bg-card/90 backdrop-blur-sm border-2 border-accent-orange/30">
           <CardContent className="p-8">
