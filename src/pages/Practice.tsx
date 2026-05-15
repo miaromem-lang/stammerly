@@ -85,9 +85,15 @@ const Practice = () => {
   // ground-truth disfluency markers to analyze-speech alongside the transcript.
   const acousticEventsRef = useRef<StammerEvent[]>([]);
   const recordingStartedAtRef = useRef<number>(0);
+  const [detectorStatus, setDetectorStatus] = useState<'idle' | 'starting' | 'running' | 'skipped'>('idle');
+  const [detectorSkipReason, setDetectorSkipReason] = useState<string | null>(null);
+  const [liveAcousticEventCount, setLiveAcousticEventCount] = useState(0);
   const exerciseDetector = useStammerDetector({
     audioProfile: loadSavedProfile(),
-    onEvent: (ev) => { acousticEventsRef.current.push(ev); },
+    onEvent: (ev) => {
+      acousticEventsRef.current.push(ev);
+      setLiveAcousticEventCount(acousticEventsRef.current.length);
+    },
   });
   
   // Large collection of practice phrases organized by difficulty
