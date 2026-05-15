@@ -13,6 +13,7 @@ import { useUserProgress } from "@/hooks/useUserProgress";
 import { useAchievements } from "@/hooks/useAchievements";
 import PageBackground from "@/components/PageBackground";
 import { StammerDetector } from "@/components/StammerDetector";
+import { useStammerDetector, type StammerEvent } from "@/hooks/useStammerDetector";
 import { HubNavigation } from "@/components/HubNavigation";
 import { loadSavedName, loadSavedProfile } from "@/pages/Settings";
 
