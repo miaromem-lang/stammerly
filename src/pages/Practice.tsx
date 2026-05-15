@@ -963,17 +963,50 @@ const Practice = () => {
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <p className="text-[11px] text-muted-foreground">Defaults: ±30 Hz · ×1.50</p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={speaker.resetSettings}
-                    className="h-8 min-w-11 text-xs"
-                    aria-label="Reset speaker-gate settings to defaults (±30 hertz pitch margin, 1.5 times energy headroom)"
-                  >
-                    Reset to defaults
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleExportSettings}
+                      className="h-8 min-w-11 text-xs"
+                      aria-label="Export this child's gate settings as a JSON file"
+                    >
+                      Export JSON
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => importFileRef.current?.click()}
+                      className="h-8 min-w-11 text-xs"
+                      aria-label="Import gate settings from a JSON file"
+                    >
+                      Import JSON
+                    </Button>
+                    <input
+                      ref={importFileRef}
+                      type="file"
+                      accept="application/json,.json"
+                      className="sr-only"
+                      aria-hidden="true"
+                      tabIndex={-1}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) void handleImportFile(file);
+                        e.target.value = ""; // allow re-importing same file
+                      }}
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={speaker.resetSettings}
+                      className="h-8 min-w-11 text-xs"
+                      aria-label="Reset speaker-gate settings to defaults (±30 hertz pitch margin, 1.5 times energy headroom)"
+                    >
+                      Reset
+                    </Button>
+                  </div>
                 </div>
               </fieldset>
             </details>
