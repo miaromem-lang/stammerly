@@ -85,9 +85,15 @@ const Practice = () => {
   // ground-truth disfluency markers to analyze-speech alongside the transcript.
   const acousticEventsRef = useRef<StammerEvent[]>([]);
   const recordingStartedAtRef = useRef<number>(0);
+  const [detectorStatus, setDetectorStatus] = useState<'idle' | 'starting' | 'running' | 'skipped'>('idle');
+  const [detectorSkipReason, setDetectorSkipReason] = useState<string | null>(null);
+  const [liveAcousticEventCount, setLiveAcousticEventCount] = useState(0);
   const exerciseDetector = useStammerDetector({
     audioProfile: loadSavedProfile(),
-    onEvent: (ev) => { acousticEventsRef.current.push(ev); },
+    onEvent: (ev) => {
+      acousticEventsRef.current.push(ev);
+      setLiveAcousticEventCount(acousticEventsRef.current.length);
+    },
   });
   
   // Large collection of practice phrases organized by difficulty
@@ -458,10 +464,18 @@ const Practice = () => {
       setIsRecording(true);
       // Reset and start the headless stammer detector for this take
       acousticEventsRef.current = [];
+      setLiveAcousticEventCount(0);
+      setDetectorSkipReason(null);
+      setDetectorStatus('starting');
       recordingStartedAtRef.current = Date.now();
-      exerciseDetector.startRecording().catch((err) => {
-        console.warn('Stammer detector failed to start (continuing without acoustic events):', err);
-      });
+      exerciseDetector
+        .startRecording()
+        .then(() => setDetectorStatus('running'))
+        .catch((err) => {
+          console.warn('Stammer detector failed to start (continuing without acoustic events):', err);
+          setDetectorStatus('skipped');
+          setDetectorSkipReason(err?.message ?? 'detector unavailable');
+        });
       setRecordingTime(0);
       setActiveWord(0);
       setShowResults(false);
@@ -494,6 +508,7 @@ const Practice = () => {
       if (audioContextRef.current) { audioContextRef.current.close(); audioContextRef.current = null; }
       if (timerRef.current) clearInterval(timerRef.current);
       try { exerciseDetector.stopRecording(); } catch { /* noop */ }
+      setDetectorStatus('idle');
     }
   };
 
@@ -640,6 +655,41 @@ const Practice = () => {
           {isRecording && (
             <span className="text-destructive font-mono text-sm animate-pulse">
               ● REC {formatTime(recordingTime)}
+            </span>
+          )}
+          {detectorStatus !== 'idle' && (
+            <span
+              className={
+                "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium " +
+                (detectorStatus === 'running'
+                  ? "border-success/40 bg-success/10 text-success"
+                  : detectorStatus === 'starting'
+                  ? "border-muted-foreground/30 bg-muted text-muted-foreground"
+                  : "border-destructive/40 bg-destructive/10 text-destructive")
+              }
+              role="status"
+              aria-live="polite"
+              title={
+                detectorStatus === 'skipped' && detectorSkipReason
+                  ? `Acoustic events skipped: ${detectorSkipReason}`
+                  : undefined
+              }
+            >
+              <span
+                className={
+                  "h-1.5 w-1.5 rounded-full " +
+                  (detectorStatus === 'running'
+                    ? "bg-success animate-pulse"
+                    : detectorStatus === 'starting'
+                    ? "bg-muted-foreground"
+                    : "bg-destructive")
+                }
+              />
+              {detectorStatus === 'running' && (
+                <>Detector live · {liveAcousticEventCount} event{liveAcousticEventCount === 1 ? '' : 's'} captured</>
+              )}
+              {detectorStatus === 'starting' && <>Detector starting…</>}
+              {detectorStatus === 'skipped' && <>Acoustic events skipped</>}
             </span>
           )}
         </div>
