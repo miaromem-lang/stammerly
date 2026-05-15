@@ -615,7 +615,19 @@ serve(async (req) => {
       });
     }
 
-    const { transcript, targetPhrase, words, sessionContext, environmentType } = rawBody;
+    const { transcript, targetPhrase, words, segments: rawSegments, sessionContext, environmentType } = rawBody;
+    const segments: Segment[] = Array.isArray(rawSegments)
+      ? rawSegments
+          .filter((s: unknown) => s && typeof s === 'object'
+            && typeof (s as Segment).start === 'number'
+            && typeof (s as Segment).end === 'number')
+          .map((s: Segment) => ({
+            id: s.id ?? null,
+            start: s.start,
+            end: s.end,
+            text: typeof s.text === 'string' ? s.text : '',
+          }))
+      : [];
     const acousticEvents = sanitiseAcousticEvents(rawBody?.acousticEvents);
     
     if (!transcript || typeof transcript !== 'string') {
