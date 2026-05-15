@@ -318,9 +318,15 @@ export function useSpeakerProfile(
   const settingsRef = useRef(settings);
   useEffect(() => { settingsRef.current = settings; }, [settings]);
 
+  const [globalSettings, setGlobalSettingsState] = useState<SpeakerGateSettings>(() => loadGlobalSettings());
+  const [hasCustomSettings, setHasCustomSettings] = useState<boolean>(
+    () => typeof window !== "undefined" && localStorage.getItem(settingsKey(childId)) !== null,
+  );
+
   useEffect(() => {
     setFingerprint(loadFingerprint(childId));
     setSettings(loadSettings(childId));
+    setHasCustomSettings(localStorage.getItem(settingsKey(childId)) !== null);
   }, [childId]);
 
   const startEnrollment = useCallback(async (): Promise<SpeakerFingerprint | null> => {
