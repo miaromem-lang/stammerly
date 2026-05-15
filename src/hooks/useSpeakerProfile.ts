@@ -80,6 +80,7 @@ export interface UseSpeakerProfileReturn {
   /** Per-child gate strictness, persisted in localStorage. */
   settings: SpeakerGateSettings;
   updateSettings: (partial: Partial<SpeakerGateSettings>) => void;
+  /** Reset this child to the current global defaults (clears per-child override). */
   resetSettings: () => void;
   /** Serialise current settings to a portable JSON string. */
   exportSettings: () => string;
@@ -89,6 +90,16 @@ export interface UseSpeakerProfileReturn {
    * applied settings on success, or an error describing why import failed.
    */
   importSettings: (payload: string | unknown) => { ok: true; settings: SpeakerGateSettings } | { ok: false; error: string };
+  /** True when the current child has its own per-child overrides saved. */
+  hasCustomSettings: boolean;
+  /** Global defaults (apply to any child without per-child overrides). */
+  globalSettings: SpeakerGateSettings;
+  /** Save the current per-child values as the new global defaults. */
+  saveCurrentAsGlobalDefaults: () => void;
+  /** Replace global defaults with arbitrary clamped values. */
+  setGlobalDefaults: (s: Partial<SpeakerGateSettings>) => void;
+  /** Restore built-in factory defaults globally (±30 Hz · ×1.50). */
+  resetGlobalDefaults: () => void;
 }
 
 /** Stable identifier for the export envelope so future versions can migrate. */
@@ -228,22 +239,55 @@ function clamp(v: number, lo: number, hi: number): number {
   return Number.isFinite(v) ? Math.max(lo, Math.min(hi, v)) : lo;
 }
 
-function loadSettings(childId: string): SpeakerGateSettings {
+/** Where global defaults are stored (one row, applies to all un-customised children). */
+export const GLOBAL_SETTINGS_KEY = "stammerly_speaker_settings_global";
+
+function sanitise(parsed: Partial<SpeakerGateSettings> | null | undefined, fallback: SpeakerGateSettings): SpeakerGateSettings {
+  return {
+    f0MarginHz: clamp(parsed?.f0MarginHz ?? fallback.f0MarginHz, F0_MARGIN_MIN_HZ, F0_MARGIN_MAX_HZ),
+    energyHeadroom: clamp(parsed?.energyHeadroom ?? fallback.energyHeadroom, ENERGY_HEADROOM_MIN, ENERGY_HEADROOM_MAX),
+  };
+}
+
+export function loadGlobalSettings(): SpeakerGateSettings {
   try {
-    const raw = localStorage.getItem(settingsKey(childId));
+    const raw = localStorage.getItem(GLOBAL_SETTINGS_KEY);
     if (!raw) return { ...DEFAULT_GATE_SETTINGS };
-    const parsed = JSON.parse(raw) as Partial<SpeakerGateSettings>;
-    return {
-      f0MarginHz: clamp(parsed.f0MarginHz ?? DEFAULT_GATE_SETTINGS.f0MarginHz, F0_MARGIN_MIN_HZ, F0_MARGIN_MAX_HZ),
-      energyHeadroom: clamp(parsed.energyHeadroom ?? DEFAULT_GATE_SETTINGS.energyHeadroom, ENERGY_HEADROOM_MIN, ENERGY_HEADROOM_MAX),
-    };
+    return sanitise(JSON.parse(raw) as Partial<SpeakerGateSettings>, DEFAULT_GATE_SETTINGS);
   } catch {
     return { ...DEFAULT_GATE_SETTINGS };
   }
 }
 
+export function saveGlobalSettings(s: SpeakerGateSettings): void {
+  try { localStorage.setItem(GLOBAL_SETTINGS_KEY, JSON.stringify(s)); } catch { /* ignore */ }
+}
+
+export function clearGlobalSettings(): void {
+  try { localStorage.removeItem(GLOBAL_SETTINGS_KEY); } catch { /* ignore */ }
+}
+
+/**
+ * Load per-child settings if present, otherwise fall back to the user's
+ * global defaults (or built-in defaults if no globals are saved).
+ */
+function loadSettings(childId: string): SpeakerGateSettings {
+  const globals = loadGlobalSettings();
+  try {
+    const raw = localStorage.getItem(settingsKey(childId));
+    if (!raw) return { ...globals };
+    return sanitise(JSON.parse(raw) as Partial<SpeakerGateSettings>, globals);
+  } catch {
+    return { ...globals };
+  }
+}
+
 function saveSettings(childId: string, s: SpeakerGateSettings): void {
   try { localStorage.setItem(settingsKey(childId), JSON.stringify(s)); } catch { /* ignore */ }
+}
+
+function clearChildSettings(childId: string): void {
+  try { localStorage.removeItem(settingsKey(childId)); } catch { /* ignore */ }
 }
 
 // ── Hook ─────────────────────────────────────────────────────────────────────
@@ -274,9 +318,15 @@ export function useSpeakerProfile(
   const settingsRef = useRef(settings);
   useEffect(() => { settingsRef.current = settings; }, [settings]);
 
+  const [globalSettings, setGlobalSettingsState] = useState<SpeakerGateSettings>(() => loadGlobalSettings());
+  const [hasCustomSettings, setHasCustomSettings] = useState<boolean>(
+    () => typeof window !== "undefined" && localStorage.getItem(settingsKey(childId)) !== null,
+  );
+
   useEffect(() => {
     setFingerprint(loadFingerprint(childId));
     setSettings(loadSettings(childId));
+    setHasCustomSettings(localStorage.getItem(settingsKey(childId)) !== null);
   }, [childId]);
 
   const startEnrollment = useCallback(async (): Promise<SpeakerFingerprint | null> => {
@@ -419,13 +469,45 @@ export function useSpeakerProfile(
       saveSettings(childId, next);
       return next;
     });
+    setHasCustomSettings(true);
   }, [childId]);
 
+  /**
+   * Drop the per-child override and re-apply the current global defaults.
+   * After this, future loads of the same child will read straight from globals.
+   */
   const resetSettings = useCallback(() => {
-    const next = { ...DEFAULT_GATE_SETTINGS };
-    saveSettings(childId, next);
+    clearChildSettings(childId);
+    const next = loadGlobalSettings();
     setSettings(next);
+    setHasCustomSettings(false);
   }, [childId]);
+
+  const setGlobalDefaults = useCallback((partial: Partial<SpeakerGateSettings>) => {
+    setGlobalSettingsState(prev => {
+      const next = sanitise(
+        { ...prev, ...partial },
+        DEFAULT_GATE_SETTINGS,
+      );
+      saveGlobalSettings(next);
+      // If this child has no per-child override, reflect new globals live.
+      if (!hasCustomSettings) setSettings(next);
+      return next;
+    });
+  }, [hasCustomSettings]);
+
+  const saveCurrentAsGlobalDefaults = useCallback(() => {
+    const next = { ...settingsRef.current };
+    saveGlobalSettings(next);
+    setGlobalSettingsState(next);
+  }, []);
+
+  const resetGlobalDefaults = useCallback(() => {
+    clearGlobalSettings();
+    const next = { ...DEFAULT_GATE_SETTINGS };
+    setGlobalSettingsState(next);
+    if (!hasCustomSettings) setSettings(next);
+  }, [hasCustomSettings]);
 
   const exportSettings = useCallback((): string => {
     const payload: SpeakerGateSettingsExport = {
@@ -467,6 +549,7 @@ export function useSpeakerProfile(
       };
       saveSettings(childId, next);
       setSettings(next);
+      setHasCustomSettings(true);
       return { ok: true, settings: next };
     },
     [childId],
@@ -486,6 +569,11 @@ export function useSpeakerProfile(
     resetSettings,
     exportSettings,
     importSettings,
+    hasCustomSettings,
+    globalSettings,
+    saveCurrentAsGlobalDefaults,
+    setGlobalDefaults,
+    resetGlobalDefaults,
   };
 }
 
