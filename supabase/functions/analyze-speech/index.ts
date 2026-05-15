@@ -991,7 +991,11 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
         
         // Clinical metrics (Surface Command Centre)
         weightedStutteringSeverity: wss,
+        weightedStutteringSeverityCI: wssCI,
         percentSyllablesStuttered: percentSS,
+        percentSyllablesStutteredCI: percentSSCI,
+        totalSyllables,
+        sampleAdequacy,
         syllablesPerMinute: syllablesPerMinute,
         articulationRate: articulationRate,
         sldCount,
