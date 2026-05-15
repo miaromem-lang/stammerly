@@ -50,6 +50,7 @@ import SensoryFitGuide from "./pages/SensoryFitGuide";
 import FundingSupport from "./pages/FundingSupport";
 import TechnicalIntegration from "./pages/TechnicalIntegration";
 import AdminHub from "./pages/AdminHub";
+import Recorder from "./pages/Recorder";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -114,6 +115,7 @@ const App = () => (
             <Route path="/analytics/:role" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
             <Route path="/therapist-analytics" element={<ProtectedRoute allowedRoles={['therapist', 'admin']}><TherapistAnalyticsHub /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminHub /></ProtectedRoute>} />
+            <Route path="/recorder" element={<ProtectedRoute><Recorder /></ProtectedRoute>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
