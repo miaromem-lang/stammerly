@@ -237,6 +237,7 @@ serve(async (req) => {
     const transcription = {
       text: scrubbedText,
       words: scrubbedWords,
+      segments,
       duration: result.duration || 0,
       language: result.language || language,
       audioFilePath,
