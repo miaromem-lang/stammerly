@@ -54,6 +54,7 @@ import Recorder from "./pages/Recorder";
 import Session from "./pages/Session";
 import History from "./pages/History";
 import Settings from "./pages/Settings";
+import { BottomTabBar } from "@/components/BottomTabBar";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -67,6 +68,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <DevRoleSwitcher />
+          <BottomTabBar />
           <Routes>
             {/* Standalone public routes (no shared nav/footer) */}
             <Route path="/" element={<Index />} />

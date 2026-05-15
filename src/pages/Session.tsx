@@ -29,8 +29,8 @@ const Session = () => {
         <link rel="canonical" href="/session" />
       </Helmet>
       <HubNavigation />
-      <main className="container mx-auto px-4 py-10 flex justify-center">
-        <div className="w-full max-w-5xl bg-white rounded-2xl shadow-xl p-6 md:p-10">
+      <main className="container mx-auto px-2 sm:px-4 py-6 sm:py-10 pb-24 sm:pb-10 flex justify-center">
+        <div className="w-full max-w-5xl bg-white rounded-none sm:rounded-2xl shadow-none sm:shadow-xl p-4 sm:p-6 md:p-10">
           {!started ? (
             <form onSubmit={handleStart} className="max-w-md mx-auto space-y-6">
               <div className="space-y-2 text-center">

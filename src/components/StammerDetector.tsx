@@ -864,10 +864,10 @@ export function StammerDetector({
       {/* Header */}
       <div className="flex items-center gap-3 pb-4 border-b border-gray-100 mb-5 flex-wrap">
         <span className="text-base font-medium text-gray-900 flex items-center gap-1.5">🎙 Stammerly</span>
-        <div className="flex gap-1.5 flex-1">
+        <div className="flex gap-1.5 flex-1 overflow-x-auto sm:overflow-visible -mx-1 px-1 sm:mx-0 sm:px-0 scrollbar-none snap-x">
           {(['child', 'parent', 'therapist'] as ViewMode[]).map(v => (
             <button key={v} onClick={() => setView(v)}
-              className={`px-3 py-1 text-sm rounded-lg border transition-colors ${view === v ? 'bg-gray-100 border-gray-300 text-gray-900 font-medium' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+              className={`shrink-0 snap-start px-3 py-1 text-sm rounded-lg border transition-colors ${view === v ? 'bg-gray-100 border-gray-300 text-gray-900 font-medium' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
             >
               {v === 'child' ? '🐣' : v === 'parent' ? '🏠' : '🩺'} {v.charAt(0).toUpperCase() + v.slice(1)}
             </button>
