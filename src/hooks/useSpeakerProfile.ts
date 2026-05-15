@@ -61,46 +61,97 @@ export interface UseSpeakerProfileReturn {
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-function rms(buf: Float32Array): number {
+export function rms(buf: Float32Array): number {
   let sum = 0;
   for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
   return Math.sqrt(sum / buf.length);
 }
 
-function estimateF0(buf: Float32Array, sampleRate: number): number {
+/**
+ * estimateF0 — robust pitch estimation using the YIN algorithm
+ * (de Cheveigné & Kawahara, 2002).
+ *
+ * 1. Difference function:  d(τ) = Σ (x[i] − x[i+τ])²
+ * 2. Cumulative mean normalised difference (CMND): suppresses the τ=0 dip
+ *    and removes the need for a pre-set absolute threshold.
+ * 3. Absolute threshold: pick the first τ where CMND(τ) < threshold AND τ is
+ *    a local minimum. Falls back to global minimum if none found.
+ * 4. Parabolic interpolation around the chosen lag for sub-sample precision.
+ *
+ * Returns 0 when the signal is unvoiced or the candidate is not confident
+ * (CMND > unvoicedCutoff) so callers can treat 0 as "no pitch".
+ *
+ * Search range defaults to 70–500 Hz (covers child & adult voices).
+ */
+export function estimateF0(
+  buf: Float32Array,
+  sampleRate: number,
+  opts: { fMin?: number; fMax?: number; threshold?: number; unvoicedCutoff?: number } = {},
+): number {
+  const fMin           = opts.fMin           ?? 70;
+  const fMax           = opts.fMax           ?? 500;
+  const threshold      = opts.threshold      ?? 0.15;
+  const unvoicedCutoff = opts.unvoicedCutoff ?? 0.4;
+
   const N = buf.length;
-  const minPeriod = Math.floor(sampleRate / 500);
-  const maxPeriod = Math.min(Math.floor(sampleRate / 70), N - 1);
+  const minPeriod = Math.max(2, Math.floor(sampleRate / fMax));
+  const maxPeriod = Math.min(Math.floor(sampleRate / fMin), Math.floor(N / 2) - 1);
+  if (maxPeriod <= minPeriod + 1) return 0;
 
-  const nacVals = new Float32Array(maxPeriod + 2);
-  for (let lag = minPeriod; lag <= maxPeriod; lag++) {
-    let r = 0, norm = 0;
-    for (let i = 0; i < N - lag; i++) {
-      r += buf[i] * buf[i + lag];
-      norm += buf[i] * buf[i] + buf[i + lag] * buf[i + lag];
+  // Step 1 — difference function over [0, maxPeriod]
+  const d = new Float32Array(maxPeriod + 1);
+  for (let tau = 1; tau <= maxPeriod; tau++) {
+    let sum = 0;
+    const limit = N - tau;
+    for (let i = 0; i < limit; i++) {
+      const diff = buf[i] - buf[i + tau];
+      sum += diff * diff;
     }
-    nacVals[lag] = norm > 0 ? (2 * r) / norm : 0;
+    d[tau] = sum;
   }
 
-  let bestLag = 0, bestNAC = -1;
-  for (let lag = minPeriod + 1; lag < maxPeriod; lag++) {
-    if (
-      nacVals[lag] >= nacVals[lag - 1] &&
-      nacVals[lag] >= nacVals[lag + 1] &&
-      nacVals[lag] > bestNAC
-    ) {
-      bestNAC = nacVals[lag];
-      bestLag = lag;
+  // Step 2 — cumulative mean normalised difference
+  const cmnd = new Float32Array(maxPeriod + 1);
+  cmnd[0] = 1;
+  let runningSum = 0;
+  for (let tau = 1; tau <= maxPeriod; tau++) {
+    runningSum += d[tau];
+    cmnd[tau] = runningSum > 0 ? d[tau] * tau / runningSum : 1;
+  }
+
+  // Step 3 — absolute threshold with local-minimum requirement
+  let bestTau = -1;
+  for (let tau = minPeriod; tau < maxPeriod; tau++) {
+    if (cmnd[tau] < threshold) {
+      // Walk to the bottom of the dip
+      while (tau + 1 < maxPeriod && cmnd[tau + 1] < cmnd[tau]) tau++;
+      bestTau = tau;
+      break;
+    }
+  }
+  if (bestTau === -1) {
+    // Fallback: global minimum within the search band
+    let minVal = Infinity;
+    for (let tau = minPeriod; tau <= maxPeriod; tau++) {
+      if (cmnd[tau] < minVal) { minVal = cmnd[tau]; bestTau = tau; }
+    }
+    if (bestTau === -1 || minVal > unvoicedCutoff) return 0;
+  }
+
+  // Step 4 — parabolic interpolation for sub-sample lag precision
+  let refinedTau = bestTau;
+  if (bestTau > minPeriod && bestTau < maxPeriod) {
+    const s0 = cmnd[bestTau - 1];
+    const s1 = cmnd[bestTau];
+    const s2 = cmnd[bestTau + 1];
+    const denom = 2 * (2 * s1 - s2 - s0);
+    if (denom !== 0) {
+      const shift = (s2 - s0) / denom;
+      if (shift > -1 && shift < 1) refinedTau = bestTau + shift;
     }
   }
 
-  if (bestNAC < 0.4 || bestLag === 0) return 0;
-
-  // Octave correction — if half the period also correlates strongly, prefer it
-  const halfLag = Math.floor(bestLag / 2);
-  if (halfLag >= minPeriod && nacVals[halfLag] >= 0.85 * bestNAC) bestLag = halfLag;
-
-  return sampleRate / bestLag;
+  return refinedTau > 0 ? sampleRate / refinedTau : 0;
 }
 
 function percentile(sorted: number[], p: number): number {
