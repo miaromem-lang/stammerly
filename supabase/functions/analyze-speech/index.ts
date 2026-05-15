@@ -924,11 +924,12 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
     if (toolCall?.function?.arguments) {
       const analysis = JSON.parse(toolCall.function.arguments);
       
-      // Merge pre-detected disfluencies (transcript-derived + live acoustic) with AI analysis
+      // Merge pre-detected disfluencies (transcript-derived + live acoustic + intra-word) with AI analysis
       const mergedDisfluencies = [
         ...acousticAnalysis.patterns,
         ...textDisfluencies,
         ...acousticEventDisfluencies,
+        ...intraWordBlocks,
         ...(analysis.disfluencies || [])
       ];
       
