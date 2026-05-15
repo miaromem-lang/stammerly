@@ -55,8 +55,12 @@ describe("estimateF0 (YIN)", () => {
     expect(estimateF0(noise(2048, 0.03), SR)).toBe(0);
   });
 
-  it("returns 0 for a tone above the search band (700 Hz)", () => {
-    expect(estimateF0(sine(700, 2048), SR)).toBe(0);
+  it("octave-aliases a 700 Hz tone to its in-band sub-harmonic (~350 Hz)", () => {
+    // Documented YIN behaviour: tones above fMax are detected at 1/2 period.
+    // The speaker gate copes because it only cares about the in-band pitch envelope.
+    const f0 = estimateF0(sine(700, 2048), SR);
+    expect(f0).toBeGreaterThan(345);
+    expect(f0).toBeLessThan(355);
   });
 
   it("returns 0 for a tone below the search band (50 Hz)", () => {
