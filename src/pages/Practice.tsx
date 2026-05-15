@@ -28,6 +28,7 @@ interface SpeechAnalysis {
   strengths: string[];
   areasToImprove?: string[];
   encouragement: string;
+  wssExplain?: import("@/components/clinical/WSSExplainabilityPanel").WSSExplain;
 }
 
 const Practice = () => {
