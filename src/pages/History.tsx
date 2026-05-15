@@ -81,6 +81,21 @@ const History = () => {
   const [search, setSearch] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (loading || sessions.length === 0) return;
+    const hash = window.location.hash;
+    const match = hash.match(/^#session-(.+)$/);
+    if (!match) return;
+    const id = match[1];
+    setHighlightId(id);
+    requestAnimationFrame(() => {
+      document.getElementById(`session-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    const t = setTimeout(() => setHighlightId(null), 3000);
+    return () => clearTimeout(t);
+  }, [loading, sessions]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -227,8 +242,12 @@ const History = () => {
               </p>
               <ul className="space-y-3">
                 {filtered.map((s) => (
-                  <li key={s.id}>
-                    <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
+                  <li key={s.id} id={`session-${s.id}`}>
+                    <Card
+                      className={`bg-white shadow-sm hover:shadow-md transition-all ${
+                        highlightId === s.id ? "ring-2 ring-primary ring-offset-2" : ""
+                      }`}
+                    >
                       <CardContent className="p-5 flex items-center justify-between gap-4">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 flex-1 min-w-0">
                           <div className="flex items-center gap-2 text-foreground font-medium">

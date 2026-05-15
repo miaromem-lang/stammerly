@@ -221,7 +221,13 @@ export function StammerDetector({
             {saveStatus.state === 'saving' && <span>Saving session to therapist analytics…</span>}
             {saveStatus.state === 'saved' && (
               <span>
-                Session saved — {saveStatus.total} event{saveStatus.total === 1 ? '' : 's'} synced to therapist analytics.
+                Session saved — {saveStatus.total} event{saveStatus.total === 1 ? '' : 's'} synced to therapist analytics.{' '}
+                <a
+                  href={`/history#session-${saveStatus.id}`}
+                  className="font-medium underline underline-offset-2 hover:no-underline"
+                >
+                  View in History (ref #{saveStatus.id.slice(0, 8)})
+                </a>
               </span>
             )}
             {saveStatus.state === 'skipped' && <span>{saveStatus.reason}</span>}
