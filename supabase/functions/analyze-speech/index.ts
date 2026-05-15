@@ -741,12 +741,35 @@ serve(async (req) => {
     const interjectionsCount = allDisfluencies.filter(d => d.type === 'Interjection').length;
     const intraWordBlocksCount = intraWordBlocks.length;
 
+    // Transcript-only pool: derived purely from Whisper word-level timings + text patterns.
+    // Excludes the live browser acoustic events and intra-word silent blocks from segments.
+    const transcriptOnlyBlockDurations = [...acousticAnalysis.longestBlocks].sort((a, b) => b - a);
+    const transcriptOnlyLongestBlocks = transcriptOnlyBlockDurations.slice(0, 3);
+
+    const transcriptOnlyDisfluencies = [...acousticAnalysis.patterns, ...textDisfluencies];
+    const transcriptOnlySldCount = transcriptOnlyDisfluencies.filter(d => d.category === 'SLD').length;
+    const transcriptOnlyBlocks = transcriptOnlyDisfluencies.filter(d => d.type === 'Block').length;
+    const transcriptOnlyProlongations = transcriptOnlyDisfluencies.filter(d => d.type === 'Prolongation').length;
+    const transcriptOnlyReps = transcriptOnlyDisfluencies.filter(d => d.type === 'SoundRepetition' || d.type === 'PartWordRepetition' || d.type === 'SyllableRepetition').length;
+    const transcriptOnlyPercentSS = totalSyllables > 0 ? (transcriptOnlySldCount / totalSyllables) * 100 : 0;
+    const transcriptOnlyWss = calculateWSS(
+      transcriptOnlyBlocks,
+      transcriptOnlyProlongations,
+      transcriptOnlyReps,
+      transcriptOnlyLongestBlocks,
+      totalSyllables
+    );
+
     // Merge acoustic block durations into the longest-blocks pool used by WSS,
     // so silent intra-word blocks contribute to severity scoring.
+    const acousticBlockDurations = acousticEvents
+      .filter(e => e.type === 'BLOCK' || e.type === 'PROLONGATION')
+      .map(e => e.durationMs);
+    const intraWordBlockDurations = intraWordBlocks.map(b => b.durationMs ?? 0);
     const combinedBlockDurations = [
       ...acousticAnalysis.longestBlocks,
-      ...acousticEvents.filter(e => e.type === 'BLOCK' || e.type === 'PROLONGATION').map(e => e.durationMs),
-      ...intraWordBlocks.map(b => b.durationMs ?? 0),
+      ...acousticBlockDurations,
+      ...intraWordBlockDurations,
     ].sort((a, b) => b - a);
     const longestBlocks = combinedBlockDurations.slice(0, 3);
 
@@ -758,6 +781,35 @@ serve(async (req) => {
       longestBlocks,
       totalSyllables
     );
+
+    // Explainability: how the merged pool changed the score vs transcript-only.
+    const avg = (xs: number[]) => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0;
+    const wssExplain = {
+      transcriptOnly: {
+        wss: transcriptOnlyWss,
+        percentStuttered: transcriptOnlyPercentSS,
+        sldCount: transcriptOnlySldCount,
+        longestBlocks: transcriptOnlyLongestBlocks,
+        avgLongestBlockMs: avg(transcriptOnlyLongestBlocks),
+      },
+      merged: {
+        wss,
+        percentStuttered: totalSyllables > 0 ? (sldCount / totalSyllables) * 100 : 0,
+        sldCount,
+        longestBlocks,
+        avgLongestBlockMs: avg(longestBlocks),
+      },
+      contributions: {
+        acousticEventsAdded: acousticEvents.length,
+        acousticBlocksAdded: acousticBlockDurations.length,
+        intraWordBlocksAdded: intraWordBlockDurations.length,
+        addedSldCount: sldCount - transcriptOnlySldCount,
+        addedBlockDurationsMs: [...acousticBlockDurations, ...intraWordBlockDurations].sort((a, b) => b - a),
+        wssDelta: wss - transcriptOnlyWss,
+        percentStutteredDelta: (totalSyllables > 0 ? (sldCount / totalSyllables) * 100 : 0) - transcriptOnlyPercentSS,
+        avgLongestBlockDeltaMs: avg(longestBlocks) - avg(transcriptOnlyLongestBlocks),
+      },
+    };
     
     // Calculate percent syllables stuttered
     const percentSS = totalSyllables > 0 
@@ -1039,6 +1091,9 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
         // Echo back the live acoustic events used in this analysis
         acousticEventsCount: acousticEvents.length,
         intraWordBlocksCount,
+
+        // Explainability: WSS breakdown vs transcript-only baseline
+        wssExplain,
         
         // All disfluencies with full detail
         disfluencies: uniqueDisfluencies,

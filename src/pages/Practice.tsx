@@ -16,6 +16,8 @@ import { StammerDetector } from "@/components/StammerDetector";
 import { useStammerDetector, type StammerEvent } from "@/hooks/useStammerDetector";
 import { HubNavigation } from "@/components/HubNavigation";
 import { loadSavedName, loadSavedProfile } from "@/pages/Settings";
+import { useAuth } from "@/hooks/useAuth";
+import { WSSExplainabilityPanel } from "@/components/clinical/WSSExplainabilityPanel";
 
 type LiveRole = "parent" | "therapist" | "child";
 
@@ -28,10 +30,16 @@ interface SpeechAnalysis {
   strengths: string[];
   areasToImprove?: string[];
   encouragement: string;
+  wssExplain?: import("@/components/clinical/WSSExplainabilityPanel").WSSExplain;
 }
 
 const Practice = () => {
   const navigate = useNavigate();
+  const { role } = useAuth();
+  const isClinician =
+    role === "therapist" ||
+    role === "admin" ||
+    (typeof window !== "undefined" && sessionStorage.getItem("dev_admin_bypass") === "true");
   const [searchParams, setSearchParams] = useSearchParams();
   const initialMode: "exercise" | "live" = searchParams.get("mode") === "live" ? "live" : "exercise";
   const [mode, setMode] = useState<"exercise" | "live">(initialMode);
@@ -812,6 +820,13 @@ const Practice = () => {
                       </li>
                     ))}
                   </ul>
+                </div>
+              )}
+
+              {/* Clinician-only WSS explainability */}
+              {isClinician && analysis.wssExplain && (
+                <div className="mb-6">
+                  <WSSExplainabilityPanel explain={analysis.wssExplain} />
                 </div>
               )}
 
