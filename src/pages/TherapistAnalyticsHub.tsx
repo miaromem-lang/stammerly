@@ -28,6 +28,7 @@ import {
   MoodFluencyCorrelation,
   DisfluencyAuditLog,
 } from "@/components/therapist";
+import { AcousticEventsAggregate } from "@/components/clinical/AcousticEventsAggregate";
 
 // Mock patients for demo
 const patients = [
@@ -802,6 +803,9 @@ const TherapistAnalyticsHub = () => {
                   wordAvoidances={metrics.wordAvoidances}
                 />
               </div>
+
+              {/* Acoustic Events Aggregate (live detector signal) */}
+              {selectedPatient && <AcousticEventsAggregate childUserId={selectedPatient} days={30} />}
 
               {/* Disfluency Audit Log */}
               <DisfluencyAuditLog patientId={selectedPatient} />

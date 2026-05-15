@@ -76,6 +76,7 @@ const Practice = () => {
   // useStammerDetector run in parallel with the MediaRecorder so we can ship
   // ground-truth disfluency markers to analyze-speech alongside the transcript.
   const acousticEventsRef = useRef<StammerEvent[]>([]);
+  const recordingStartedAtRef = useRef<number>(0);
   const exerciseDetector = useStammerDetector({
     audioProfile: loadSavedProfile(),
     onEvent: (ev) => { acousticEventsRef.current.push(ev); },
@@ -322,7 +323,28 @@ const Practice = () => {
         console.error('Error saving session:', error);
       } else {
         console.log('Session saved to database:', sessionData?.id);
-        
+
+        // Persist captured live acoustic events for this session so therapists/admins
+        // can replay the timeline later. Owner-scoped via RLS.
+        const events = acousticEventsRef.current;
+        const startedAt = recordingStartedAtRef.current || Date.now();
+        if (sessionData?.id && events.length > 0) {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const rows = events.slice(0, 500).map(ev => ({
+              session_id: sessionData.id,
+              user_id: user.id,
+              event_type: ev.type,
+              duration_ms: Math.max(0, Math.round(ev.durationMs || 0)),
+              confidence: Math.max(0, Math.min(1, ev.confidence ?? 0)),
+              occurred_at_ms: Math.max(0, (ev.timestamp instanceof Date ? ev.timestamp.getTime() : Date.now()) - startedAt),
+              detail: ev.detail ?? null,
+            }));
+            const { error: aeError } = await supabase.from('acoustic_events').insert(rows);
+            if (aeError) console.warn('Failed to persist acoustic events:', aeError);
+          }
+        }
+
         // Update user progress with gems and stars, and update streak
         await addGemsAndStars(gemsEarned, starsEarned);
         
@@ -428,6 +450,7 @@ const Practice = () => {
       setIsRecording(true);
       // Reset and start the headless stammer detector for this take
       acousticEventsRef.current = [];
+      recordingStartedAtRef.current = Date.now();
       exerciseDetector.startRecording().catch((err) => {
         console.warn('Stammer detector failed to start (continuing without acoustic events):', err);
       });
