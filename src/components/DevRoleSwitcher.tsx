@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Smile, Users, GraduationCap, Stethoscope, Settings, X, BarChart3 } from "lucide-react";
@@ -12,34 +12,69 @@ const roles = [
   { id: "therapist" as AppRole, label: "Therapist Hub", icon: Stethoscope, path: "/hub/therapist", analyticsPath: "/analytics/therapist", color: "bg-purple-500" },
 ];
 
+const ROLE_KEY = "dev_viewing_as_role";
+const OPEN_KEY = "dev_role_switcher_open";
+const ROLE_EVENT = "dev-role-change";
+
+const readActiveRole = (): AppRole | null =>
+  (sessionStorage.getItem(ROLE_KEY) as AppRole | null) ?? null;
+
+const writeActiveRole = (next: AppRole) => {
+  sessionStorage.setItem(ROLE_KEY, next);
+  window.dispatchEvent(new CustomEvent(ROLE_EVENT, { detail: next }));
+};
+
 export function DevRoleSwitcher() {
-  const [isOpen, setIsOpen] = useState(false);
   const { role } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Only show for admin users
-  if (role !== "admin") return null;
+  // Persist panel open/close across navigations (incl. AdminHub tab switches)
+  const [isOpen, setIsOpen] = useState<boolean>(() => sessionStorage.getItem(OPEN_KEY) === "true");
+  const [activeRole, setActiveRole] = useState<AppRole | null>(() => readActiveRole());
 
-  const handleRoleSwitch = (targetRole: AppRole, path: string) => {
-    // Store the "viewing as" role in sessionStorage for dev purposes
-    sessionStorage.setItem("dev_viewing_as_role", targetRole);
+  useEffect(() => {
+    sessionStorage.setItem(OPEN_KEY, String(isOpen));
+  }, [isOpen]);
+
+  // Re-sync active role from storage on route changes and when other code updates it
+  useEffect(() => {
+    setActiveRole(readActiveRole());
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const sync = () => setActiveRole(readActiveRole());
+    window.addEventListener(ROLE_EVENT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(ROLE_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  const handleRoleSwitch = useCallback((targetRole: AppRole, path: string) => {
+    writeActiveRole(targetRole);
+    setActiveRole(targetRole);
     navigate(path);
-    setIsOpen(false);
-  };
+  }, [navigate]);
 
-  const handleAnalyticsJump = (targetRole: AppRole, analyticsPath: string) => {
-    sessionStorage.setItem("dev_viewing_as_role", targetRole);
+  const handleAnalyticsJump = useCallback((targetRole: AppRole, analyticsPath: string) => {
+    writeActiveRole(targetRole);
+    setActiveRole(targetRole);
     navigate(analyticsPath);
-    setIsOpen(false);
-  };
+  }, [navigate]);
+
+  // Only show for admin users (after hooks so order is stable)
+  if (role !== "admin") return null;
 
   return (
     <>
       {/* Floating Dev Button */}
       <Button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => setIsOpen((v) => !v)}
         className="fixed bottom-4 right-4 z-50 rounded-full w-12 h-12 shadow-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
         size="icon"
+        aria-label={isOpen ? "Close dev role switcher" : "Open dev role switcher"}
       >
         {isOpen ? <X className="w-5 h-5" /> : <Settings className="w-5 h-5" />}
       </Button>
@@ -56,16 +91,16 @@ export function DevRoleSwitcher() {
           </p>
           <div className="space-y-2">
             {roles.map((r) => {
+              const isActive = activeRole === r.id || (!activeRole && role === r.id);
+
               const Icon = r.icon;
-              const devRole = sessionStorage.getItem("dev_viewing_as_role");
-              const isActive = devRole === r.id || (!devRole && role === r.id);
-              
               return (
                 <div key={r.id} className="flex items-stretch gap-1">
                   <Button
                     variant={isActive ? "default" : "outline"}
                     className="flex-1 justify-start gap-2"
                     onClick={() => handleRoleSwitch(r.id, r.path)}
+                    aria-pressed={isActive}
                   >
                     <div className={`p-1 rounded ${r.color}`}>
                       <Icon className="w-3 h-3 text-white" />
@@ -91,7 +126,7 @@ export function DevRoleSwitcher() {
               variant="ghost"
               size="sm"
               className="w-full text-xs"
-              onClick={() => { navigate("/therapist-analytics"); setIsOpen(false); }}
+              onClick={() => navigate("/therapist-analytics")}
             >
               📊 Clinical Analytics Hub
             </Button>
