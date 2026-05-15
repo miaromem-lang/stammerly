@@ -863,10 +863,13 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
         // Word avoidances
         wordAvoidances,
         
-        // Longest blocks (for WSS)
-        longestBlockMs: acousticAnalysis.longestBlocks[0] ?? null,
-        secondLongestBlockMs: acousticAnalysis.longestBlocks[1] ?? null,
-        thirdLongestBlockMs: acousticAnalysis.longestBlocks[2] ?? null,
+        // Longest blocks (for WSS) — merged transcript gaps + live acoustic blocks
+        longestBlockMs: longestBlocks[0] ?? null,
+        secondLongestBlockMs: longestBlocks[1] ?? null,
+        thirdLongestBlockMs: longestBlocks[2] ?? null,
+
+        // Echo back the live acoustic events used in this analysis
+        acousticEventsCount: acousticEvents.length,
         
         // All disfluencies with full detail
         disfluencies: uniqueDisfluencies,
