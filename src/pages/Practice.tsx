@@ -97,7 +97,12 @@ const Practice = () => {
       setLiveAcousticEventCount(acousticEventsRef.current.length);
     },
   });
-  
+
+  // Snapshots used by the clinician-only AcousticTimeline in the results card.
+  const [lastWordTimings, setLastWordTimings] = useState<WordTimingLite[]>([]);
+  const [lastTranscript, setLastTranscript] = useState<string>("");
+  const [lastAcousticRows, setLastAcousticRows] = useState<AcousticEventRow[]>([]);
+
   // Large collection of practice phrases organized by difficulty
   const allPhrases = {
     beginner: [
