@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import type { StammerEvent } from '@/hooks/useStammerDetector';
 
 interface WordTiming {
   word: string;
