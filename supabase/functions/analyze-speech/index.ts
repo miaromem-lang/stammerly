@@ -72,7 +72,7 @@ interface AcousticEvent {
 
 // Sanitise the events array coming from the client. Anything malformed is
 // dropped silently — the LLM and downstream metrics should never see junk.
-function sanitiseAcousticEvents(raw: unknown): AcousticEvent[] {
+export function sanitiseAcousticEvents(raw: unknown): AcousticEvent[] {
   if (!Array.isArray(raw)) return [];
   const allowed: AcousticMarkerType[] = ['PROLONGATION', 'BLOCK', 'REPETITION', 'INTERJECTION'];
   const out: AcousticEvent[] = [];
