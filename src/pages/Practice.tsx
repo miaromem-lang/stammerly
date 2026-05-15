@@ -468,6 +468,90 @@ const Practice = () => {
     return 1;
   };
 
+  // Live Session mode (merged from former /session) ----------------------
+  if (mode === "live") {
+    const handleLiveStart = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!liveChildName.trim()) return;
+      setLiveStarted(true);
+    };
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/15 via-primary/5 to-background">
+        <Helmet>
+          <title>Live Session | Stammerly</title>
+          <meta name="description" content="Real-time stammer detection session with Stammerly." />
+          <link rel="canonical" href="/practice?mode=live" />
+        </Helmet>
+        <HubNavigation />
+        <main className="container mx-auto px-2 sm:px-4 py-6 sm:py-10 pb-24 sm:pb-10 flex justify-center">
+          <div className="w-full max-w-5xl bg-white rounded-none sm:rounded-2xl shadow-none sm:shadow-xl p-4 sm:p-6 md:p-10">
+            <div className="flex justify-end mb-4">
+              <Button variant="outline" size="sm" onClick={() => switchMode("exercise")}>
+                <BookOpen className="w-4 h-4 mr-2" /> Switch to Exercise
+              </Button>
+            </div>
+            {!liveStarted ? (
+              <form onSubmit={handleLiveStart} className="max-w-md mx-auto space-y-6">
+                <div className="space-y-2 text-center">
+                  <h1 className="text-3xl font-display font-bold text-primary">Live Session</h1>
+                  <p className="text-sm text-muted-foreground">
+                    Tell us a little about who's using Stammerly today.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="liveChildName">Child's name</Label>
+                  <Input
+                    id="liveChildName"
+                    value={liveChildName}
+                    onChange={(e) => setLiveChildName(e.target.value)}
+                    placeholder="e.g. Leo"
+                    required
+                    autoFocus
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>I am a…</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["parent", "therapist", "child"] as LiveRole[]).map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => setLiveRole(r)}
+                        className={`px-3 py-2 rounded-lg border text-sm capitalize transition-colors ${
+                          liveRole === r
+                            ? "border-primary bg-primary/10 text-primary font-medium"
+                            : "border-border bg-card text-muted-foreground hover:text-foreground"
+                        }`}
+                        aria-pressed={liveRole === r}
+                      >
+                        {r}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <Button type="submit" className="w-full" disabled={!liveChildName.trim()}>
+                  Continue
+                </Button>
+              </form>
+            ) : (
+              <>
+                <h1 className="sr-only">Live Stammer Detection Session</h1>
+                <StammerDetector
+                  childName={liveChildName}
+                  childId="child_001"
+                  defaultView={liveRole}
+                  defaultProfile={liveAudioProfile}
+                  environmentType={typeof liveAudioProfile === 'string' ? liveAudioProfile : 'quiet'}
+                />
+              </>
+            )}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Exercise mode (default) ----------------------------------------------
   return (
     <div className="min-h-screen relative">
       <PageBackground />
