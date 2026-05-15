@@ -79,6 +79,13 @@ export function StammerDetector({
   const [view, setView] = useState<ViewMode>(defaultView)
   const [childName] = useState(childNameProp)
   const { saveSession } = usePersistDetectorSession()
+  const [saveStatus, setSaveStatus] = useState<
+    | { state: 'idle' }
+    | { state: 'saving' }
+    | { state: 'saved'; id: string; total: number }
+    | { state: 'skipped'; reason: string }
+    | { state: 'error'; message: string }
+  >({ state: 'idle' })
 
   const detector = useStammerDetector({
     childId,
@@ -93,17 +100,35 @@ export function StammerDetector({
       (acc, e) => ({ ...acc, [e.type]: (acc[e.type] ?? 0) + 1 }),
       {} as Partial<Record<MarkerType, number>>
     )
+    const total = detector.events.length
     const sessionStart = detector.sessionStart
     detector.stopRecording()
-    if (sessionStart) {
+    if (!sessionStart) {
+      setSaveStatus({ state: 'skipped', reason: 'No session start recorded.' })
+      return
+    }
+    setSaveStatus({ state: 'saving' })
+    try {
       const result = await saveSession({
         counts,
         sessionStart,
         environmentType: environmentType ?? (typeof defaultProfile === 'string' ? defaultProfile : 'quiet'),
       })
-      if (result.saved && result.id) onSessionSaved?.(result.id)
+      if (result.saved && result.id) {
+        setSaveStatus({ state: 'saved', id: result.id, total })
+        onSessionSaved?.(result.id)
+      } else if (result.reason === 'not_authenticated') {
+        setSaveStatus({ state: 'skipped', reason: 'Sign in to sync this session to therapist analytics.' })
+      } else {
+        setSaveStatus({ state: 'error', message: result.reason ?? 'Unknown error saving session.' })
+      }
+    } catch (err) {
+      setSaveStatus({ state: 'error', message: err instanceof Error ? err.message : 'Unexpected error.' })
     }
   }
+
+  const dismissStatus = () => setSaveStatus({ state: 'idle' })
+
 
   return (
     <div className="w-full max-w-2xl mx-auto font-sans">
@@ -143,6 +168,53 @@ export function StammerDetector({
       {detector.error && (
         <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
           {detector.error}
+        </div>
+      )}
+
+      {/* ── Save status banner ── */}
+      {saveStatus.state !== 'idle' && (
+        <div
+          role="status"
+          aria-live="polite"
+          className={`mb-4 p-3 rounded-lg border text-sm flex items-start gap-2 ${
+            saveStatus.state === 'saving'
+              ? 'bg-blue-50 border-blue-200 text-blue-700'
+              : saveStatus.state === 'saved'
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+              : saveStatus.state === 'skipped'
+              ? 'bg-amber-50 border-amber-200 text-amber-700'
+              : 'bg-red-50 border-red-200 text-red-700'
+          }`}
+        >
+          <span className="mt-0.5">
+            {saveStatus.state === 'saving' && (
+              <span className="inline-block w-3.5 h-3.5 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
+            )}
+            {saveStatus.state === 'saved' && '✓'}
+            {saveStatus.state === 'skipped' && 'ⓘ'}
+            {saveStatus.state === 'error' && '⚠'}
+          </span>
+          <div className="flex-1">
+            {saveStatus.state === 'saving' && <span>Saving session to therapist analytics…</span>}
+            {saveStatus.state === 'saved' && (
+              <span>
+                Session saved — {saveStatus.total} event{saveStatus.total === 1 ? '' : 's'} synced to therapist analytics.
+              </span>
+            )}
+            {saveStatus.state === 'skipped' && <span>{saveStatus.reason}</span>}
+            {saveStatus.state === 'error' && (
+              <span>Couldn't save to analytics: {saveStatus.message}</span>
+            )}
+          </div>
+          {saveStatus.state !== 'saving' && (
+            <button
+              onClick={dismissStatus}
+              className="text-xs opacity-60 hover:opacity-100 px-1"
+              aria-label="Dismiss"
+            >
+              ✕
+            </button>
+          )}
         </div>
       )}
 
