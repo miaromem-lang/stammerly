@@ -566,9 +566,14 @@ const Practice = () => {
               <span>Back</span>
             </button>
             <h1 className="font-display font-bold text-xl text-foreground">Easy Onset Quest 🌊</h1>
-            <div className="flex items-center gap-2 bg-gold/20 px-3 py-1 rounded-full">
-              <Star className="w-4 h-4 text-gold fill-gold" />
-              <span className="font-bold text-sm">+10</span>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => switchMode("live")}>
+                <Radio className="w-4 h-4 mr-1" /> Live Session
+              </Button>
+              <div className="flex items-center gap-2 bg-gold/20 px-3 py-1 rounded-full">
+                <Star className="w-4 h-4 text-gold fill-gold" />
+                <span className="font-bold text-sm">+10</span>
+              </div>
             </div>
           </div>
         </div>
