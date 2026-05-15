@@ -184,7 +184,7 @@ function useStammerDetector(options: {
   const analyserRef       = useRef<AnalyserNode | null>(null)
   const streamRef         = useRef<MediaStream | null>(null)
   const intervalRef       = useRef<ReturnType<typeof setInterval> | null>(null)
-  const recognitionRef    = useRef<SpeechRecognition | null>(null)
+  const recognitionRef    = useRef<any>(null)
   const timeBufRef        = useRef<Float32Array | null>(null)
   const freqBufRef        = useRef<Float32Array | null>(null)
   const wasSpeakingRef    = useRef(false)
@@ -228,7 +228,7 @@ function useStammerDetector(options: {
   processAudioFrameRef.current = () => {
     const analyser = analyserRef.current, ctx = audioCtxRef.current, timeBuf = timeBufRef.current
     if (!analyser || !ctx || !timeBuf) return
-    analyser.getFloatTimeDomainData(timeBuf)
+    analyser.getFloatTimeDomainData(timeBuf as any)
     const energy = rms(timeBuf), crossRate = zcr(timeBuf)
     const isSpeech = energy > vadThresholdRef.current
     const now = Date.now(), profCfg = profileConfigRef.current
@@ -322,10 +322,10 @@ function useStammerDetector(options: {
     }
   }, [emit])
 
-  const buildRecognition = useCallback((): SpeechRecognition | null => {
+  const buildRecognition = useCallback((): any => {
     const SpeechRec = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition
     if (!SpeechRec) return null
-    const rec: SpeechRecognition = new SpeechRec()
+    const rec: any = new SpeechRec()
     rec.continuous = true; rec.interimResults = true; rec.lang = 'en-GB'
     rec.onresult = (ev: SpeechRecognitionEvent) => {
       for (let i = ev.resultIndex; i < ev.results.length; i++)
