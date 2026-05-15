@@ -199,7 +199,8 @@ export function useSpeechAnalysis() {
                 body: {
                   transcript: transcription.text,
                   targetPhrase,
-                  words: transcription.words
+                  words: transcription.words,
+                  acousticEvents,
                 }
               });
 
