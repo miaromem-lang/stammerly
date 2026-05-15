@@ -39,7 +39,7 @@ interface SpeechAnalysis {
 
 const Practice = () => {
   const navigate = useNavigate();
-  const { role } = useAuth();
+  const { role, user } = useAuth();
   const isClinician =
     role === "therapist" ||
     role === "admin" ||
