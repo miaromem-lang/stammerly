@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      acoustic_events: {
+        Row: {
+          confidence: number
+          created_at: string
+          detail: string | null
+          duration_ms: number
+          event_type: string
+          id: string
+          occurred_at_ms: number
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          confidence?: number
+          created_at?: string
+          detail?: string | null
+          duration_ms?: number
+          event_type: string
+          id?: string
+          occurred_at_ms?: number
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          confidence?: number
+          created_at?: string
+          detail?: string | null
+          duration_ms?: number
+          event_type?: string
+          id?: string
+          occurred_at_ms?: number
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "acoustic_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "practice_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_permissions: {
         Row: {
           created_at: string
