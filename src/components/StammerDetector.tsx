@@ -79,6 +79,13 @@ export function StammerDetector({
   const [view, setView] = useState<ViewMode>(defaultView)
   const [childName] = useState(childNameProp)
   const { saveSession } = usePersistDetectorSession()
+  const [saveStatus, setSaveStatus] = useState<
+    | { state: 'idle' }
+    | { state: 'saving' }
+    | { state: 'saved'; id: string; total: number }
+    | { state: 'skipped'; reason: string }
+    | { state: 'error'; message: string }
+  >({ state: 'idle' })
 
   const detector = useStammerDetector({
     childId,
@@ -93,17 +100,35 @@ export function StammerDetector({
       (acc, e) => ({ ...acc, [e.type]: (acc[e.type] ?? 0) + 1 }),
       {} as Partial<Record<MarkerType, number>>
     )
+    const total = detector.events.length
     const sessionStart = detector.sessionStart
     detector.stopRecording()
-    if (sessionStart) {
+    if (!sessionStart) {
+      setSaveStatus({ state: 'skipped', reason: 'No session start recorded.' })
+      return
+    }
+    setSaveStatus({ state: 'saving' })
+    try {
       const result = await saveSession({
         counts,
         sessionStart,
         environmentType: environmentType ?? (typeof defaultProfile === 'string' ? defaultProfile : 'quiet'),
       })
-      if (result.saved && result.id) onSessionSaved?.(result.id)
+      if (result.saved && result.id) {
+        setSaveStatus({ state: 'saved', id: result.id, total })
+        onSessionSaved?.(result.id)
+      } else if (result.reason === 'not_authenticated') {
+        setSaveStatus({ state: 'skipped', reason: 'Sign in to sync this session to therapist analytics.' })
+      } else {
+        setSaveStatus({ state: 'error', message: result.reason ?? 'Unknown error saving session.' })
+      }
+    } catch (err) {
+      setSaveStatus({ state: 'error', message: err instanceof Error ? err.message : 'Unexpected error.' })
     }
   }
+
+  const dismissStatus = () => setSaveStatus({ state: 'idle' })
+
 
   return (
     <div className="w-full max-w-2xl mx-auto font-sans">
