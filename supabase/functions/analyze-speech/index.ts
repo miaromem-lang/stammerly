@@ -1141,9 +1141,11 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
         pattern: new RegExp(`\\b${escapeRegex(kw)}\\b`, 'i'),
       }));
 
-      const matched = keywordPatterns.find(({ pattern }) => pattern.test(transcript));
+      const matchedKeywords = keywordPatterns
+        .filter(({ pattern }) => pattern.test(transcript))
+        .map(({ keyword }) => keyword);
 
-      if (matched) {
+      if (matchedKeywords.length > 0) {
         try {
           const serviceClient = createClient(
             Deno.env.get('SUPABASE_URL')!,
@@ -1153,11 +1155,11 @@ Analyze this sample incorporating the pre-detected patterns. Provide accurate cl
           await serviceClient.from('safeguarding_alerts').insert({
             user_id: userId,
             alert_type: 'keyword_detected',
-            reason: `Keyword detected in transcript: "${matched.keyword}"`,
+            reason: `Keywords detected in transcript: ${matchedKeywords.map(k => `"${k}"`).join(', ')}`,
             status: 'pending',
           });
 
-          console.log('Safeguarding alert created for user:', userId, 'keyword:', matched.keyword);
+          console.log('Safeguarding alert created for user:', userId, 'keywords:', matchedKeywords);
         } catch (safeguardingError) {
           console.error('Failed to create safeguarding alert:', safeguardingError);
         }
