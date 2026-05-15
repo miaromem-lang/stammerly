@@ -469,13 +469,45 @@ export function useSpeakerProfile(
       saveSettings(childId, next);
       return next;
     });
+    setHasCustomSettings(true);
   }, [childId]);
 
+  /**
+   * Drop the per-child override and re-apply the current global defaults.
+   * After this, future loads of the same child will read straight from globals.
+   */
   const resetSettings = useCallback(() => {
-    const next = { ...DEFAULT_GATE_SETTINGS };
-    saveSettings(childId, next);
+    clearChildSettings(childId);
+    const next = loadGlobalSettings();
     setSettings(next);
+    setHasCustomSettings(false);
   }, [childId]);
+
+  const setGlobalDefaults = useCallback((partial: Partial<SpeakerGateSettings>) => {
+    setGlobalSettingsState(prev => {
+      const next = sanitise(
+        { ...prev, ...partial },
+        DEFAULT_GATE_SETTINGS,
+      );
+      saveGlobalSettings(next);
+      // If this child has no per-child override, reflect new globals live.
+      if (!hasCustomSettings) setSettings(next);
+      return next;
+    });
+  }, [hasCustomSettings]);
+
+  const saveCurrentAsGlobalDefaults = useCallback(() => {
+    const next = { ...settingsRef.current };
+    saveGlobalSettings(next);
+    setGlobalSettingsState(next);
+  }, []);
+
+  const resetGlobalDefaults = useCallback(() => {
+    clearGlobalSettings();
+    const next = { ...DEFAULT_GATE_SETTINGS };
+    setGlobalSettingsState(next);
+    if (!hasCustomSettings) setSettings(next);
+  }, [hasCustomSettings]);
 
   const exportSettings = useCallback((): string => {
     const payload: SpeakerGateSettingsExport = {
@@ -517,6 +549,7 @@ export function useSpeakerProfile(
       };
       saveSettings(childId, next);
       setSettings(next);
+      setHasCustomSettings(true);
       return { ok: true, settings: next };
     },
     [childId],
@@ -536,6 +569,11 @@ export function useSpeakerProfile(
     resetSettings,
     exportSettings,
     importSettings,
+    hasCustomSettings,
+    globalSettings,
+    saveCurrentAsGlobalDefaults,
+    setGlobalDefaults,
+    resetGlobalDefaults,
   };
 }
 
