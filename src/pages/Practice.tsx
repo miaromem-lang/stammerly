@@ -31,6 +31,23 @@ interface SpeechAnalysis {
 
 const Practice = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialMode: "exercise" | "live" = searchParams.get("mode") === "live" ? "live" : "exercise";
+  const [mode, setMode] = useState<"exercise" | "live">(initialMode);
+
+  // Live Session state (merged from former /session page)
+  const [liveChildName, setLiveChildName] = useState(() => loadSavedName());
+  const [liveRole, setLiveRole] = useState<LiveRole>("parent");
+  const [liveStarted, setLiveStarted] = useState(false);
+  const [liveAudioProfile] = useState(() => loadSavedProfile());
+
+  const switchMode = (next: "exercise" | "live") => {
+    setMode(next);
+    const sp = new URLSearchParams(searchParams);
+    if (next === "live") sp.set("mode", "live"); else sp.delete("mode");
+    setSearchParams(sp, { replace: true });
+  };
+
   const { getActiveQuest, clearActiveQuest } = useActiveQuest();
   const { addGemsAndStars, progress } = useUserProgress();
   const { checkAndAwardAchievements } = useAchievements();
