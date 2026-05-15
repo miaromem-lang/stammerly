@@ -1,14 +1,22 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Mic, MicOff, Volume2, RefreshCw, Star, Trophy, Loader2, ThumbsUp, AlertCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ArrowLeft, Mic, MicOff, Volume2, RefreshCw, Star, Trophy, Loader2, ThumbsUp, AlertCircle, Radio, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveQuest } from "@/hooks/useActiveQuest";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useAchievements } from "@/hooks/useAchievements";
 import PageBackground from "@/components/PageBackground";
+import { StammerDetector } from "@/components/StammerDetector";
+import { HubNavigation } from "@/components/HubNavigation";
+import { loadSavedName, loadSavedProfile } from "@/pages/Settings";
+
+type LiveRole = "parent" | "therapist" | "child";
 
 interface SpeechAnalysis {
   fluencyScore: number;
