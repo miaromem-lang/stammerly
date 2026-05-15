@@ -71,6 +71,15 @@ const Practice = () => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recognitionRef = useRef<any>(null);
+
+  // Live acoustic-event capture for the exercise mode. Events emitted by
+  // useStammerDetector run in parallel with the MediaRecorder so we can ship
+  // ground-truth disfluency markers to analyze-speech alongside the transcript.
+  const acousticEventsRef = useRef<StammerEvent[]>([]);
+  const exerciseDetector = useStammerDetector({
+    audioProfile: loadSavedProfile(),
+    onEvent: (ev) => { acousticEventsRef.current.push(ev); },
+  });
   
   // Large collection of practice phrases organized by difficulty
   const allPhrases = {
