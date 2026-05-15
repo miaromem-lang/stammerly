@@ -81,6 +81,26 @@ export interface UseSpeakerProfileReturn {
   settings: SpeakerGateSettings;
   updateSettings: (partial: Partial<SpeakerGateSettings>) => void;
   resetSettings: () => void;
+  /** Serialise current settings to a portable JSON string. */
+  exportSettings: () => string;
+  /**
+   * Parse a settings JSON payload (string or object) and apply it to the
+   * current child. Values are clamped to the allowed range. Returns the
+   * applied settings on success, or an error describing why import failed.
+   */
+  importSettings: (payload: string | unknown) => { ok: true; settings: SpeakerGateSettings } | { ok: false; error: string };
+}
+
+/** Stable identifier for the export envelope so future versions can migrate. */
+export const SETTINGS_EXPORT_TYPE    = "stammerly.speakerGateSettings";
+export const SETTINGS_EXPORT_VERSION = 1;
+
+export interface SpeakerGateSettingsExport {
+  type: typeof SETTINGS_EXPORT_TYPE;
+  version: number;
+  childId: string;
+  exportedAt: string;
+  settings: SpeakerGateSettings;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
