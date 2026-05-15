@@ -15,12 +15,19 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 
 // ── Constants ────────────────────────────────────────────────────────────────
-const ENROLL_DURATION_S      = 10;
-const F0_MARGIN_HZ           = 30;
-const ENERGY_HEADROOM        = 1.5;
-const VOICED_RMS_THRESHOLD   = 0.01;
-const MIN_VOICED_FRAMES      = 40;
-const STORAGE_KEY_PREFIX     = "stammerly_speaker_";
+const ENROLL_DURATION_S          = 10;
+const DEFAULT_F0_MARGIN_HZ       = 30;
+const DEFAULT_ENERGY_HEADROOM    = 1.5;
+const VOICED_RMS_THRESHOLD       = 0.01;
+const MIN_VOICED_FRAMES          = 40;
+const STORAGE_KEY_PREFIX         = "stammerly_speaker_";
+const SETTINGS_KEY_PREFIX        = "stammerly_speaker_settings_";
+
+// Settings clamps — keep values in a sensible, debuggable range.
+export const F0_MARGIN_MIN_HZ    = 0;
+export const F0_MARGIN_MAX_HZ    = 120;
+export const ENERGY_HEADROOM_MIN = 1.0;
+export const ENERGY_HEADROOM_MAX = 4.0;
 
 // ── Types ────────────────────────────────────────────────────────────────────
 export interface SpeakerFingerprint {
@@ -34,6 +41,18 @@ export interface SpeakerFingerprint {
   totalFrameCount: number;
   sampleRate: number;
 }
+
+export interface SpeakerGateSettings {
+  /** Hz of leeway added on each side of the [P10, P90] pitch band. */
+  f0MarginHz: number;
+  /** Multiplier on energyP75 before an unvoiced frame is rejected. */
+  energyHeadroom: number;
+}
+
+export const DEFAULT_GATE_SETTINGS: SpeakerGateSettings = {
+  f0MarginHz: DEFAULT_F0_MARGIN_HZ,
+  energyHeadroom: DEFAULT_ENERGY_HEADROOM,
+};
 
 export interface SpeakerProfileOptions {
   childId: string;
@@ -58,6 +77,10 @@ export interface UseSpeakerProfileReturn {
    */
   scoreFrame: (timeBuf: Float32Array, f0Hz: number) => boolean;
   clearProfile: () => void;
+  /** Per-child gate strictness, persisted in localStorage. */
+  settings: SpeakerGateSettings;
+  updateSettings: (partial: Partial<SpeakerGateSettings>) => void;
+  resetSettings: () => void;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
