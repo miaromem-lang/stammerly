@@ -458,6 +458,7 @@ const Practice = () => {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
       if (audioContextRef.current) { audioContextRef.current.close(); audioContextRef.current = null; }
       if (timerRef.current) clearInterval(timerRef.current);
+      try { exerciseDetector.stopRecording(); } catch { /* noop */ }
     }
   };
 
