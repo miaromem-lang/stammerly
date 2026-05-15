@@ -20,6 +20,7 @@ import {
   type StammerEvent,
   type AudioProfile,
 } from '@/hooks/useStammerDetector'
+import { usePersistDetectorSession } from '@/hooks/usePersistDetectorSession'
 
 // ── Marker metadata ───────────────────────────────────────────────────────────
 
@@ -63,6 +64,8 @@ export interface StammerDetectorProps {
   childId?: string
   defaultView?: ViewMode
   defaultProfile?: AudioProfile | 'auto'
+  environmentType?: string
+  onSessionSaved?: (id: string) => void
 }
 
 export function StammerDetector({
@@ -70,19 +73,37 @@ export function StammerDetector({
   childId = 'child_001',
   defaultView = 'parent',
   defaultProfile = 'quiet',
+  environmentType,
+  onSessionSaved,
 }: StammerDetectorProps = {}) {
   const [view, setView] = useState<ViewMode>(defaultView)
   const [childName] = useState(childNameProp)
+  const { saveSession } = usePersistDetectorSession()
 
   const detector = useStammerDetector({
     childId,
     audioProfile: defaultProfile,
     onEvent: (e) => {
-      // Optional: POST to your own API here
-      // fetch('/api/events', { method: 'POST', body: JSON.stringify(e) })
       console.log('[Stammerly event]', e.type, e.detail, `conf=${e.confidence.toFixed(2)}`)
     },
   })
+
+  const handleStop = async () => {
+    const counts = detector.events.reduce(
+      (acc, e) => ({ ...acc, [e.type]: (acc[e.type] ?? 0) + 1 }),
+      {} as Partial<Record<MarkerType, number>>
+    )
+    const sessionStart = detector.sessionStart
+    detector.stopRecording()
+    if (sessionStart) {
+      const result = await saveSession({
+        counts,
+        sessionStart,
+        environmentType: environmentType ?? (typeof defaultProfile === 'string' ? defaultProfile : 'quiet'),
+      })
+      if (result.saved && result.id) onSessionSaved?.(result.id)
+    }
+  }
 
   return (
     <div className="w-full max-w-2xl mx-auto font-sans">
@@ -114,7 +135,7 @@ export function StammerDetector({
         <RecordButton
           isRecording={detector.isRecording}
           onStart={detector.startRecording}
-          onStop={detector.stopRecording}
+          onStop={handleStop}
         />
       </div>
 
